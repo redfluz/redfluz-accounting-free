@@ -1,0 +1,396 @@
+// =============================================================================
+// SIDEBAR
+// =============================================================================
+//
+// The sidebar stays dark regardless of the light theme — it is the app's only
+// persistent navigation anchor. Colours come from a small local set of
+// variables so the dark surface is defined once.
+//
+// z-index uses v6's --z-* token scale rather than hardcoded numbers.
+// =============================================================================
+
+// --- Surface palette ---------------------------------------------------------
+// White blank, not a light-red rail. A full-height pastel column is a large
+// block of colour that a clerk stares at all day; keeping the rail neutral
+// means the brand red is reserved for the row you are actually on, which is
+// the only place it needs to say anything. Red therefore appears on the active
+// item, the expanded group's icon, and the brand mark — nowhere else.
+$sidebar-bg: #ffffff;
+$sidebar-bg-hover: var(--rf-red-50);
+$sidebar-bg-active: var(--rf-red-50);
+$sidebar-fg: #5c6270;
+$sidebar-fg-active: var(--rf-ink);
+$sidebar-border: var(--rf-red-100);
+
+// From the supplied red ramp.
+$sidebar-accent: var(--rf-red-400);
+$sidebar-accent-glow: var(--rf-red-100);
+
+$sidebar-danger: var(--rf-red-400);
+$sidebar-danger-bg: var(--rf-red-100);
+
+// --- Shell ------------------------------------------------------------------
+// ONE source of truth for the rail width. It was previously hardcoded as
+// 270px in four places (width, the lg width/max-width overrides, and the
+// collapsed negative margin). Changing one without the others leaves a sliver
+// of sidebar on screen when collapsed, so they all read this variable now.
+:root {
+    --sidebar-w: 270px;
+}
+
+.sidebar-wrapper {
+    width: var(--sidebar-w);
+    height: 100vh;
+    z-index: var(--z-drawer, 1045);
+    overflow-x: hidden;
+    box-shadow: 4px 0 24px rgba(38, 42, 53, 0.06);
+}
+
+// Offcanvas overrides for mobile — Bootstrap handles transform/backdrop
+@include media-breakpoint-down(lg) {
+    .sidebar-wrapper.lg\:drawer {
+        box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.4);
+    }
+}
+
+// Desktop — override Bootstrap lg:drawer defaults that break fixed sidebar
+@include media-breakpoint-up(lg) {
+    .app-wrapper {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .sidebar-wrapper.lg\:drawer {
+        flex-grow: 0 !important;
+        width: var(--sidebar-w) !important;
+        max-width: var(--sidebar-w) !important;
+    }
+
+    .main-content-wrapper {
+        height: 100vh;
+        overflow-y: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    // Hide drawer header on desktop
+    .sidebar-wrapper .drawer-header {
+        display: none;
+    }
+
+    // Collapsed rail, toggled by the topbar button via .sidebar-collapsed on
+    // .app-wrapper. At >=lg the sidebar is a flex item with a pinned
+    // --sidebar-w, so pulling it out by exactly that width reclaims the space
+    // without a layout jump and without leaving a sliver.
+    .sidebar-wrapper {
+        transition:
+            margin-inline-start 0.25s ease,
+            opacity 0.2s ease;
+    }
+
+    .app-wrapper.sidebar-collapsed .sidebar-wrapper {
+        margin-inline-start: calc(-1 * var(--sidebar-w)) !important;
+        opacity: 0;
+        pointer-events: none;
+
+        // The sidebar casts `box-shadow: 4px 0 24px`, which blurs ~24px to the
+        // RIGHT of its edge. Parked off-screen that edge lands exactly on x=0,
+        // so the shadow smeared over the toggle button sitting at the left of
+        // the sticky topbar and read as the button being half covered.
+        box-shadow: none !important;
+    }
+
+    // Belt and braces: clip the shell horizontally so nothing parked outside
+    // it can ever bleed back over the content. `clip` rather than `hidden`
+    // because it does NOT create a scroll container, so the sticky topbar
+    // keeps working.
+    .app-wrapper {
+        overflow-x: clip;
+    }
+}
+
+// --- Surfaces ---------------------------------------------------------------
+.bg-dark-sidebar {
+    background-color: $sidebar-bg !important;
+}
+
+.border-sidebar {
+    border-color: $sidebar-border !important;
+    border-width: 1px !important;
+    border-style: solid;
+}
+
+.avatar-circle {
+    background: linear-gradient(135deg, $sidebar-accent, #8a6b74) !important;
+}
+
+// --- Brand Header -----------------------------------------------------------
+.sidebar-brand {
+    min-height: 64px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+}
+
+.sidebar-brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: $sidebar-accent-glow;
+    color: $sidebar-accent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-logo {
+    max-height: 36px;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.brand-name {
+    color: $sidebar-fg-active;
+    line-height: 1.2;
+}
+
+.brand-subtitle {
+    line-height: 1.2;
+}
+
+// --- Navigation -------------------------------------------------------------
+.sidebar-nav,
+.sidebar-nav > .nav {
+    min-width: 0;
+    width: 100%;
+}
+
+.sidebar-nav .nav-item {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+}
+
+// Parent menu link
+.sidebar-parent-link {
+    background: transparent;
+    color: $sidebar-fg !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+
+    .nav-icon-wrapper {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        color: $sidebar-fg;
+        transition: all 0.2s ease;
+    }
+
+    &:hover {
+        background-color: $sidebar-bg-hover;
+        color: $sidebar-fg-active !important;
+
+        .nav-icon-wrapper {
+            color: $sidebar-accent;
+            background: $sidebar-accent-glow;
+        }
+    }
+
+    &[aria-expanded='true'] {
+        color: $sidebar-fg-active !important;
+
+        .nav-icon-wrapper {
+            color: $sidebar-accent;
+            background: $sidebar-accent-glow;
+        }
+
+        .nav-arrow {
+            transform: rotate(90deg);
+            color: $sidebar-fg-active;
+        }
+    }
+}
+
+.nav-arrow {
+    transition: transform 0.25s ease-in-out;
+}
+
+// Submenu container
+.sidebar-collapse {
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.sidebar-subnav {
+    position: relative;
+    min-width: 0;
+    width: 100%;
+
+    // Subtle vertical guide line
+    &::before {
+        content: '';
+        position: absolute;
+        left: 14px;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    > .nav-item {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+// Sub-header labels (PARTIES, ACTIVITIES, etc.)
+.sidebar-subheader {
+    color: $sidebar-fg !important;
+    padding-left: 12px !important;
+}
+
+// Sub-link items
+.sidebar-sub-link {
+    color: $sidebar-fg;
+    text-decoration: none;
+    transition: all 0.15s ease-in-out;
+    font-size: 0.8125rem;
+    min-width: 0;
+    position: relative;
+
+    > .sub-icon {
+        flex: 0 0 auto;
+        opacity: 0.6;
+        transition: opacity 0.15s ease;
+    }
+
+    > span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &:hover {
+        color: $sidebar-fg-active;
+        background-color: $sidebar-bg-hover;
+
+        > .sub-icon {
+            opacity: 1;
+        }
+    }
+
+    &.active {
+        color: $sidebar-accent !important;
+        font-weight: 500 !important;
+        background-color: $sidebar-bg-active;
+
+        > .sub-icon {
+            opacity: 1;
+            color: $sidebar-accent;
+        }
+
+        // Small accent dot on the left
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            border-radius: 0 3px 3px 0;
+            background: $sidebar-accent;
+        }
+    }
+}
+
+// --- Footer / Logout --------------------------------------------------------
+.sidebar-footer {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+}
+
+.sidebar-logout-btn {
+    background: transparent;
+    color: $sidebar-fg !important;
+    transition: all 0.2s ease;
+
+    &:hover {
+        color: $sidebar-danger !important;
+        background-color: $sidebar-danger-bg;
+
+        i {
+            opacity: 1 !important;
+        }
+    }
+}
+
+// --- Topbar -----------------------------------------------------------------
+.topbar-wrapper {
+    z-index: var(--z-sticky, 1030);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.topbar-container {
+    background-color: var(--bg-body);
+}
+
+// Bootstrap 6 Menu component — the panel (inner .menu) is positioned absolutely
+// inside the .position-relative wrapper; Bootstrap handles show/hide via display.
+.topbar-container .menu {
+    position: absolute;
+    z-index: var(--z-dropdown, 1000);
+    min-width: 220px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color-translucent);
+    border-radius: var(--radius-3, 0.375rem);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 0.375rem;
+
+    &.menu-end {
+        right: 0;
+    }
+}
+
+// Menu items — style both <a> and <button> consistently
+.topbar-container .menu-item {
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-2, 0.25rem);
+    padding: 0.5rem 0.75rem;
+    font-size: var(--bs-body-font-size-sm, 0.875rem);
+    color: var(--body-color);
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover,
+    &:focus {
+        background-color: var(--gray-100);
+        color: var(--body-color);
+        text-decoration: none;
+    }
+
+    &.fg-danger {
+        color: var(--danger-base);
+
+        &:hover,
+        &:focus {
+            background-color: color-mix(in oklch, var(--danger-base) 8%, transparent);
+            color: var(--danger-base);
+        }
+    }
+}
+
+.topbar-container .menu-divider {
+    margin: 0.25rem 0;
+    border-color: var(--border-color-translucent);
+}

@@ -1,0 +1,125 @@
+// =============================================================================
+// TOP NAVIGATION
+// =============================================================================
+//
+// Main navigation is a row of folder toggles in the topbar. Each toggle opens
+// a Bootstrap 6 `.menu`; named groupings inside become `.submenu` flyouts.
+// There is no sidebar rail, so nothing here needs a collapsed state, a
+// measured width, or a show/hide script.
+// =============================================================================
+
+.topnav {
+    // Allow the row to wrap instead of overflowing on narrow viewports.
+    min-width: 0;
+}
+
+// --- Brand ------------------------------------------------------------------
+.topnav-brand {
+    color: var(--rf-ink);
+    flex-shrink: 0;
+
+    &:hover {
+        color: var(--rf-ink);
+    }
+}
+
+.topnav-logo {
+    max-height: 32px;
+    width: auto;
+}
+
+.topnav-brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--rf-red-100);
+    color: var(--rf-red-400);
+    flex-shrink: 0;
+}
+
+.brand-name {
+    color: var(--rf-ink);
+}
+
+.brand-subtitle {
+    color: var(--rf-ink-soft);
+}
+
+// --- Folder toggles ---------------------------------------------------------
+.topnav-item {
+    // The `.menu` is positioned by Floating UI relative to the toggle, so this
+    // wrapper must not be `overflow: hidden` — that would clip the menu.
+    position: relative;
+    min-width: 0;
+}
+
+.topnav-toggle {
+    color: var(--rf-ink-soft);
+    white-space: nowrap;
+    font-size: 0.875rem;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--rf-ink);
+        background-color: var(--rf-red-50);
+    }
+
+    // Marks which folder owns the page you are on.
+    &.active {
+        color: var(--rf-ink);
+        background-color: var(--rf-red-50);
+        font-weight: 600;
+    }
+}
+
+.avatar-circle {
+    background: linear-gradient(135deg, var(--rf-red-400), #8a6b74) !important;
+}
+
+// --- Menus ------------------------------------------------------------------
+.topnav-menu {
+    // Bootstrap's `.menu` default is 10rem, too narrow for these labels.
+    --bs-menu-min-width: 15rem;
+
+    // Scroll a long folder menu WITHOUT `overflow: hidden` on the box that
+    // contains the submenus — clipping there hides the flyouts entirely.
+    // `overflow-y: auto` is still required to make `max-height` scroll, so the
+    // safe form is to cap the height and let the submenu fly out past it.
+    --bs-menu-max-height: min(70dvh, 30rem);
+    --bs-menu-overflow-y: auto;
+
+    .menu-item {
+        font-size: 0.875rem;
+        min-width: 0;
+    }
+
+    // Submenus are absolutely positioned outside this box, so they need to
+    // paint above it rather than being clipped by its scroll container.
+    .submenu > .menu {
+        z-index: calc(var(--z-menu, 1000) + 1);
+    }
+
+    // Grouping labels are a heading, not an action — Bootstrap's `.menu-header`
+    // handles this, but the submenu trigger is a button, so style it to match.
+    .menu-item-label {
+        font-size: 0.6875rem;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+        opacity: 0.55;
+    }
+
+    .menu-item.active {
+        font-weight: 600;
+    }
+}
+
+// The topbar is `position: sticky` with a stacking context. Without this the
+// Floating UI–positioned menu can render behind the content below it.
+.topbar-wrapper {
+    z-index: var(--z-sticky, 1030);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.topbar-container {
+    background-color: var(--bg-body);
+}

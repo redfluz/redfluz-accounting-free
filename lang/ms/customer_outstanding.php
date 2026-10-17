@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'grand_total' => 'Jumlah Keseluruhan',
+    'title' => 'Tunggakan Pelanggan',
+    'subtitle' => 'Lihat invois pelanggan, tempoh kredit, tarikh akhir bayaran dan baki tertunggak.',
+    'search_placeholder' => 'Cari pelanggan atau rujukan',
+    'invoice_date_from' => 'Invois Dari',
+    'invoice_date_to' => 'Invois Hingga',
+    'as_of_date' => 'Sehingga Tarikh',
+    'reference' => 'Rujukan',
+    'customer' => 'Pelanggan',
+    'items_delivered' => 'Item Dihantar',
+    'delivery_completion' => 'Kemajuan Penghantaran',
+    'invoice_date' => 'Tarikh Invois',
+    'credit_term' => 'Tempoh Kredit',
+    'due_date' => 'Tarikh Akhir Bayaran',
+    'invoice_amount' => 'Amaun Invois',
+    'paid_amount' => 'Jumlah Diterima',
+    'balance' => 'Baki Tertunggak',
+    'status' => 'Status',
+    'days' => 'hari',
+    'days_overdue' => 'hari lewat',
+    'empty' => 'Tiada invois pelanggan tertunggak ditemui.',
+    'statuses' => [
+        'outstanding' => 'Tertunggak',
+        'overdue' => 'Lewat',
+        'due_soon' => 'Perlu dibayar dalam 7 hari',
+    ],
+];

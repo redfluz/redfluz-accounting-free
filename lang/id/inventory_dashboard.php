@@ -1,0 +1,3 @@
+<?php
+
+return ['title' => 'Dasbor Inventaris', 'subtitle' => 'Pantau tingkat stok, nilai persediaan, dan kebutuhan pemesanan ulang.', 'view_products' => 'Lihat Produk', 'product' => 'Produk', 'supplier' => 'Pemasok', 'available' => 'Tersedia', 'reorder_level' => 'Tingkat Pemesanan Ulang', 'low_stock_title' => 'Barang Stok Menipis', 'no_low_stock' => 'Tidak ada produk yang memerlukan pemesanan ulang saat ini.', 'recent_movements' => 'Pergerakan Stok Terbaru', 'no_movements' => 'Tidak ada pergerakan stok yang ditemukan.', 'kpi' => ['products' => 'Produk Aktif', 'available_units' => 'Unit Tersedia', 'inventory_value' => 'Nilai Persediaan', 'low_stock' => 'Barang Stok Menipis']];

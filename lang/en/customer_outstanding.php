@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'grand_total' => 'Grand Total',
+    'title' => 'Customer Outstanding',
+    'subtitle' => 'See customer invoices, credit terms, payment due dates, and remaining balances.',
+    'search_placeholder' => 'Search customer or reference',
+    'invoice_date_from' => 'Invoice From',
+    'invoice_date_to' => 'Invoice To',
+    'as_of_date' => 'As of Date',
+    'reference' => 'Reference',
+    'customer' => 'Customer',
+    'items_delivered' => 'Items Delivered',
+    'delivery_completion' => 'Delivery Completion',
+    'invoice_date' => 'Invoice Date',
+    'credit_term' => 'Credit Term',
+    'due_date' => 'Payment Due',
+    'invoice_amount' => 'Invoice Amount',
+    'paid_amount' => 'Allocated Received',
+    'balance' => 'Outstanding Balance',
+    'status' => 'Status',
+    'days' => 'days',
+    'days_overdue' => 'days overdue',
+    'empty' => 'No customer outstanding invoices found.',
+    'statuses' => [
+        'outstanding' => 'Outstanding',
+        'overdue' => 'Overdue',
+        'due_soon' => 'Due within 7 days',
+    ],
+];

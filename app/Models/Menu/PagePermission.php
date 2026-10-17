@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * ============================================================================
+ *
+ * @author      redfluz
+ *
+ * @github      https://github.com/redfluz
+ *
+ * @youtube     https://youtube.com/@redfluz
+ *
+ * @contact     corex2020@icloud.com
+ *
+ * @customer
+ *
+ * @copyright   Copyright (c) 2026 redfluz. All Rights Reserved.
+ * ============================================================================
+ *
+ * PROPRIETARY AND CONFIDENTIAL
+ *
+ * All code, concepts, and intellectual property contained in this file are the
+ * exclusive property of redfluz. Unauthorized copying, distribution, modification,
+ * reverse engineering, or public display of this software via any medium is
+ * strictly prohibited without explicit written permission from the copyright owner.
+ */
+
+namespace App\Models\Menu;
+
+use App\Models\System\Role;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Models\Concerns\HasActivity;
+use Spatie\Activitylog\Support\LogOptions;
+
+/**
+ * @mixin Builder<PagePermission>
+ *
+ * @property string $id
+ * @property string $role_id
+ * @property string $page_id
+ * @property bool $can_read
+ * @property bool $can_add
+ * @property bool $can_update
+ * @property bool $can_remove
+ * @property bool $can_approve
+ * @property bool $can_cancel
+ * @property CarbonInterface $created_at
+ * @property CarbonInterface $updated_at
+ *
+ * @noinspection PhpUnused
+ *
+ * @property-read Page|null $page
+ * @property-read Role|null $role
+ * @property-read Collection<int, Activity> $activities
+ * @property-read Collection<int, Activity> $activitiesAsCauser
+ * @property-read Collection<int, Activity> $activitiesAsSubject
+ */
+#[Table('page_permissions', key: 'id')]
+#[Fillable([
+    'role_id',
+    'page_id',
+    'can_read',
+    'can_add',
+    'can_update',
+    'can_remove',
+    'can_approve',
+    'can_cancel',
+])]
+class PagePermission extends Model
+{
+    use HasActivity,HasUuids, SoftDeletes;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'id' => 'string',
+            'role_id' => 'string',
+            'page_id' => 'string',
+            'can_read' => 'boolean',
+            'can_add' => 'boolean',
+            'can_update' => 'boolean',
+            'can_remove' => 'boolean',
+            'can_approve' => 'boolean',
+            'can_cancel' => 'boolean',
+        ];
+    }
+
+    /**
+     * Define an inverse one-to-one or many relationship.
+     * Get the page that the permission belongs to.
+     *
+     * @return BelongsTo<Page,$this> The page that the permission belongs to.
+     */
+    public function page(): BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'page_id', 'id');
+    }
+
+    /**
+     * Define an inverse one-to-one or many relationship.
+     * Get the role that the page permission belongs to.
+     *
+     * @return BelongsTo<Role,$this> The role that the page permission belongs to.
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
+    }
+
+    /**
+     * Get the options for logging activity using Spatie Activitylog.
+     *
+     * @return LogOptions Returns configured log options.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty();
+    }
+}

@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'grand_total' => 'Jumlah Besar',
+    'title' => 'Piutang Pelanggan',
+    'subtitle' => 'Lihat faktur pelanggan, syarat kredit, tanggal jatuh tempo pembayaran, dan saldo tersisa.',
+    'search_placeholder' => 'Cari pelanggan atau referensi',
+    'invoice_date_from' => 'Faktur Dari',
+    'invoice_date_to' => 'Faktur Sampai',
+    'as_of_date' => 'Per Tanggal',
+    'reference' => 'Referensi',
+    'customer' => 'Pelanggan',
+    'items_delivered' => 'Item Terkirim',
+    'delivery_completion' => 'Penyelesaian Pengiriman',
+    'invoice_date' => 'Tanggal Faktur',
+    'credit_term' => 'Syarat Kredit',
+    'due_date' => 'Jatuh Tempo Pembayaran',
+    'invoice_amount' => 'Jumlah Faktur',
+    'paid_amount' => 'Alokasi Diterima',
+    'balance' => 'Saldo Tersisa',
+    'status' => 'Status',
+    'days' => 'hari',
+    'days_overdue' => 'hari terlambat',
+    'empty' => 'Tidak ada faktur piutang pelanggan yang ditemukan.',
+    'statuses' => [
+        'outstanding' => 'Terutang',
+        'overdue' => 'Jatuh Tempo',
+        'due_soon' => 'Jatuh tempo dalam 7 hari',
+    ],
+];

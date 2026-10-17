@@ -1,0 +1,43 @@
+<?php
+
+return [
+    'title' => 'Diskaun',
+    'subtitle' => 'Urus kod diskaun, nilai dan julat tarikh sah yang boleh digunakan semula.',
+    'form' => [
+        'create_title' => 'Tambah Diskaun',
+        'edit_title' => 'Sunting Diskaun',
+        'code' => 'Kod',
+        'name' => 'Nama',
+        'type' => 'Jenis Diskaun',
+        'value' => 'Nilai',
+        'starts_at' => 'Sah Dari',
+        'ends_at' => 'Sah Hingga',
+        'is_active' => 'Aktif',
+        'save' => 'Simpan Diskaun',
+        'none' => 'Tanpa Diskaun',
+        'manual' => 'Diskaun Manual',
+        'selection' => 'Diskaun',
+        'manual_hint' => 'Pilih peratus atau amaun, kemudian masukkan nilai diskaun.',
+    ],
+    'type' => ['percent' => 'Peratus', 'amount' => 'Amaun'],
+    'table' => [
+        'code' => 'Kod',
+        'name' => 'Nama',
+        'type' => 'Jenis',
+        'value' => 'Nilai',
+        'date_range' => 'Julat Tarikh Sah',
+        'status' => 'Status',
+        'action' => 'Tindakan',
+    ],
+    'status' => ['active' => 'Aktif', 'inactive' => 'Tidak Aktif'],
+    'messages' => [
+        'empty' => 'Tiada diskaun ditemui.',
+        'created' => 'Diskaun berjaya dicipta.',
+        'updated' => 'Diskaun berjaya dikemas kini.',
+        'deleted' => 'Diskaun berjaya dipadam.',
+        'delete_confirm' => 'Padam diskaun ini? Invois sedia ada akan mengekalkan butiran diskaun yang disimpan.',
+        'inactive' => 'Diskaun yang dipilih tidak aktif atau tidak lagi wujud.',
+        'outside_date_range' => 'Diskaun yang dipilih tidak sah pada tarikh invois.',
+        'amount_exceeds_subtotal' => 'Amaun diskaun tidak boleh melebihi jumlah kecil invois.',
+    ],
+];

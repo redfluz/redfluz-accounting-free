@@ -1,0 +1,39 @@
+// =============================================================================
+// TABLE COLUMN WIDTH UTILITIES
+// =============================================================================
+
+// --- Semantic Column Classes (Best Practice) ---
+// Apply these directly to <th> or <td> elements based on the content type.
+
+.col-id {
+  width: 60px;
+}
+
+.col-date {
+  width: 150px;
+}
+.col-email {
+    width: 150px;
+    }
+.col-status {
+  width: 100px;
+}
+
+.col-action {
+  width: 180px;
+}
+
+.col-user,
+.col-avatar {
+  width: 180px;
+}
+
+
+// --- Fixed Width Helpers (For Custom Scenarios) ---
+// Useful when you need a specific pixel width on the fly.
+
+.w-xs  { width: 50px;  }
+.w-sm  { width: 80px;  }
+.w-md  { width: 120px; }
+.w-lg  { width: 200px; }
+.w-xl  { width: 300px; }

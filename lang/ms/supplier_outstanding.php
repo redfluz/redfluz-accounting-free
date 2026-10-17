@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'grand_total' => 'Jumlah Keseluruhan',
+    'title' => 'Baki Belum Bayar Pembekal',
+    'subtitle' => 'Lihat invois pembekal, tempoh kredit, tarikh akhir bayaran dan baki tertunggak.',
+    'search_placeholder' => 'Cari pembekal atau rujukan',
+    'invoice_date_from' => 'Invois Dari',
+    'invoice_date_to' => 'Invois Hingga',
+    'as_of_date' => 'Sehingga Tarikh',
+    'reference' => 'Rujukan',
+    'supplier' => 'Pembekal',
+    'items_received' => 'Item Diterima',
+    'receipt_completion' => 'Kelengkapan Penerimaan',
+    'invoice_date' => 'Tarikh Invois',
+    'credit_term' => 'Tempoh Kredit',
+    'due_date' => 'Tarikh Akhir Bayaran',
+    'invoice_amount' => 'Amaun Invois',
+    'paid_amount' => 'Bayaran Diperuntukkan',
+    'balance' => 'Baki Belum Bayar',
+    'status' => 'Status',
+    'days' => 'hari',
+    'days_overdue' => 'hari tertunggak',
+    'empty' => 'Tiada invois pembekal tertunggak ditemui.',
+    'statuses' => [
+        'outstanding' => 'Belum Bayar',
+        'overdue' => 'Lewat',
+        'due_soon' => 'Perlu Bayar Dalam 7 Hari',
+    ],
+];

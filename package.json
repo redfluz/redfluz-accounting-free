@@ -1,0 +1,29 @@
+{
+        "$schema": "https://www.schemastore.org/package.json",
+        "private": true,
+        "type": "module",
+        "scripts": {
+                "build": "vite build",
+                "dev": "vite",
+                "format:blade": "blade-formatter --write \"resources/views/**/*.blade.php\"",
+                "check:blade": "blade-formatter --check-formatted \"resources/views/**/*.blade.php\""
+        },
+        "devDependencies": {
+                "@types/node": "^26.4.1",
+                "blade-formatter": "^1.32.4",
+                "bootstrap": "6.0.0-alpha.1",
+                "laravel-vite-plugin": "^3.1",
+                "prettier": "^3.9.6",
+                "prettier-plugin-blade": "^3.2.2",
+                "sass": "^1.56.1",
+                "vite": "^8.0.0"
+        },
+        "dependencies": {
+                "@fancyapps/ui": "^6.1.14",
+                "@fontsource/inter": "^5.3.0",
+                "@playwright/test": "^1.62.1",
+                "axios": "^1.18.1",
+                "chart.js": "^4.5.1",
+                "lucide": "^1.30.0"
+        }
+}

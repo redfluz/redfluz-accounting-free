@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'grand_total' => 'Total Keseluruhan',
+    'title' => 'Hutang Supplier',
+    'subtitle' => 'Lihat faktur supplier, termin kredit, tanggal jatuh tempo pembayaran, dan sisa saldo.',
+    'search_placeholder' => 'Cari supplier atau referensi',
+    'invoice_date_from' => 'Faktur Dari',
+    'invoice_date_to' => 'Faktur Sampai',
+    'as_of_date' => 'Per Tanggal',
+    'reference' => 'Referensi',
+    'supplier' => 'Supplier',
+    'items_received' => 'Barang Diterima',
+    'receipt_completion' => 'Penyelesaian Penerimaan',
+    'invoice_date' => 'Tanggal Faktur',
+    'credit_term' => 'Termin Kredit',
+    'due_date' => 'Jatuh Tempo',
+    'invoice_amount' => 'Jumlah Faktur',
+    'paid_amount' => 'Terbayar Teralokasi',
+    'balance' => 'Sisa Saldo',
+    'status' => 'Status',
+    'days' => 'hari',
+    'days_overdue' => 'hari terlambat',
+    'empty' => 'Tidak ada faktur supplier yang outstanding.',
+    'statuses' => [
+        'outstanding' => 'Belum Lunas',
+        'overdue' => 'Jatuh Tempo',
+        'due_soon' => 'Jatuh tempo dalam 7 hari',
+    ],
+];

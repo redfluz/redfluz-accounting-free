@@ -1,0 +1,21 @@
+// =============================================================================
+// REDFLUZ — application stylesheet
+// =============================================================================
+//
+// Single Bootstrap entrypoint. Order matters:
+//   1. fonts        — must load before any font-family is resolved
+//   2. project CSS  — table column widths etc., independent of Bootstrap
+//   3. Bootstrap 6  — emits the design tokens
+//   4. theme        — overrides tokens and refines components, so it wins
+//   5. layout       — project-specific chrome
+// =============================================================================
+
+@use '@fontsource/inter/index.css';
+
+@use 'custom';
+
+@use 'bootstrap/scss/bootstrap';
+
+@use 'theme';
+@use 'topnav';
+@use 'calendar';

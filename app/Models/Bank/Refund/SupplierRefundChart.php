@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * ============================================================================
+ *
+ * @author      redfluz
+ *
+ * @github      https://github.com/redfluz
+ *
+ * @youtube     https://youtube.com/@redfluz
+ *
+ * @contact     corex2020@icloud.com
+ *
+ * @customer
+ *
+ * @copyright   Copyright (c) 2026 redfluz. All Rights Reserved.
+ * ============================================================================
+ *
+ * PROPRIETARY AND CONFIDENTIAL
+ *
+ * All code, concepts, and intellectual property contained in this file are the
+ * exclusive property of redfluz. Unauthorized copying, distribution, modification,
+ * reverse engineering, or public display of this software via any medium is
+ * strictly prohibited without explicit written permission from the copyright owner.
+ */
+
+namespace App\Models\Bank\Refund;
+
+use App\Models\ChartOfAccount\Chart;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * One leg of the double entry a supplier refund posts to the chart of accounts.
+ *
+ * A chart row carries either a debit or a credit, never both. The refund's
+ * lines carry what the money was for; this row carries which accounts it
+ * moved between, so a printed refund still names the accounts that were
+ * correct when it was raised even if the chart has been renamed since.
+ *
+ * The row can only belong to a supplier refund. A customer refund's chart rows
+ * are a different model on a different table, so no row can name the wrong
+ * parent and no query has to filter to stay on the right kind.
+ *
+ * @property string $id
+ * @property string $refund_id
+ * @property string|null $debit_id
+ * @property string|null $credit_id
+ * @property string|null $debit_acc
+ * @property string|null $credit_acc
+ * @property string|null $debit_acc_desc
+ * @property string|null $credit_acc_desc
+ * @property string|null $document_number
+ * @property string|null $reference_number
+ * @property CarbonInterface $date
+ * @property string|null $description
+ * @property numeric-string $debit_amount
+ * @property numeric-string $credit_amount
+ * @property numeric-string $total_amount
+ * @property CarbonInterface|null $created_at
+ * @property CarbonInterface|null $updated_at
+ * @property CarbonInterface|null $deleted_at
+ *
+ * @mixin Builder<self>
+ */
+#[Table('supplier_refund_charts')]
+#[Fillable([
+    'refund_id',
+    'debit_id',
+    'credit_id',
+    'debit_acc',
+    'credit_acc',
+    'debit_acc_desc',
+    'credit_acc_desc',
+    'document_number',
+    'reference_number',
+    'date',
+    'description',
+    'debit_amount',
+    'credit_amount',
+    'total_amount',
+])]
+class SupplierRefundChart extends Model
+{
+    use HasUuids, SoftDeletes;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+            'debit_amount' => 'decimal:2',
+            'credit_amount' => 'decimal:2',
+            'total_amount' => 'decimal:2',
+        ];
+    }
+
+    /**
+     * The document this chart row belongs to.
+     *
+     * @return BelongsTo<SupplierRefund, $this>
+     */
+    public function refund(): BelongsTo
+    {
+        return $this->belongsTo(SupplierRefund::class);
+    }
+
+    /**
+     * The chart account this row debits.
+     *
+     * @return BelongsTo<Chart, $this>
+     */
+    public function debitChart(): BelongsTo
+    {
+        return $this->belongsTo(Chart::class, 'debit_id');
+    }
+
+    /**
+     * The chart account this row credits.
+     *
+     * @return BelongsTo<Chart, $this>
+     */
+    public function creditChart(): BelongsTo
+    {
+        return $this->belongsTo(Chart::class, 'credit_id');
+    }
+}

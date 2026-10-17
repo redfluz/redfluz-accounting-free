@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'grand_total' => 'Grand Total',
+    'title' => 'Supplier Outstanding',
+    'subtitle' => 'See supplier invoices, credit terms, payment due dates, and remaining balances.',
+    'search_placeholder' => 'Search supplier or reference',
+    'invoice_date_from' => 'Invoice From',
+    'invoice_date_to' => 'Invoice To',
+    'as_of_date' => 'As of Date',
+    'reference' => 'Reference',
+    'supplier' => 'Supplier',
+    'items_received' => 'Items Received',
+    'receipt_completion' => 'Receipt Completion',
+    'invoice_date' => 'Invoice Date',
+    'credit_term' => 'Credit Term',
+    'due_date' => 'Payment Due',
+    'invoice_amount' => 'Invoice Amount',
+    'paid_amount' => 'Allocated Paid',
+    'balance' => 'Outstanding Balance',
+    'status' => 'Status',
+    'days' => 'days',
+    'days_overdue' => 'days overdue',
+    'empty' => 'No supplier outstanding invoices found.',
+    'statuses' => [
+        'outstanding' => 'Outstanding',
+        'overdue' => 'Overdue',
+        'due_soon' => 'Due within 7 days',
+    ],
+];

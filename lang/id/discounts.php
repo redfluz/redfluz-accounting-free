@@ -1,0 +1,43 @@
+<?php
+
+return [
+    'title' => 'Diskon',
+    'subtitle' => 'Kelola kode diskon, nilai, dan rentang tanggal yang dapat digunakan kembali.',
+    'form' => [
+        'create_title' => 'Tambah Diskon',
+        'edit_title' => 'Edit Diskon',
+        'code' => 'Kode',
+        'name' => 'Nama',
+        'type' => 'Jenis Diskon',
+        'value' => 'Nilai',
+        'starts_at' => 'Berlaku Dari',
+        'ends_at' => 'Berlaku Sampai',
+        'is_active' => 'Aktif',
+        'save' => 'Simpan Diskon',
+        'none' => 'Tanpa Diskon',
+        'manual' => 'Diskon Manual',
+        'selection' => 'Diskon',
+        'manual_hint' => 'Pilih persentase atau jumlah, lalu masukkan nilai diskon.',
+    ],
+    'type' => ['percent' => 'Persentase', 'amount' => 'Jumlah'],
+    'table' => [
+        'code' => 'Kode',
+        'name' => 'Nama',
+        'type' => 'Jenis',
+        'value' => 'Nilai',
+        'date_range' => 'Rentang Tanggal Berlaku',
+        'status' => 'Status',
+        'action' => 'Tindakan',
+    ],
+    'status' => ['active' => 'Aktif', 'inactive' => 'Tidak Aktif'],
+    'messages' => [
+        'empty' => 'Tidak ada diskon yang ditemukan.',
+        'created' => 'Diskon berhasil dibuat.',
+        'updated' => 'Diskon berhasil diperbarui.',
+        'deleted' => 'Diskon berhasil dihapus.',
+        'delete_confirm' => 'Hapus diskon ini? Faktur yang sudah ada akan tetap menyimpan detail diskon yang tersimpan.',
+        'inactive' => 'Diskon yang dipilih tidak aktif atau sudah tidak ada.',
+        'outside_date_range' => 'Diskon yang dipilih tidak berlaku pada tanggal faktur.',
+        'amount_exceeds_subtotal' => 'Jumlah diskon tidak boleh melebihi subtotal faktur.',
+    ],
+];

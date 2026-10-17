@@ -1,0 +1,3 @@
+<?php
+
+return ['title' => 'Inventory Dashboard', 'subtitle' => 'Monitor stock levels, inventory value, and reorder requirements.', 'view_products' => 'View Products', 'product' => 'Product', 'supplier' => 'Supplier', 'available' => 'Available', 'reorder_level' => 'Reorder Level', 'low_stock_title' => 'Low Stock Items', 'no_low_stock' => 'No products currently require reorder.', 'recent_movements' => 'Recent Stock Movements', 'no_movements' => 'No stock movements found.', 'kpi' => ['products' => 'Active Products', 'available_units' => 'Available Units', 'inventory_value' => 'Inventory Value', 'low_stock' => 'Low Stock Items']];

@@ -1,0 +1,616 @@
+// =============================================================================
+// REDFLUZ THEME — Bootstrap 6
+// =============================================================================
+//
+// A light-only theme built on Bootstrap 6's native design tokens.
+//
+// v6 dropped every Sass variable ($primary, $body-bg, $border-radius …) in
+// favour of ~1130 CSS custom properties emitted at the root. Theming is now
+// done by overriding tokens in :root, not by configuring Sass.
+//
+// Two rules keep this file maintainable:
+//
+//   1. Prefer overriding an existing token over writing a component rule.
+//      `.theme-primary { background: … }` duplicates what `--primary-base`
+//      already does, and breaks the moment the token changes.
+//
+//   2. Only drop to a component rule when v6 has no token for it.
+//
+// Dark mode is deliberately not supported here. v6 emits light-dark() pairs
+// throughout; pinning light keeps the cascade predictable for a demo build.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. BRAND TOKENS
+// -----------------------------------------------------------------------------
+
+// WHY THESE NAMES ARE *UN*PREFIXED
+//
+// `app.scss` compiles Bootstrap from its Sass source (`bootstrap/scss/`), not
+// from `dist/css/bootstrap.css`. Those are two different artifacts:
+//
+//   dist/css  — properties carry a `--bs-` prefix.
+//   scss/      — properties are written WITHOUT a prefix, because Bootstrap
+//                expects `postcss-prefix-custom-properties` to add the prefix
+//                during ITS build. This project installs Bootstrap from npm
+//                and compiles the Sass itself, and no PostCSS step is
+//                configured, so no prefix is ever added.
+//
+// The practical consequence: in OUR built stylesheet every token is
+// unprefixed, and `.theme-primary` compiles to `--theme-bg: var(--primary-bg)`.
+// So overrides here MUST be unprefixed or they silently match nothing.
+//
+// ⚠️  Do not "fix" this to `--bs-*` by copying the token names out of
+// `node_modules/bootstrap/dist/css/bootstrap.css`. That file is not what this
+// app loads. See resources/views/** for 123 hand-written `var(--primary-base)`
+// references that also depend on the unprefixed convention.
+//
+// THE REAL BUG THIS BLOCK FIXES
+//
+// The theme used to override only `-base`. But the family is not derived from
+// `-base`: in the Sass source `--primary-bg: var(--blue-500)` is a literal
+// reference into the raw palette, not a color-mix of `--primary-base`. So
+// overriding `-base` alone left `-bg`, `-fg`, `-border`, `-contrast` and the
+// focus ring on Bootstrap's blue, and every `.theme-primary` control rendered
+// blue. Each of the nine members has to be overridden explicitly.
+
+:root {
+    // =====================================================================
+    // BRAND RAMP — exact values supplied by the project owner.
+    // =====================================================================
+    // Red ramp, lightest to darkest. This is the whole theme: buttons, pills,
+    // badges, tints and the login screen all draw from these five.
+    --rf-red-50: #fde0e0;
+    --rf-red-100: #f4c1c1;
+    --rf-red-200: #fdaaaa;
+    --rf-red-300: #f97c7c;
+    --rf-red-400: #ee6969;
+
+    // Secondary accents. Every one is a pastel, so — like the reds — they all
+    // require dark ink on top. None of these reach 4.5:1 against white.
+    --rf-purple: #c183f2;
+    --rf-blue: #a5c8f2;
+    --rf-green: #84f77f;
+    --rf-yellow: #f7ea7f;
+    --rf-orange: #fba947;
+
+    // Un-striped table rows only. The page, cards and inputs stay white.
+    --rf-grey: var(--rf-red-50);
+
+    // The single ink used for any text sitting on the pastels above.
+    --rf-ink: #262a35;
+    --rf-ink-soft: #4a4f5e;
+
+    // =====================================================================
+    // PRIMARY
+    // =====================================================================
+    // PRIMARY = the solid button / pill fill, and it is BLUE (#a5c8f2), not
+    // red. Two separate lists were supplied:
+    //
+    //   reds    #fde0e0 #f4c1c1 #fdaaaa #f97c7c #ee6969  -> theme accents:
+    //            sidebar, active states, brand marks, tints
+    //   accents #c183f2 #a5c8f2 #84f77f #f7ea7f #fba947  -> the button
+    //            palette
+    //
+    // Primary being the brand red made all 198 themed buttons render pink.
+    // Buttons take the accent list; red stays on the chrome.
+    //
+    // `--primary-contrast` is the text colour ON that fill. It must be the
+    // dark ink: every colour in both lists is a pastel, and none reaches
+    // 4.5:1 against white. Against the ink #a5c8f2 is 8.29:1. This is the one
+    // hard rule of this palette — pastels get dark text, never white.
+    --primary-base: var(--rf-blue);
+    --primary-bg: var(--rf-blue);
+    --primary-fg: var(--rf-ink);
+    --primary-fg-emphasis: var(--rf-ink);
+    --primary-contrast: var(--rf-ink);
+    --primary-border: #c9dcf5;
+    --primary-bg-subtle: #f2f7fd;
+    --primary-bg-muted: #e6f0fb;
+    --primary-focus-ring: var(--rf-blue);
+
+    // No colour in the supplied ramp reaches 4.5:1 against white — the darkest
+    // red, #ee6969, is only 3.06:1. Resting links therefore use the ink (14:1)
+    // and the brand red arrives on hover, so links stay legible at body size.
+    --link-color: #3f6ea8;
+    --link-hover-color: var(--rf-blue);
+
+    // =====================================================================
+    // ACCENTS — pastel fills, ink text
+    // =====================================================================
+    --accent-base: var(--rf-purple);
+    --accent-bg: var(--rf-purple);
+    --accent-fg: var(--rf-ink);
+    --accent-fg-emphasis: var(--rf-ink);
+    --accent-contrast: var(--rf-ink);
+    --accent-border: #e4cdf7;
+    --accent-bg-subtle: #f7f0fd;
+    --accent-bg-muted: #f1e6fa;
+    --accent-focus-ring: var(--rf-purple);
+
+    // =====================================================================
+    // FINANCIAL SEMANTICS
+    // =====================================================================
+    // 红 = 涨 (gain / profit / increase)  ·  绿 = 跌 (loss / decrease).
+    //
+    // Chinese-market convention, the inverse of the Western one. This is NOT
+    // mapped onto Bootstrap's success/danger: those names carry Western
+    // semantics and are used for non-financial UI ("record saved"), so
+    // recolouring them would turn ordinary success alerts red.
+    //
+    // Only the ROW carries the tint. Figures print in the default foreground
+    // and express direction with an explicit sign, so the signal survives for
+    // colour-blind users and in greyscale print (WCAG 1.4.1).
+    --fin-gain-bg: color-mix(in srgb, var(--rf-green) 34%, #fff);     // 涨绿
+    --fin-loss-bg: color-mix(in srgb, var(--rf-red-100) 42%, #fff);   // 跌红
+
+    // Financial *controls* (e.g. a destructive action) use the strongest red in
+    // the ramp. Note that brand primary is the PALE end (#fde0e0) while danger
+    // is the SATURATED end (#ee6969) — the two stay clearly distinguishable
+    // even though both are red, which is the whole reason the ramp spans
+    // #fde0e0 → #ee6969 instead of using one red for both.
+    --danger-base: var(--rf-red-400);
+    --danger-bg: var(--rf-red-400);
+    --danger-fg: var(--rf-ink);
+    --danger-fg-emphasis: var(--rf-ink);
+    --danger-border: var(--rf-red-400);
+    --danger-contrast: var(--rf-ink);
+    --danger-bg-subtle: #fff4f4;
+    --danger-bg-muted: var(--rf-red-100);
+    --danger-focus-ring: var(--rf-red-400);
+
+    --success-base: var(--rf-green);
+    --success-bg: var(--rf-green);
+    --success-contrast: var(--rf-ink);
+    --success-fg: #2f6b2f;
+    --success-fg-emphasis: #245224;
+    --success-border: #c4eec4;
+    --success-bg-subtle: #f2fdf2;
+    --success-bg-muted: #eafaEA;
+    --success-focus-ring: var(--rf-green);
+
+    --warning-base: var(--rf-yellow);
+    --warning-bg: var(--rf-yellow);
+    --warning-fg: var(--rf-ink);
+    --warning-fg-emphasis: var(--rf-ink);
+    --warning-border: #f0e08a;
+    --warning-contrast: var(--rf-ink);
+    --warning-bg-subtle: #fefcec;
+    --warning-bg-muted: #fdf7d8;
+    --warning-focus-ring: var(--rf-yellow);
+
+    --info-base: var(--rf-blue);
+    --info-bg: var(--rf-blue);
+    --info-fg: var(--rf-ink);
+    --info-fg-emphasis: var(--rf-ink);
+    --info-border: #c9dcf5;
+    --info-contrast: var(--rf-ink);
+    --info-bg-subtle: #f2f7fd;
+    --info-bg-muted: #e6f0fb;
+    --info-focus-ring: var(--rf-blue);
+
+    --secondary-base: #8a8f9c;
+    --secondary-bg: #eceef2;
+    --secondary-fg: var(--rf-ink);
+    --secondary-fg-emphasis: var(--rf-ink);
+    --secondary-contrast: var(--rf-ink);
+    --secondary-border: #d3d6de;
+    --secondary-bg-subtle: #f6f7f9;
+    --secondary-bg-muted: #eceef2;
+    --secondary-focus-ring: #8a8f9c;
+
+    --inverse-base: var(--rf-ink);
+    --inverse-bg: var(--rf-ink);
+    --inverse-fg: #ffffff;
+    --inverse-fg-emphasis: #ffffff;
+    --inverse-contrast: #ffffff;
+    --inverse-border: var(--rf-ink);
+    --inverse-bg-subtle: #e6e8ee;
+    --inverse-bg-muted: #d3d6de;
+    --inverse-focus-ring: var(--rf-ink);
+
+    // =====================================================================
+    // NEUTRALS
+    // =====================================================================
+    --bg-body: #ffffff;
+
+    // Table header surface. Read by every <thead>/<tfoot class="bg-1"> in the
+    // app — 174 elements — via the `.bg-1` utility. Bootstrap 6's `.bg-1`
+    // resolves `var(--bs-bg-1)`, so we override THAT variable (not `--bg-1`)
+    // to keep headers neutral light gray, not red.
+    --bg-1: #f8f9fa;
+    --bs-bg-1: #f8f9fa;
+    --bg-2: #f7f7f9;
+
+    --radius-3: 0.3125rem;
+    --radius-4: 0.4375rem;
+    --radius-5: 0.5625rem;
+
+    --body-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --body-font-size: 0.9375rem;
+    --body-line-height: 1.55;
+
+    --shadow-strength: 0.08;
+}
+
+// -----------------------------------------------------------------------------
+// 2. BASE TYPOGRAPHY
+// -----------------------------------------------------------------------------
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+// Lucide renders as <svg class="lucide"> after createIcons() replaces each
+// <i data-lucide>. Both selectors are needed: the attribute form covers
+// markup that has not been converted yet.
+[data-lucide],
+svg.lucide {
+    width: 1.15em;
+    height: 1.15em;
+    vertical-align: -0.15em;
+    display: inline-block;
+}
+
+// -----------------------------------------------------------------------------
+// 3. COMPONENT REFINEMENTS
+// -----------------------------------------------------------------------------
+// Each rule below exists because v6 has no token for it.
+
+// --- Tables -----------------------------------------------------------------
+// Dense by default: this is an accounting app where tables carry most of the
+// screen. Header treatment replaces v5's heavier default.
+.table {
+    --table-border-color: var(--border-color-translucent);
+
+    thead th {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        // Ink, not the neutral fg-3: the header now sits on #f4c1c1 rather
+        // than grey, and this is the one foreground in the palette.
+        color: var(--rf-ink);
+        white-space: nowrap;
+        padding-block: 0.625rem;
+    }
+
+    tbody td {
+        padding-block: 0.625rem;
+        vertical-align: middle;
+    }
+
+    // Numeric columns read better right-aligned, but only when opted in.
+    .table-numeric {
+        font-variant-numeric: tabular-nums;
+        text-align: end;
+    }
+}
+
+// --- Table header surface ---------------------------------------------------
+// `<thead class="bg-1">` does NOT tint the header in v6. The utility sets the
+// background on the <thead> element, but every cell re-paints itself:
+//
+//   .table > :not(caption) > * > *
+//       background-color: var(--theme-bg-subtle, var(--table-bg));
+//
+// and `--table-bg` inherits `--bg-body`, i.e. opaque white. So the header row
+// came out white and the `bg-1` behind it was never visible — verified in the
+// browser: <thead> computed to rgb(244,193,193) while its <th> computed to
+// rgb(255,255,255).
+//
+// The fix is to repoint `--table-bg` on the header CELLS, which is the element
+// that actually paints. This covers all 174 <thead>/<tfoot> in the app at once
+// without touching a single template.
+// The header band. Step 3 of the ramp, so it reads as a distinct band above
+// the #f4c1c1 stripe rather than merging with it — at step 2 the header and
+// the striped rows were the same colour and the header disappeared.
+.table > thead > tr > th,
+.table > tfoot > tr > th,
+.table > tfoot > tr > td {
+    --table-bg: var(--rf-red-200);
+    --table-color: var(--rf-ink);
+}
+
+// The body rows. Un-striped rows take a soft grey (#d3d3d3) — the page and
+// cards stay white, so this is the only grey surface in the app.
+.table > tbody > tr > td {
+    --table-bg: var(--rf-grey);
+    --table-color: var(--rf-ink);
+}
+
+// --- Table stripes & row states ---------------------------------------------
+// The alternate rows were grey. v6 does NOT read a `--table-striped-bg`
+// colour for this — the striped rule derives its own value from the body
+// foreground:
+//
+//   .table-striped > tbody > tr:nth-of-type(odd) > *
+//       --table-bg-type: color-mix(in srgb, var(--table-color)
+//                                  var(--table-striped-bg-factor), transparent)
+//
+// `--table-color` is this app's neutral slate ink, so 5% of it is a grey wash.
+// Setting `--table-striped-bg` does nothing here — the token is never read on
+// this path. The stripe has to be overridden on the cells themselves.
+//
+// v6 resolves a cell's background as:
+//   var(--theme-bg-subtle, var(--table-bg-state, var(--table-bg-type, ...)))
+// so hover (bg-state) outranks the stripe (bg-type), which is the order we
+// want: a hovered striped row still darkens.
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    // #f4c1c1 at 30% — the ramp colour itself, translucent, so the stripe
+    // softens into the #fde0e0 plain row instead of sitting on top of it as
+    // a solid block. Same hex, just alpha.
+    --table-bg-type: color-mix(in srgb, var(--rf-red-100) 30%, transparent);
+    --table-color-type: var(--rf-ink);
+}
+
+.table-striped-columns > :not(caption) > tr > :nth-child(2n) {
+    // #f4c1c1 at 30% — the ramp colour itself, translucent, so the stripe
+    // softens into the #fde0e0 plain row instead of sitting on top of it as
+    // a solid block. Same hex, just alpha.
+    --table-bg-type: color-mix(in srgb, var(--rf-red-100) 30%, transparent);
+    --table-color-type: var(--rf-ink);
+}
+
+.table-hover > tbody > tr:hover > * {
+    --table-bg-state: var(--rf-red-300);
+    --table-color-state: var(--rf-ink);
+}
+
+.table-active > * > * {
+    --table-bg-state: var(--rf-red-300);
+    --table-color-state: var(--rf-ink);
+}
+
+// --- Form entry tables ------------------------------------------------------
+// Create/edit forms use .table-form to opt out of the red-themed table palette
+// defined above. Headers, body cells, stripes, and hover all resolve to neutral
+// grays so the grid reads like a standard data-entry surface.
+.table-form > thead > tr > th,
+.table-form > tfoot > tr > th,
+.table-form > tfoot > tr > td {
+    --table-bg: #f1f3f5;
+    --table-bg-type: #f1f3f5;
+    --table-bg-state: #e9ecef;
+    --table-color: var(--rf-ink);
+    --table-color-type: var(--rf-ink);
+    --table-color-state: var(--rf-ink);
+}
+
+.table-form > tbody > tr > td {
+    --table-bg: #ffffff;
+    --table-bg-type: #ffffff;
+    --table-bg-state: #f8f9fa;
+    --table-color: var(--rf-ink);
+    --table-color-type: var(--rf-ink);
+    --table-color-state: var(--rf-ink);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.table-form.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --table-bg-type: #e8eaed;
+    --table-bg-state: #e8eaed;
+    --table-color-type: var(--rf-ink);
+    --table-color-state: var(--rf-ink);
+}
+
+.table-form.table-hover > tbody > tr:hover > * {
+    --table-bg-state: #e8eaed;
+    --table-color-state: var(--rf-ink);
+}
+
+// --- Buttons ----------------------------------------------------------------
+// v6 splits variant from colour (.btn-solid .theme-primary). Only the sizing
+// rhythm is customised here; colours come from the tokens above.
+.btn {
+    font-weight: 500;
+    gap: 0.375rem;
+}
+
+// Dense actions inside table rows — these appear dozens of times per page.
+.table .btn,
+.table button[class*='btn'] {
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.75rem;
+
+    // Inside background: light translucent gray (~30% visual weight)
+    --btn-bg: rgba(108, 117, 125, 0.3);
+
+    // Border: strong, solid gray color
+    --btn-border-color: rgba(108, 117, 125, 0.8);
+
+    // Hover state: makes the inside darker/more solid
+    &:hover {
+        --btn-bg: rgba(108, 117, 125, 0.6);
+        --btn-border-color: rgba(108, 117, 125, 1);
+    }
+
+    // Active / Clicked state
+    &:active, &.active, &:focus {
+        --btn-bg: rgba(108, 117, 125, 0.85);
+        --btn-border-color: rgba(108, 117, 125, 1);
+    }
+}
+
+// ⚠️  The four `--btn-*` declarations above are INERT and are left that way
+// deliberately. v6 renamed them to `--bs-btn-bg` / `--bs-btn-border-color`.
+//
+// Do NOT "fix" the prefix without reviewing this. `.table .btn` has
+// specificity 0-2-0 and would beat `.btn-solid` (0-1-0), so activating these
+// would repaint EVERY themed button inside a table — including the
+// `theme-success` approve and `theme-danger` cancel actions in the bank,
+// purchase and sales modules — to flat gray. The row-level theme classes
+// would silently stop reading.
+//
+// To make table-row buttons genuinely neutral grey, scope it to buttons that
+// carry no theme class and use the prefixed names:
+//
+//     .table .btn:not([class*='theme-']) {
+//         --btn-bg: rgba(108, 117, 125, 0.3);
+//         --btn-border-color: rgba(108, 117, 125, 0.8);
+//     }
+
+// --- Cards ------------------------------------------------------------------
+// Bootstrap 6 .card is fully defined in @layer components via design tokens.
+// Only add overrides here if needed; unlayered rules will REPLACE the layered
+// card entirely (background, radius, flex layout all lost).
+
+// v6 forces `flex-direction: column` on .card-header and .card-body so a bare
+// header stacks its children. Templates that add `d-flex` want the classic
+// row (title left, actions right), so restore it for those opt-ins only.
+.card-header.d-flex:not(.d-block):not(.d-inline) {
+    flex-direction: row;
+}
+
+// --- Dialogs ---------------------------------------------------------------
+// confirm-dialog.js composes these parts per call.
+.dialog-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.dialog-icon {
+    flex: 0 0 auto;
+    width: 1.25rem;
+    height: 1.25rem;
+
+    // Make dialog icons appear filled/solid by adding fill on top of the default stroke
+    svg {
+        fill: currentColor;
+    }
+}
+
+.dialog-icon-warning { color: var(--warning-base); }
+.dialog-icon-danger { color: var(--danger-base); }
+.dialog-icon-success { color: var(--success-base); }
+.dialog-icon-info { color: var(--info-base); }
+.dialog-icon-primary { color: var(--primary-base); }
+
+// --- Checkboxes --------------------------------------------------------------
+// Bootstrap 6 draws .check and .switch with `appearance: none`, so the native
+// `accent-color` property has no effect. The checked background is controlled by
+// --control-checked-bg (resolved from --primary-base). Override it globally so
+// every checkbox and switch uses the theme's red instead of Bootstrap's green.
+:root {
+    --control-checked-bg: var(--danger-base);
+}
+
+// --- Sub-base type steps -----------------------------------------------------
+// v6's smallest font-size step is `.fs-xs` (0.75rem), but the dense chrome in
+// this app needs two steps below that: nav links and menu rows (.fs-7), and
+// the small glyph icons on inputs and list rows (.fs-9). Neither has a v6
+// equivalent, and v6 ships no fixed height scale at all (.h-25/50/75/100 only),
+// so `h-N w-N` on an icon never worked — icons here are sized by font-size and
+// scaled by the 1.15em rule in section 2 above.
+//
+// These are deliberate project extensions, not Bootstrap classes. If a v6
+// class ever covers them, prefer it and delete these.
+.fs-7 {
+    font-size: 0.8125rem;
+}
+
+.fs-9 {
+    font-size: 0.6875rem;
+}
+
+// --- Financial row tints -----------------------------------------------------
+// The only two places gain/loss colour is allowed to appear. Text inside keeps
+// the default foreground so the digits stay readable; direction is carried by
+// the sign on the figure (see resources/views/components/money.blade.php).
+.fin-gain {
+    background-color: var(--fin-gain-bg) !important;
+}
+
+.fin-loss {
+    background-color: var(--fin-loss-bg) !important;
+}
+
+// --- Accordion ---------------------------------------------------------------
+// The global Lucide rule above sizes icons at 1.15em via `svg.lucide`, which is
+// specificity 0-1-1 and therefore beats `.accordion-icon` (0-1-0). The v6 caret
+// needs Bootstrap's own size token, so re-assert it at 0-2-0.
+.accordion-header .accordion-icon {
+    width: var(--accordion-btn-icon-width);
+    height: var(--accordion-btn-icon-width);
+}
+
+// --- Forms ------------------------------------------------------------------
+// v6 removed `.form-select`; `<select>` now takes `.form-control`, so a single
+// rule covers both. Listing `.form-select` here matched nothing.
+.form-control {
+    font-size: 0.875rem;
+}
+
+// -----------------------------------------------------------------------------
+// 4. DOCUMENT WORKSPACES
+// -----------------------------------------------------------------------------
+// Shared chrome for the purchase/sales document tabs. Both are grid panels
+// holding line-item tables, so they need the same fixed height and scroll
+// behaviour to avoid the page jumping between tabs.
+
+.document-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+
+    .nav-item {
+        flex: 0 0 170px;
+    }
+
+    .nav-link {
+        width: 100%;
+        min-height: 52px;
+        white-space: nowrap;
+    }
+}
+
+.document-workspace {
+    min-height: 260px;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-top: 3px solid var(--primary-base);
+    border-radius: 0 0 var(--radius-5) var(--radius-5);
+    background: var(--bg-body);
+}
+
+.sales-tab-workspace {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: 420px;
+    overflow: hidden;
+}
+
+.document-lines-heading {
+    margin-top: 0.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+// Only one tab panel is visible; all share one grid cell and stack.
+.sales-tab-panel {
+    grid-area: 1 / 1;
+    min-height: 0;
+    overflow: auto;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+
+    // The views toggle `sales-tab-panel-active` (not Bootstrap's `.active`),
+    // so this panel must not rely on the nav-tab active class.
+    &.sales-tab-panel-active {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .sales-tab-workspace {
+        height: 360px;
+        padding: 1rem;
+    }
+}
+

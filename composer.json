@@ -1,0 +1,112 @@
+{
+        "name": "laravel/laravel",
+        "type": "project",
+        "description": "The skeleton application for the Laravel framework.",
+        "keywords": ["laravel", "framework"],
+        "license": "MIT",
+        "require": {
+                "php": "^8.5",
+                "ext-bcmath": "*",
+                "ext-gd": "*",
+                "ext-pdo": "*",
+                "ext-zip": "*",
+                "barryvdh/laravel-dompdf": "^3.1",
+                "klsheng/myinvois-php-sdk": "*",
+                "laravel/framework": "^13.8",
+                "laravel/reverb": "^1.0",
+                "laravel/sanctum": "^4.3",
+                "laravel/tinker": "^3.0",
+                "laravel/ui": "^4.6",
+                "nxp/math-executor": "^2.3",
+                "phpoffice/phpspreadsheet": "^5.9",
+                "setasign/fpdf": "^1.9",
+                "setasign/fpdi": "^2.6",
+                "spatie/laravel-activitylog": "^5.0",
+                "spatie/laravel-backup": "^10.0",
+                "spatie/laravel-data": "^4.23",
+                "stevebauman/purify": "^6.3",
+                "wnx/laravel-backup-restore": "^1.9"
+        },
+        "require-dev": {
+                "fakerphp/faker": "^1.23",
+                "larastan/larastan": "^3.10",
+                "laravel/doctor": "^0.1.0",
+                "laravel/pail": "^1.2.5",
+                "laravel/pao": "^1.0.6",
+                "laravel/pint": "^1.27",
+                "mockery/mockery": "^1.6",
+                "nunomaduro/collision": "^8.6",
+                "phpstan/phpstan": "^2.2",
+                "phpunit/phpunit": "^12.5.12"
+        },
+        "autoload": {
+            "psr-4": {
+                "App\\": "app/",
+                "Database\\Seeders\\": "database/seeders/"
+            }
+        },
+        "scripts": {
+            "pint": "pint",
+            "doctor":"php artisan doctor",
+            "phpstan": "vendor/bin/phpstan analyse --memory-limit=1G 2>&1 | grep -v 'Note: Using configuration file' || true",           
+            "setup": [
+                "composer install",
+                "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+                "@php artisan key:generate",
+                "@php artisan migrate --force",
+                "npm install --ignore-scripts",
+                "npm run build"
+            ],
+            "ci": [
+                "@pint",
+                "@doctor",
+                "@phpstan",
+                "@php artisan verify:inline-js",
+                "@php artisan verify:ledger-posting"
+            ],
+            "dev": [
+                "Composer\\Config::disableProcessTimeout",
+                "npx concurrently -c \"#93c5fd,#c4b5fd,#f472b6,#fdba74\" \"php artisan serve --host=0.0.0.0\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan reverb:start\" \"npm run dev\" --names=server,queue,reverb,vite --kill-others"
+            ],
+            "test": [
+                "@php artisan config:clear --ansi @no_additional_args",
+                "@php artisan test"
+            ],
+            "migrate": "@php artisan migrate",
+            "migrate:fresh": "@php artisan migrate:fresh --seed",
+            "make:migration": "@php artisan make:migration",
+            "post-autoload-dump": [
+                "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+                "@php artisan package:discover --ansi"
+            ],
+            "post-update-cmd": [
+                "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            ],
+            "post-root-package-install": [
+                "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            ],
+            "post-create-project-cmd": [
+                "@php artisan key:generate --ansi",
+                "@php artisan migrate --graceful --ansi"
+            ],
+            "pre-package-uninstall": [
+                "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+            ]
+        },
+        "extra": {
+            "laravel": {
+                "dont-discover": []
+            }
+        },
+        "config": {
+            "optimize-autoloader": true,
+            "preferred-install": "dist",
+            "sort-packages": true,
+            "allow-plugins": {
+                "pestphp/pest-plugin": true,
+                "php-http/discovery": true
+            }
+        },
+        "minimum-stability": "stable",
+        "prefer-stable": true
+    }

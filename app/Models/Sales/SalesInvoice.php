@@ -1,0 +1,224 @@
+<?php
+
+/**
+ * ============================================================================
+ *
+ * @author      redfluz
+ *
+ * @github      https://github.com/redfluz
+ *
+ * @youtube     https://www.youtube.com/@redfluz
+ *
+ * @contact     corex2020@icloud.com
+ *
+ * @customer
+ *
+ * @copyright   Copyright (c) 2026 redfluz. All Rights Reserved.
+ * ============================================================================
+ *
+ * PROPRIETARY AND CONFIDENTIAL
+ *
+ * All code, concepts, and intellectual property contained in this file are the
+ * exclusive property of redfluz. Unauthorized copying, distribution, modification,
+ * reverse engineering, or public display of this software via any medium is
+ * strictly prohibited without explicit written permission from the copyright owner.
+ */
+
+namespace App\Models\Sales;
+
+use App\Enums\LedgerStatus;
+use App\Enums\SalesType;
+use App\Models\Crm\Company;
+use App\Models\Crm\Contact;
+use App\Models\Finance\JournalEntry;
+use App\Support\Traits\AttributesDocuments;
+use App\Support\Traits\RecordsAuthor;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * A sales invoice: a request for payment sent to a customer.
+ *
+ * A sales invoice is the primary outward-facing document. It records what was
+ * sold, to whom, and for how much. Once posted, the amounts flow into the
+ * general ledger and the customer's outstanding balance increases.
+ *
+ * Unlike the shared client ledger that previously held every document type in
+ * one table, an invoice here is a single row with its own number. What it is
+ * made of is on {@see SalesInvoiceLine}.
+ *
+ * @property string $id
+ * @property string|null $company_id
+ * @property string|null $contact_id
+ * @property SalesType $sales_type
+ * @property LedgerStatus $status
+ * @property string $document_number
+ * @property string|null $reference_number
+ * @property string|null $sales_order_id
+ * @property string|null $quotation_id
+ * @property string|null $company_name
+ * @property string|null $contact_name
+ * @property CarbonInterface $date
+ * @property CarbonInterface|null $due_date
+ * @property string|null $attachment_path
+ * @property numeric-string|null $subtotal
+ * @property numeric-string|null $total_amount
+ * @property string|null $notes
+ * @property string|null $created_by
+ * @property string|null $created_name
+ * @property CarbonInterface|null $created_at
+ * @property string|null $updated_by
+ * @property string|null $updated_name
+ * @property CarbonInterface|null $updated_at
+ * @property string|null $deleted_by
+ * @property string|null $deleted_name
+ * @property CarbonInterface|null $deleted_at
+ * @property string|null $approved_by
+ * @property string|null $approved_name
+ * @property CarbonInterface|null $approved_at
+ * @property string|null $cancelled_by
+ * @property string|null $cancelled_name
+ * @property CarbonInterface|null $cancelled_at
+ * @property string|null $undone_by
+ * @property string|null $undone_name
+ * @property CarbonInterface|null $undone_at
+ * @property-read Collection<int, SalesInvoiceLine> $lines
+ *
+ * @mixin Builder<self>
+ */
+#[Table('sales_invoices', key: 'id')]
+#[Fillable([
+    'company_id', 'contact_id',
+    'sales_type', 'status',
+    'document_number', 'reference_number', 'sales_order_id', 'quotation_id',
+    'company_name', 'contact_name',
+    'date', 'due_date', 'attachment_path', 'subtotal', 'total_amount',
+    'notes',
+    'created_by', 'created_name', 'created_at',
+    'updated_by', 'updated_name', 'updated_at',
+    'deleted_by', 'deleted_name', 'deleted_at',
+    'approved_by', 'approved_name', 'approved_at',
+    'cancelled_by', 'cancelled_name', 'cancelled_at',
+    'undone_by', 'undone_name', 'undone_at',
+    'reversal_journal_id',
+    'id',
+])]
+class SalesInvoice extends Model
+{
+    use AttributesDocuments, HasUuids, RecordsAuthor, SoftDeletes;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sales_type' => SalesType::class,
+            'status' => LedgerStatus::class,
+            'date' => 'date',
+            'due_date' => 'date',
+            'subtotal' => 'decimal:2',
+            'total_amount' => 'decimal:2',
+            'approved_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'undone_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * The journal that reversed this document, if it was reversed.
+     *
+     * @return BelongsTo<JournalEntry, $this>
+     */
+    public function reversalJournal(): BelongsTo
+    {
+        return $this->belongsTo(JournalEntry::class, 'reversal_journal_id');
+    }
+
+    /**
+     * The line items this invoice is made of.
+     *
+     * @return HasMany<SalesInvoiceLine, $this>
+     */
+    public function lines(): HasMany
+    {
+        return $this->hasMany(SalesInvoiceLine::class)->orderBy('created_at');
+    }
+
+    /**
+     * The sales order this invoice was raised against, if any.
+     *
+     * @return BelongsTo<SalesOrder, $this>
+     */
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class, 'sales_order_id');
+    }
+
+    /**
+     * The quotation this invoice converted from, if any.
+     *
+     * @return BelongsTo<Quotation, $this>
+     */
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class, 'quotation_id');
+    }
+
+    /**
+     * The company this invoice is addressed to.
+     *
+     * @return BelongsTo<Company, $this>
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id', 'id');
+    }
+
+    /**
+     * The contact person at the customer.
+     *
+     * @return BelongsTo<Contact, $this>
+     */
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'contact_id', 'id');
+    }
+
+    /**
+     * Whether this invoice has reached the general ledger.
+     */
+    public function isPosted(): bool
+    {
+        return $this->status === LedgerStatus::POSTED;
+    }
+
+    /**
+     * Whether this invoice has been cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === LedgerStatus::CANCELLED;
+    }
+
+    /**
+     * Whether this invoice can still be changed.
+     *
+     * A posted invoice has already moved money, so editing it would leave the
+     * ledgers describing something the document no longer says.
+     */
+    public function isEditable(): bool
+    {
+        return ! $this->isPosted() && ! $this->isCancelled();
+    }
+}

@@ -1,0 +1,361 @@
+.calendar-table{
+    table-layout:fixed;
+    width:100%;
+    margin:0;
+}
+
+.calendar-table th{
+    text-align:center;
+    background:#f8fafc;
+    color:#64748b;
+    font-size:.80rem;
+    font-weight:600;
+    padding:12px;
+    border:1px solid #edf2f7;
+}
+
+.calendar-table td{
+
+    width:14.285%;
+
+    height:110px;
+
+    border:1px solid #edf2f7;
+
+    vertical-align:top;
+
+    transition:.2s;
+
+    cursor:pointer;
+
+    background:#fff;
+
+}
+
+.calendar-table td:hover{
+
+    background:#f8fafc;
+
+}
+
+.calendar-table td.empty{
+
+    background:#fafafa;
+
+    cursor:default;
+
+}
+
+.day{
+
+    padding:8px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    height:100%;
+
+}
+
+.day-number{
+
+    width:30px;
+
+    height:30px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-weight:700;
+
+    margin-bottom:6px;
+
+}
+
+.holiday-name{
+
+    font-size:.72rem;
+
+    line-height:1.3;
+
+    font-weight:600;
+
+    color:#c62828;
+
+}
+
+/* ================================
+   Holiday
+   ================================ */
+
+.calendar-table td.holiday{
+
+    background:#ffebee;
+
+}
+
+.calendar-table td.holiday:hover{
+
+    background:#ffcdd2;
+
+}
+
+.calendar-table td.holiday .day-number{
+
+    background:#d32f2f;
+
+    color:#fff;
+
+}
+
+/* ================================
+   Saturday
+   ================================ */
+
+.calendar-table td.saturday{
+
+    background:#fff8e1;
+
+}
+
+.calendar-table td.saturday .day-number{
+
+    color:#ef6c00;
+
+}
+
+/* ================================
+   Sunday
+   ================================ */
+
+.calendar-table td.sunday{
+
+    background:#e3f2fd;
+
+}
+
+.calendar-table td.sunday .day-number{
+
+    color:#1565c0;
+
+}
+
+/* ================================
+   Today
+   ================================ */
+
+.calendar-table td.today{
+
+    box-shadow:inset 0 0 0 2px #9f1239;
+
+}
+
+/* ================================
+   Legend
+   ================================ */
+
+.calendar-legend{
+
+    display:flex;
+
+    gap:20px;
+
+    margin-bottom:20px;
+
+}
+
+.calendar-legend-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    font-size:.85rem;
+
+}
+
+.calendar-box{
+
+    width:18px;
+
+    height:18px;
+
+    border-radius:4px;
+
+}
+
+.legend-holiday{
+
+    background:#d32f2f;
+
+}
+
+.legend-saturday{
+
+    background:#fff8e1;
+
+    border:1px solid #ddd;
+
+}
+
+.legend-sunday{
+
+    background:#e3f2fd;
+
+    border:1px solid #ddd;
+
+}
+
+/* ================================
+   Stats Card
+   ================================ */
+
+.stat-card{
+
+    border:none;
+
+    border-radius:12px;
+
+    transition:.2s;
+
+}
+
+.stat-card:hover{
+
+    transform:translateY(-3px);
+
+}
+
+.stat-icon{
+
+    width:58px;
+
+    height:58px;
+
+    border-radius:14px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:22px;
+
+}
+
+/* ================================
+   Upcoming Holidays
+   ================================ */
+
+.upcoming-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-bottom:1px solid #f1f3f5;
+    transition:.2s;
+}
+
+.upcoming-item:hover{
+    background:#f8fafc;
+}
+
+.upcoming-date{
+    width:42px;
+    height:42px;
+    border-radius:8px;
+    background:#dc3545;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.upcoming-date strong{
+    font-size:.95rem;
+    line-height:1;
+}
+
+.upcoming-date span{
+    font-size:.65rem;
+    line-height:1;
+}
+
+.upcoming-title{
+    font-size:.9rem;
+    font-weight:600;
+    line-height:1.2;
+}
+
+/* ================================
+   Holiday Table
+   ================================ */
+
+.table-holiday tbody tr{
+
+    transition:.15s;
+
+}
+
+.table-holiday tbody tr:hover{
+
+    background:#f8fafc;
+
+}
+
+/* ================================
+   Responsive
+   ================================ */
+
+@media(max-width:992px){
+
+    .calendar-table td{
+
+        height:90px;
+
+    }
+
+    .holiday-name{
+
+        display:none;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .calendar-table td{
+
+        height:65px;
+
+    }
+
+    .day{
+
+        padding:4px;
+
+    }
+
+    .day-number{
+
+        width:24px;
+
+        height:24px;
+
+        font-size:.75rem;
+
+    }
+
+}

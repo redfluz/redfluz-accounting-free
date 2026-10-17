@@ -1,0 +1,3 @@
+<?php
+
+return ['title' => 'Papan Pemuka Inventori', 'subtitle' => 'Pantau tahap stok, nilai inventori dan keperluan pesanan semula.', 'view_products' => 'Lihat Produk', 'product' => 'Produk', 'supplier' => 'Pembekal', 'available' => 'Baki Tersedia', 'reorder_level' => 'Paras Pesanan Semula', 'low_stock_title' => 'Stok Rendah', 'no_low_stock' => 'Tiada produk yang memerlukan pesanan semula.', 'recent_movements' => 'Pergerakan Stok Terkini', 'no_movements' => 'Tiada pergerakan stok ditemui.', 'kpi' => ['products' => 'Produk Aktif', 'available_units' => 'Unit Tersedia', 'inventory_value' => 'Nilai Inventori', 'low_stock' => 'Item Stok Rendah']];

@@ -1,0 +1,43 @@
+<?php
+
+return [
+    'title' => 'Discounts',
+    'subtitle' => 'Maintain reusable discount codes, values, and valid date ranges.',
+    'form' => [
+        'create_title' => 'Add Discount',
+        'edit_title' => 'Edit Discount',
+        'code' => 'Code',
+        'name' => 'Name',
+        'type' => 'Discount Type',
+        'value' => 'Value',
+        'starts_at' => 'Valid From',
+        'ends_at' => 'Valid Until',
+        'is_active' => 'Active',
+        'save' => 'Save Discount',
+        'none' => 'No Discount',
+        'manual' => 'Manual Discount',
+        'selection' => 'Discount',
+        'manual_hint' => 'Choose percentage or amount, then enter the discount value.',
+    ],
+    'type' => ['percent' => 'Percentage', 'amount' => 'Amount'],
+    'table' => [
+        'code' => 'Code',
+        'name' => 'Name',
+        'type' => 'Type',
+        'value' => 'Value',
+        'date_range' => 'Valid Date Range',
+        'status' => 'Status',
+        'action' => 'Action',
+    ],
+    'status' => ['active' => 'Active', 'inactive' => 'Inactive'],
+    'messages' => [
+        'empty' => 'No discounts were found.',
+        'created' => 'Discount created successfully.',
+        'updated' => 'Discount updated successfully.',
+        'deleted' => 'Discount deleted successfully.',
+        'delete_confirm' => 'Delete this discount? Existing invoices will keep their saved discount details.',
+        'inactive' => 'The selected discount is inactive or no longer exists.',
+        'outside_date_range' => 'The selected discount is not valid on the invoice date.',
+        'amount_exceeds_subtotal' => 'The discount amount cannot exceed the invoice subtotal.',
+    ],
+];
