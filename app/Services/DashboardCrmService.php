@@ -34,6 +34,7 @@ use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Sales\SalesInvoice;
+use App\Models\System\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -43,13 +44,13 @@ class DashboardCrmService
     /**
      * Get the CRM dashboard data for the selected month.
      *
-     * @param Carbon $selectedMonth The month to display data for.
+     * @param  Carbon  $selectedMonth  The month to display data for.
      * @return array<string, mixed>
      */
     public function getDashboardData(Carbon $selectedMonth): array
     {
-        $today = now();
         $lastMonth = $selectedMonth->copy()->subMonth();
+        $user = Auth::user();
 
         return [
             'companyCount' => Company::query()->count(),
@@ -66,14 +67,14 @@ class DashboardCrmService
             'receivableTotal' => $this->getPostedSalesInvoiceTotal($selectedMonth),
             'cashFlow' => $this->getCashFlowLast12Months(),
             'selectedMonth' => $selectedMonth,
-            'userName' => Auth::user()?->name ?? null,
+            'userName' => $user instanceof User ? $user->name : null,
         ];
     }
 
     /**
      * Count posted invoices (purchase + sales) for a given month.
      *
-     * @param Carbon $month The month to count invoices for.
+     * @param  Carbon  $month  The month to count invoices for.
      * @return int The number of posted invoices.
      */
     private function getPostedInvoiceCount(Carbon $month): int
@@ -96,7 +97,7 @@ class DashboardCrmService
     /**
      * Get total posted purchase invoice amount for a given month.
      *
-     * @param Carbon $month The month to sum invoices for.
+     * @param  Carbon  $month  The month to sum invoices for.
      * @return float The total payable amount.
      */
     private function getPostedPurchaseInvoiceTotal(Carbon $month): float
@@ -111,7 +112,7 @@ class DashboardCrmService
     /**
      * Get total posted sales invoice amount for a given month.
      *
-     * @param Carbon $month The month to sum invoices for.
+     * @param  Carbon  $month  The month to sum invoices for.
      * @return float The total receivable amount.
      */
     private function getPostedSalesInvoiceTotal(Carbon $month): float
@@ -124,6 +125,43 @@ class DashboardCrmService
     }
 
     /**
+     * Sum AR payment amounts per month, keyed by `Y-m`.
+     *
+     * The sum comes back from SQL as a raw aggregate, so the shape of the row is
+     * read defensively here and turned into a plain `Y-m => float` map that the
+     * caller can read without guessing.
+     *
+     * @param  LedgerSubType  $subtype  The payment subtype to total.
+     * @param  Carbon  $since  The earliest date to include.
+     * @return array<string, float> The summed amount keyed by month.
+     */
+    private function sumArLedgerPaymentsByMonth(LedgerSubType $subtype, Carbon $since): array
+    {
+        $rows = ArLedger::query()
+            ->selectRaw("strftime('%Y-%m', date) as month, SUM(debit_amount) as total")
+            ->where('type', LedgerType::PAYMENT->value)
+            ->where('subtype', $subtype->value)
+            ->whereNotNull('date')
+            ->where('date', '>=', $since)
+            ->groupByRaw("strftime('%Y-%m', date)")
+            ->get();
+
+        // The query is grouped by month, so every month appears at most once.
+        $totals = [];
+        foreach ($rows as $row) {
+            $month = $row->getAttribute('month');
+            if (! is_string($month)) {
+                continue;
+            }
+
+            $total = $row->getAttribute('total');
+            $totals[$month] = is_numeric($total) ? (float) $total : 0.0;
+        }
+
+        return $totals;
+    }
+
+    /**
      * Get cash flow data for the last 12 months.
      *
      * @return Collection<int, array{month: string, label: string, inflow: float, outflow: float}>
@@ -131,50 +169,26 @@ class DashboardCrmService
     private function getCashFlowLast12Months(): Collection
     {
         $today = now();
-        $months = collect();
 
+        $months = [];
         for ($i = 11; $i >= 0; $i--) {
             $month = $today->copy()->subMonths($i);
-            $months->push([
+            $months[] = [
                 'month' => $month->format('Y-m'),
                 'label' => $month->format('M'),
-                'inflow' => 0.0,
-                'outflow' => 0.0,
-            ]);
+            ];
         }
 
-        // Fetch receipts (inflow) grouped by month
-        $receipts = ArLedger::query()
-            ->selectRaw("strftime('%Y-%m', date) as month, SUM(debit_amount) as total")
-            ->where('type', LedgerType::PAYMENT->value)
-            ->where('subtype', LedgerSubType::RECEIPT->value)
-            ->whereNotNull('date')
-            ->where('date', '>=', $today->copy()->subMonths(11)->startOfMonth())
-            ->groupByRaw("strftime('%Y-%m', date)")
-            ->get()
-            ->keyBy('month');
+        // Receipts (inflow) and payment vouchers (outflow) for the same window.
+        $since = $today->copy()->subMonths(11)->startOfMonth();
+        $receipts = $this->sumArLedgerPaymentsByMonth(LedgerSubType::RECEIPT, $since);
+        $payments = $this->sumArLedgerPaymentsByMonth(LedgerSubType::PAYMENT_VOUCHER, $since);
 
-        // Fetch payment vouchers (outflow) grouped by month
-        $payments = ArLedger::query()
-            ->selectRaw("strftime('%Y-%m', date) as month, SUM(debit_amount) as total")
-            ->where('type', LedgerType::PAYMENT->value)
-            ->where('subtype', LedgerSubType::PAYMENT_VOUCHER->value)
-            ->whereNotNull('date')
-            ->where('date', '>=', $today->copy()->subMonths(11)->startOfMonth())
-            ->groupByRaw("strftime('%Y-%m', date)")
-            ->get()
-            ->keyBy('month');
-
-        return $months->map(function (array $row) use ($receipts, $payments): array {
-            $receiptRow = $receipts->get($row['month']);
-            $paymentRow = $payments->get($row['month']);
-
-            return [
-                'month' => $row['month'],
-                'label' => $row['label'],
-                'inflow' => (float) ($receiptRow?->total ?? 0),
-                'outflow' => (float) ($paymentRow?->total ?? 0),
-            ];
-        });
+        return collect($months)->map(fn (array $row): array => [
+            'month' => $row['month'],
+            'label' => $row['label'],
+            'inflow' => $receipts[$row['month']] ?? 0.0,
+            'outflow' => $payments[$row['month']] ?? 0.0,
+        ]);
     }
 }

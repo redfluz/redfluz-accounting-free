@@ -113,6 +113,10 @@ class StoreSalesOrderRequest extends SalesOrderRequest
             }
 
             foreach ($lines as $index => $line) {
+                if (! is_array($line)) {
+                    continue;
+                }
+
                 $productId = $line['product_id'] ?? null;
                 if (empty($productId)) {
                     continue;

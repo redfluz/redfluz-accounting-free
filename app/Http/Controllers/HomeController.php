@@ -49,13 +49,14 @@ class HomeController extends Controller
      * Display a listing of the resource.
      * Show the application dashboard.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View Returns the rendered Blade view.
      */
     public function index(Request $request): View
     {
-        $selectedMonth = $request->has('month')
-            ? Carbon::parse($request->input('month'))->startOfMonth()
+        $requestedMonth = $request->input('month');
+        $selectedMonth = is_string($requestedMonth) && $requestedMonth !== ''
+            ? Carbon::parse($requestedMonth)->startOfMonth()
             : now()->startOfMonth();
 
         $data = $this->dashboard->getDashboardData($selectedMonth);

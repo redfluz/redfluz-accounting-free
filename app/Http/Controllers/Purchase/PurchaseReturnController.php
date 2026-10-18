@@ -79,15 +79,15 @@ class PurchaseReturnController extends Controller
         // supplier to return to.
         $grouped = $receipts->filter(fn (ProductLedger $row) => ! empty($row->company_name))
             ->groupBy('company_name')->map(
-            fn (Collection $companyRows) => $companyRows->groupBy('document_number')->map(
-                fn (Collection $docRows) => $docRows->map(fn (ProductLedger $row) => [
-                    'id' => $row->id,
-                    'product_name' => $row->product_name,
-                    'quantity' => $row->quantity,
-                    'reference_number' => $row->reference_number,
-                ])
-            )
-        );
+                fn (Collection $companyRows) => $companyRows->groupBy('document_number')->map(
+                    fn (Collection $docRows) => $docRows->map(fn (ProductLedger $row) => [
+                        'id' => $row->id,
+                        'product_name' => $row->product_name,
+                        'quantity' => $row->quantity,
+                        'reference_number' => $row->reference_number,
+                    ])
+                )
+            );
 
         return view('purchase.returns.create', [
             'groupedReceipts' => $grouped,

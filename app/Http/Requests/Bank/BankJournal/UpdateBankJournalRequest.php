@@ -73,7 +73,7 @@ class UpdateBankJournalRequest extends BaseFormRequest
                         ->whereNull('deleted_at')
                         ->exists();
 
-                    if (!$found) {
+                    if (! $found) {
                         $found = DB::table('cash_accounts')
                             ->where('id', $value)
                             ->where('is_active', true)
@@ -81,7 +81,7 @@ class UpdateBankJournalRequest extends BaseFormRequest
                             ->exists();
                     }
 
-                    if (!$found) {
+                    if (! $found) {
                         $found = DB::table('e_wallet_accounts')
                             ->where('id', $value)
                             ->where('is_active', true)
@@ -89,7 +89,7 @@ class UpdateBankJournalRequest extends BaseFormRequest
                             ->exists();
                     }
 
-                    if (!$found) {
+                    if (! $found) {
                         $fail(__('validation.exists'));
                     }
                 },

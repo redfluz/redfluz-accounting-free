@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -74,7 +75,7 @@ class StoreBankJournalRequest extends BaseFormRequest
                         ->whereNull('deleted_at')
                         ->exists();
 
-                    if (!$found) {
+                    if (! $found) {
                         $found = DB::table('cash_accounts')
                             ->where('id', $value)
                             ->where('is_active', true)
@@ -82,7 +83,7 @@ class StoreBankJournalRequest extends BaseFormRequest
                             ->exists();
                     }
 
-                    if (!$found) {
+                    if (! $found) {
                         $found = DB::table('e_wallet_accounts')
                             ->where('id', $value)
                             ->where('is_active', true)
@@ -90,8 +91,9 @@ class StoreBankJournalRequest extends BaseFormRequest
                             ->exists();
                     }
 
-                    if (!$found) {
+                    if (! $found) {
                         $fail(__('validation.exists'));
+
                         return;
                     }
 
@@ -100,7 +102,7 @@ class StoreBankJournalRequest extends BaseFormRequest
                     $posted = DB::table('bank_journals')
                         ->where('status', 'posted')
                         ->whereNull('deleted_at')
-                        ->where(function ($q) use ($value): void {
+                        ->where(function (Builder $q) use ($value): void {
                             $q->where('bank_account_id', $value)
                                 ->orWhere('cash_account_id', $value)
                                 ->orWhere('e_wallet_account_id', $value);

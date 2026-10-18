@@ -97,20 +97,22 @@ trait HandlesInvoiceProductMovement
         // For parent products, also include their variants in the stock check.
         // This allows sales orders to use the parent product and draw stock from
         // any variant.
-        $productIds = $products->keys()->all();
+        $productIds = [];
         $variantIdsByParent = [];
         foreach ($products as $product) {
             /** @var Product $product */
+            $productIds[] = $product->id;
             $variantIds = Product::query()
                 ->where('parent_product_id', $product->id)
-                ->pluck('id')
+                ->get(['id'])
+                ->map(fn (Product $variant): string => $variant->id)
                 ->all();
             if (! empty($variantIds)) {
                 $variantIdsByParent[$product->id] = $variantIds;
                 $productIds = array_merge($productIds, $variantIds);
             }
         }
-        $productIds = array_unique($productIds);
+        $productIds = array_values(array_unique($productIds));
 
         $movements = ProductLedger::query()
             ->whereIn('product_id', $productIds)
