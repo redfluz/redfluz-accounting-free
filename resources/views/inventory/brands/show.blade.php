@@ -35,7 +35,7 @@ $canUpdate = auth()->user()->hasFilePermission(FileResources::BRANDS, FileAction
             @include('partials.alerts')
             <h6 class="fw-bold mb-3">{{ __('brands.products_title') }}</h6>
             <div class="table-responsive rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('products.table.column_sku') }}</th>

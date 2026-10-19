@@ -77,7 +77,7 @@
                             <i class="fg-secondary me-1" data-lucide="info"></i> File Details
                         </div>
                         <div class="table-responsive">
-                            <table class="table-form table-hover table-striped mb-0 table align-middle">
+                            <table class="table-hover table-striped mb-0 table align-middle">
                                 <tbody>
                                     <tr>
                                         <th class="bg-2 fg-secondary fw-semibold px-3" style="width: 35%">

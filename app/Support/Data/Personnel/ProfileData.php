@@ -40,6 +40,9 @@ class ProfileData extends Data
         #[MapName('locale')]
         public ?string $locale = null,
 
+        #[MapName('theme')]
+        public ?string $theme = null,
+
         #[MapName('picture')]
         public mixed $picture = null,
 
@@ -61,6 +64,7 @@ class ProfileData extends Data
         return [
             'name' => $this->name,
             'locale' => $this->locale,
+            'theme' => $this->theme,
         ];
     }
 }

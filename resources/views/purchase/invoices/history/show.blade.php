@@ -86,7 +86,7 @@
             </div>
 
             <div class="table-responsive rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('ledgers.table.column_product') }}</th>

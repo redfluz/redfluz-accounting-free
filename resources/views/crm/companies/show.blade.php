@@ -132,7 +132,7 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
             </div>
 
             <div class="table-responsive">
-                <table class="table-form table-bordered table" style="table-layout: fixed; min-width: 800px">
+                <table class="table-bordered table" style="table-layout: fixed; min-width: 800px">
                     <thead class="bg-1 text-center">
                         <tr>
                             <th style="width: 14.28%">{{ __('companies.show.calendar.sunday') }}</th>
@@ -217,7 +217,7 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 @endif
             </div>
             <div class="table-responsive">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('contacts.table.column_name') }}</th>
@@ -281,7 +281,7 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 @endif
             </div>
             <div class="table-responsive">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('companies.addresses.fields.name') }}</th>
@@ -344,7 +344,7 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
         {{-- TAB 3: Accounts Receivable Statement --}}
         <div class="tab-pane fade" id="ar-pane" role="tabpanel" aria-labelledby="ar-tab">
             <div class="table-responsive">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('companies.statement.document_number') }}</th>
@@ -419,7 +419,7 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
         {{-- TAB 4: Accounts Payable Statement --}}
         <div class="tab-pane fade" id="ap-pane" role="tabpanel" aria-labelledby="ap-tab">
             <div class="table-responsive">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('companies.statement.document_number') }}</th>
@@ -498,7 +498,7 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
         {{-- TAB 5: Files --}}
         <div class="tab-pane fade" id="files-pane" role="tabpanel">
             <div class="table-responsive">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('company_files.table.column_company') }}</th>

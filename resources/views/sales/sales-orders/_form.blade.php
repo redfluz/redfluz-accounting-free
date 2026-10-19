@@ -129,7 +129,7 @@
 
 <div id="sales-order-lines-section">
     <div class="table-responsive mb-4 rounded border">
-        <table class="table-form table-striped mb-0 table align-middle" id="sales-order-lines">
+        <table class="table-striped mb-0 table align-middle" id="sales-order-lines">
             <thead class="bg-1">
                 <tr>
                     <th>{{ __('sales_orders.form.product') }}</th>

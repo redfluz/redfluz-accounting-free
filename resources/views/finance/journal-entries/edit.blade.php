@@ -106,7 +106,7 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                 </div>
 
                 <div class="table-responsive rounded-5 mb-3 border">
-                    <table class="table-form table-striped table-sm mb-0 table align-middle">
+                    <table class="table-striped table-sm mb-0 table align-middle">
                         <thead class="bg-1">
                             <tr>
                                 <th style="width: 30%">{{ __('journal_entries.table.column_account') }}</th>

@@ -250,7 +250,7 @@
            ===================================================================== */
 
         .crm-page {
-            --crm-ink: var(--rf-ink);
+            --crm-ink: var(--fg-body);
             --crm-ink-soft: var(--fg-2);
             --crm-rose-deep: #9f1239;
             --crm-rose: #fb7185;
@@ -273,7 +273,7 @@
             overflow: hidden;
             border-radius: 22px;
             padding: clamp(1.5rem, 3vw, 2.4rem);
-            background: linear-gradient(155deg, #fff7f7 0%, var(--rf-red-50) 45%, var(--rf-red-100) 100%);
+            background: linear-gradient(155deg, var(--bg-body) 0%, var(--primary-bg-subtle) 45%, var(--primary-bg-muted) 100%);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -387,8 +387,8 @@
             width: 46px;
             height: 46px;
             border-radius: 13px;
-            background: var(--rf-red-50);
-            color: var(--rf-red-400);
+            background: var(--primary-bg-subtle);
+            color: var(--primary-base);
             flex: 0 0 auto;
         }
 
@@ -470,7 +470,7 @@
             padding-top: 0.4rem;
             font-size: 0.78rem;
             font-weight: 600;
-            color: var(--rf-red-400);
+            color: var(--primary-base);
             text-decoration: none;
         }
 
@@ -514,7 +514,7 @@
             font-size: 0.75rem;
             font-weight: 600;
             color: var(--fg-3);
-            background: var(--rf-red-50);
+            background: var(--primary-bg-subtle);
             padding: 0.2rem 0.6rem;
             border-radius: 999px;
         }
@@ -551,7 +551,7 @@
         }
 
         .crm-donut-track {
-            stroke: var(--rf-red-50);
+            stroke: var(--primary-bg-subtle);
         }
 
         .crm-donut-seg.seg-pay {
@@ -750,7 +750,7 @@
             gap: 0.3rem;
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--rf-red-400);
+            color: var(--primary-base);
             text-decoration: none;
         }
 

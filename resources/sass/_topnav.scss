@@ -15,11 +15,11 @@
 
 // --- Brand ------------------------------------------------------------------
 .topnav-brand {
-    color: var(--rf-ink);
+    color: var(--fg-body);
     flex-shrink: 0;
 
     &:hover {
-        color: var(--rf-ink);
+        color: var(--fg-body);
     }
 }
 
@@ -32,17 +32,17 @@
     width: 32px;
     height: 32px;
     border-radius: 10px;
-    background: var(--rf-red-100);
-    color: var(--rf-red-400);
+    background: var(--primary-bg-muted);
+    color: var(--primary-base);
     flex-shrink: 0;
 }
 
 .brand-name {
-    color: var(--rf-ink);
+    color: var(--fg-body);
 }
 
 .brand-subtitle {
-    color: var(--rf-ink-soft);
+    color: var(--fg-2);
 }
 
 // --- Folder toggles ---------------------------------------------------------
@@ -54,26 +54,26 @@
 }
 
 .topnav-toggle {
-    color: var(--rf-ink-soft);
+    color: var(--fg-2);
     white-space: nowrap;
     font-size: 0.875rem;
 
     &:hover,
     &:focus-visible {
-        color: var(--rf-ink);
-        background-color: var(--rf-red-50);
+        color: var(--fg-body);
+        background-color: var(--primary-bg-subtle);
     }
 
     // Marks which folder owns the page you are on.
     &.active {
-        color: var(--rf-ink);
-        background-color: var(--rf-red-50);
+        color: var(--fg-body);
+        background-color: var(--primary-bg-subtle);
         font-weight: 600;
     }
 }
 
 .avatar-circle {
-    background: linear-gradient(135deg, var(--rf-red-400), #8a6b74) !important;
+    background: linear-gradient(135deg, var(--primary-base), var(--accent-base)) !important;
 }
 
 // --- Menus ------------------------------------------------------------------

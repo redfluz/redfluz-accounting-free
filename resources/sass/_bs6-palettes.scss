@@ -1,0 +1,61 @@
+// Redfluz account-selectable palettes, using the Bootstrap 6 semantic tokens
+// emitted by the framework's Sass entry point in app.scss.
+@mixin colors($primary, $primary-fg, $accent, $canvas, $body, $surface, $border, $text, $muted, $primary-contrast: #fff) {
+    --primary-base: #{$primary};
+    --primary-bg: #{$primary};
+    --primary-fg: #{$primary-fg};
+    --primary-fg-emphasis: #{$primary-fg};
+    --primary-contrast: #{$primary-contrast};
+    --primary-bg-subtle: color-mix(in oklch, #{$primary} 12%, #{$body});
+    --primary-bg-muted: color-mix(in oklch, #{$primary} 22%, #{$body});
+    --primary-border: color-mix(in oklch, #{$primary} 42%, #{$border});
+    --primary-focus-ring: color-mix(in oklch, #{$primary} 40%, transparent);
+
+    --accent-base: #{$accent};
+    --bg-body: #{$body};
+    --bg-1: #{$surface};
+    --bg-2: color-mix(in oklch, #{$surface} 82%, #{$canvas});
+    --bg-3: color-mix(in oklch, #{$surface} 64%, #{$canvas});
+    --fg-body: #{$text};
+    --fg-1: #{$text};
+    --fg-2: #{$muted};
+    --fg-3: color-mix(in oklch, #{$muted} 72%, #{$body});
+    --fg-4: color-mix(in oklch, #{$muted} 48%, #{$body});
+    --border-color: #{$border};
+    --link-color: color-mix(in oklch, #{$primary} 76%, #{$text});
+    --link-hover-color: #{$primary};
+    --body-font-family: 'Inter', system-ui, sans-serif;
+}
+
+@mixin palette($name, $primary, $primary-fg, $accent, $canvas, $body, $surface, $border, $text, $muted, $scheme: light, $primary-contrast: #fff) {
+    [data-palette='#{$name}'] {
+        color-scheme: $scheme;
+        @include colors($primary, $primary-fg, $accent, $canvas, $body, $surface, $border, $text, $muted, $primary-contrast);
+    }
+}
+
+@include palette('cerulean', #087ea4, #07506e, #ff866b, #e7eff5, #f5faff, #fff, #c5d5df, #102a43, #587284);
+@include palette('slate', #5865f2, #3730a3, #a58cff, #e9eaf5, #f7f7fc, #fff, #c9cbe0, #20223b, #62647c);
+@include palette('ember', #d85d32, #8a2e1b, #f4a340, #f4eae4, #fff8f4, #fffdfb, #ddc5b9, #38231e, #806860);
+@include palette('verdant', #228b68, #145c45, #d69843, #e4efe8, #f4faf6, #fff, #bfd5c7, #18352c, #587366);
+@include palette('pinkpanther', #d63384, #861653, #ff8fc7, #f3e3ec, #fff5fa, #fffaff, #e2c2d4, #3d1c31, #805a70);
+@include palette('ruby', #c6283d, #861b2b, #ff7a82, #f1e0e2, #fff5f5, #fffafa, #e2c5c7, #401b22, #80545a);
+@include palette('paper', #66745b, #34402d, #bd8b55, #e9e4d9, #f5f2ea, #fffdf8, #d6d0c3, #292a24, #6c6b61);
+@include palette('dark', #8ea4ff, #27325f, #ff9ebd, #0c1220, #141c2c, #1d2738, #354258, #edf1f8, #aab6c8, dark, #17203b);
+
+[data-palette='dark'] {
+    --btn-input-bg: #24334a;
+    --control-border-color: #465a76;
+    --control-action-bg: #30415a;
+    --control-action-hover-bg: #3b4f6b;
+
+    .bg-white,
+    .bg-light {
+        background-color: var(--bg-1) !important;
+        color: var(--fg-body) !important;
+    }
+
+    .text-dark {
+        color: var(--fg-body) !important;
+    }
+}

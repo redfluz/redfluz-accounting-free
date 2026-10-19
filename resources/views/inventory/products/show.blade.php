@@ -137,7 +137,7 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
         </div>
         <div class="card-body">
             <div class="table-responsive rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('products.variants.name') }}</th>
@@ -256,7 +256,7 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
         </div>
         <div class="card-body">
             <div class="table-responsive rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('products.movement.location_code') }}</th>
@@ -304,7 +304,7 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
 
         <div class="card-body">
             <div class="table-responsive rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('products.movement.date') }}</th>

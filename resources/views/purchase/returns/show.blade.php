@@ -20,7 +20,7 @@
                 |
                 <a href="{{ route('purchase.invoices.show', $return->reference_number) }}">{{ $return->reference_number }}</a>
             </p>
-            <table class="table-form table">
+            <table class="table">
                 <tbody>
                     <tr>
                         <th>{{ $return->product_name }}</th>

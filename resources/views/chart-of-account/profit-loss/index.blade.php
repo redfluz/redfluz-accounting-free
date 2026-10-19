@@ -293,8 +293,8 @@
                                         // 红 = 涨 (gain), 绿 = 跌 (loss). Row tint only.
                                         $formulaClass = $isGrandTotal
                                             ? ((float) $row['amount'] < 0
-                                                ? 'fin-loss'
-                                                : 'fin-gain')
+                                                ? 'bg-danger-subtle'
+                                                : 'bg-success-subtle')
                                             : '';
                                     @endphp
                                     <tr class="fw-bold {{ $formulaClass }}">

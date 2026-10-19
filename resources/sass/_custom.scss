@@ -2,6 +2,10 @@
 // TABLE COLUMN WIDTH UTILITIES
 // =============================================================================
 
+body {
+  overflow-x: hidden;
+}
+
 // --- Semantic Column Classes (Best Practice) ---
 // Apply these directly to <th> or <td> elements based on the content type.
 

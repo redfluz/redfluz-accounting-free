@@ -193,7 +193,7 @@
 </div>
 
 <div class="table-responsive mb-4 rounded border" id="quotation-lines-section">
-    <table class="table-form table-striped mb-0 table align-middle" id="quotation-lines">
+    <table class="table-striped mb-0 table align-middle" id="quotation-lines">
         <thead class="bg-1">
             <tr>
                 <th>{{ __('quotations.form.product') }}</th>

@@ -52,6 +52,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $name
  * @property string $email
  * @property string $locale
+ * @property string $theme
  * @property string $picture
  * @property string $password
  * @property bool $must_change_password
@@ -80,6 +81,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'must_change_password',
+        'theme',
     ];
 
     /**
@@ -94,6 +96,7 @@ class User extends Authenticatable
             'name' => 'string',
             'email' => 'string',
             'locale' => 'string',
+            'theme' => 'string',
             'picture' => 'string',
             'password' => 'hashed',
             'must_change_password' => 'boolean',

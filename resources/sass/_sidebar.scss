@@ -16,18 +16,18 @@
 // the only place it needs to say anything. Red therefore appears on the active
 // item, the expanded group's icon, and the brand mark — nowhere else.
 $sidebar-bg: #ffffff;
-$sidebar-bg-hover: var(--rf-red-50);
-$sidebar-bg-active: var(--rf-red-50);
+$sidebar-bg-hover: var(--primary-bg-subtle);
+$sidebar-bg-active: var(--primary-bg-subtle);
 $sidebar-fg: #5c6270;
-$sidebar-fg-active: var(--rf-ink);
-$sidebar-border: var(--rf-red-100);
+$sidebar-fg-active: var(--fg-body);
+$sidebar-border: var(--primary-border);
 
 // From the supplied red ramp.
-$sidebar-accent: var(--rf-red-400);
-$sidebar-accent-glow: var(--rf-red-100);
+$sidebar-accent: var(--primary-base);
+$sidebar-accent-glow: var(--primary-bg-muted);
 
-$sidebar-danger: var(--rf-red-400);
-$sidebar-danger-bg: var(--rf-red-100);
+$sidebar-danger: var(--danger-base);
+$sidebar-danger-bg: var(--danger-bg-subtle);
 
 // --- Shell ------------------------------------------------------------------
 // ONE source of truth for the rail width. It was previously hardcoded as

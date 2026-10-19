@@ -101,8 +101,8 @@
                             $subtypeVal = $ledger->subtype->value ?? ($ledger->subtype ?? 'sales_invoice');
 
                             [$iconName, $iconColor, $badgeBg] = match ($subtypeVal) {
-                                'receipt' => ['arrow-down-left', 'fg-danger', 'fin-gain'],
-                                'payment_voucher' => ['arrow-up-right', 'fg-success', 'fin-loss'],
+                                'receipt' => ['arrow-down-left', 'fg-danger', 'bg-success-subtle'],
+                                'payment_voucher' => ['arrow-up-right', 'fg-success', 'bg-danger-subtle'],
                                 'sales_invoice' => ['file-text', 'fg-primary', 'bg-subtle-primary'],
                                 'purchase_invoice' => ['receipt', 'fg-warning', 'bg-subtle-warning'],
                                 default => ['circle', 'fg-secondary', 'bg-2'],

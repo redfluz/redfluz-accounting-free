@@ -190,7 +190,7 @@
                         <span class="fg-secondary small">{{ __('ledgers.complete_rows_needed') }}</span>
                     </div>
                     <div class="table-responsive mb-4 rounded border">
-                        <table class="table-form table-striped mb-0 table align-middle" id="invoice-lines-table">
+                        <table class="table-striped mb-0 table align-middle" id="invoice-lines-table">
                             <thead class="bg-1">
                                 <tr>
                                     <th style="min-width: 220px">{{ __('ledgers.table.column_product') }}</th>

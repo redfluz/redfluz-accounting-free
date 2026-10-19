@@ -20,6 +20,7 @@ class ProfileService
      * @param  User  $user  The user to update.
      * @param  string  $name  The new name.
      * @param  string  $locale  The new locale.
+     * @param  string  $theme  The selected interface theme.
      * @param  UploadedFile|null  $picture  The optional profile picture.
      * @param  string|null  $password  The optional new password.
      * @return bool Whether the user must re-authenticate (forced password change was completed).
@@ -28,6 +29,7 @@ class ProfileService
         User $user,
         string $name,
         string $locale,
+        string $theme,
         ?UploadedFile $picture = null,
         ?string $password = null,
     ): bool {
@@ -46,6 +48,7 @@ class ProfileService
 
         $user->name = $name;
         $user->locale = $locale;
+        $user->theme = $theme;
 
         if (! empty($password)) {
             $user->password = Hash::make($password);

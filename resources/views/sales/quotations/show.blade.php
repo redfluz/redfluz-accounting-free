@@ -88,7 +88,7 @@
                 </div>
             </div>
             <div class="table-responsive mb-4 rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('quotations.form.product') }}</th>

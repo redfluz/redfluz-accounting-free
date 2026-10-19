@@ -58,6 +58,7 @@ class UpdateProfileRequest extends ProfileRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'locale' => ['required', 'string', 'max:255'],
+            'theme' => ['required', 'string', 'in:redfluz,cerulean,slate,ember,verdant,pinkpanther,ruby,paper,dark'],
             'picture' => ['nullable', 'image', UploadType::IMAGES->rule(), 'max:2048'],
             'current_password' => [$mustReauthenticate ? 'required' : 'nullable', 'required_with:password', 'current_password'],
             'password' => [$mustReauthenticate ? 'required' : 'nullable', 'confirmed', 'different:current_password', Password::defaults()],

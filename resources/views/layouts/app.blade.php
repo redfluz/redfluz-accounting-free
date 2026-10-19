@@ -1,6 +1,6 @@
 @php use App\Models\System\Setting; @endphp
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-palette="{{ auth()->user()?->theme ?? 'pinkpanther' }}">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,13 +9,7 @@
     <title>{{ config('app.name', 'Redfluz') }}</title>
 
     <!-- Vite Assets -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
-    <style>
-        body {
-            overflow-x: hidden;
-        }
-    </style>
+    @vite(['resources/sass/app.scss', 'resources/sass/themes.scss', 'resources/js/app.js'])
 </head>
 
 <body class="bg-2">

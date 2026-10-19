@@ -137,7 +137,7 @@
     <span class="fg-secondary small">{{ __('purchase_orders.messages.complete_rows') }}</span>
 </div>
 <div class="table-responsive mb-4 rounded border" style="order: 3">
-    <table class="table-form table-striped mb-0 table align-middle" id="purchase-order-lines-table">
+    <table class="table-striped mb-0 table align-middle" id="purchase-order-lines-table">
         <thead class="bg-1">
             <tr>
                 <th style="min-width: 220px">

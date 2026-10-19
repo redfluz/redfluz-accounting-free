@@ -252,18 +252,13 @@
        ===================================================================== */
 
     :root {
-        /* Mirrors the primary family in resources/sass/_theme.scss. The login
-           screen re-declares them because the showcase needs opaque shades to
-           build a gradient, which the theme layer has no equivalent of. */
-        /* Exact values from the supplied red ramp. The showcase panel is now
-           LIGHT, not dark: #fde0e0 is far too pale to be readable with white
-           text (1.24:1), so the panel carries dark ink instead. */
-        --auth-deep: var(--rf-red-400);   /* #ee6969 — the submit button */
-        --auth-deep-2: var(--rf-red-300); /* #f97c7c — hover */
-        --auth-accent: var(--rf-red-400);
-        --auth-accent-soft: var(--rf-red-100);
-        --auth-ink: var(--rf-ink);
-        --auth-ink-soft: var(--rf-ink-soft);
+        /* These aliases follow the active Bootstrap palette. */
+        --auth-deep: var(--primary-base);
+        --auth-deep-2: var(--primary-bg-muted);
+        --auth-accent: var(--primary-base);
+        --auth-accent-soft: var(--primary-bg-subtle);
+        --auth-ink: var(--fg-body);
+        --auth-ink-soft: var(--fg-2);
     }
 
     html,
@@ -512,22 +507,19 @@
         cursor: pointer;
     }
 
-    /* No red in the supplied ramp reaches 4.5:1 on white, so the resting link
-       is ink and the brand red appears on hover only. */
+    /* Keep the resting link readable; the selected palette supplies its accent. */
     .auth-link {
         font-size: 0.85rem;
         color: var(--auth-ink);
         text-decoration: underline;
-        text-decoration-color: var(--rf-red-200);
+        text-decoration-color: var(--primary-border);
     }
 
     .auth-link:hover {
-        color: var(--rf-red-400);
+        color: var(--primary-base);
         text-decoration-color: currentcolor;
     }
 
-    /* The brief asks for the first colour of the ramp as the red button:
-       #fde0e0. It carries the dark ink, never white — white on it is 1.24:1. */
     .auth-submit {
         width: 100%;
         margin-top: 0.3rem;
@@ -535,14 +527,14 @@
         font-size: 0.95rem;
         font-weight: 600;
         color: var(--auth-ink);
-        background: var(--rf-red-50);
-        border-color: var(--rf-red-200);
+        background: var(--primary-bg-subtle);
+        border-color: var(--primary-border);
     }
 
     .auth-submit:hover,
     .auth-submit:focus-visible {
-        background: var(--rf-red-100);
-        border-color: var(--rf-red-300);
+        background: var(--primary-bg-muted);
+        border-color: var(--primary-base);
         color: var(--auth-ink);
     }
 
@@ -559,7 +551,7 @@
         overflow: hidden;
         isolation: isolate;
         display: flex;
-        background: linear-gradient(155deg, #fff7f7 0%, var(--rf-red-50) 45%, var(--rf-red-100) 100%);
+        background: linear-gradient(155deg, var(--bg-body) 0%, var(--primary-bg-subtle) 45%, var(--primary-bg-muted) 100%);
     }
 
     /* Faint graph-paper texture */
@@ -874,8 +866,8 @@
         margin-bottom: 1.1rem;
         border-radius: 16px;
         background: rgb(255 255 255 / 0.14);
-        border: 1px solid var(--rf-red-200);
-        color: var(--rf-ink);
+        border: 1px solid var(--primary-border);
+        color: var(--fg-body);
     }
 
     .showcase-mark-fallback svg {
@@ -911,11 +903,11 @@
         width: 34px;
         height: 4px;
         border-radius: 999px;
-        background: var(--rf-red-200);
+        background: var(--primary-border);
     }
 
     .showcase-dots i.is-active {
-        background: var(--rf-red-400);
+        background: var(--primary-base);
     }
 
     /* ===================== Responsive ===================== */

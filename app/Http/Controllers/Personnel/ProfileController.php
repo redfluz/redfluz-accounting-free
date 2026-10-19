@@ -79,6 +79,7 @@ class ProfileController extends Controller
             $user,
             $data->name ?? '',
             $data->locale ?? '',
+            $data->theme ?? 'pinkpanther',
             $request->file('picture'),
             $data->password,
         );

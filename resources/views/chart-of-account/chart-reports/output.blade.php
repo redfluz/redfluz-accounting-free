@@ -219,11 +219,11 @@
                                     <tr @class([
                                         'fw-bold' => $row['kind'] === 'formula',
                                         // 红 = 涨 (gain), 绿 = 跌 (loss). Row tint only.
-                                        'fin-loss' =>
+                                        'bg-danger-subtle' =>
                                             $row['kind'] === 'formula' &&
                                             $row['total_type'] === ChartTotalReportTypeEnum::GRAND_TOTAL->value &&
                                             (float) $row['amount'] < 0,
-                                        'fin-gain' =>
+                                        'bg-success-subtle' =>
                                             $row['kind'] === 'formula' &&
                                             $row['total_type'] === ChartTotalReportTypeEnum::GRAND_TOTAL->value &&
                                             (float) $row['amount'] >= 0,

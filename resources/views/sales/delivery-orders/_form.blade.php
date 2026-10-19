@@ -184,7 +184,7 @@
 </div>
 @if ($isPosted)
     <div class="table-responsive border-top mb-4 rounded border pt-4" id="delivery-order-lines-section">
-        <table class="table-form table-hover table-striped mb-0 table align-middle">
+        <table class="table-hover table-striped mb-0 table align-middle">
             <thead class="bg-1">
                 <tr>
                     <th>{{ __('delivery_orders.form.stock_item') }}</th>
@@ -208,7 +208,7 @@
     </div>
 @elseif ($selectedSalesOrder)
     <div class="table-responsive border-top mb-4 rounded border pt-4" id="delivery-order-lines-section">
-        <table class="table-form table-striped mb-0 table align-middle" id="delivery-lines">
+        <table class="table-striped mb-0 table align-middle" id="delivery-lines">
             <thead class="bg-1">
                 <tr>
                     <th>{{ __('delivery_orders.form.stock_item') }}</th>

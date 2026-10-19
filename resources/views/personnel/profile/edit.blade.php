@@ -113,6 +113,32 @@
                                 @enderror
                             </div>
 
+                            {{-- Personal interface theme --}}
+                            <div class="mb-4">
+                                @php($selectedTheme = old('theme', $user->theme ?? 'pinkpanther'))
+                                <label class="form-label fw-bold" for="theme-dropdown">{{ __('users.interface_theme') }}</label>
+                                <input id="theme" name="theme" type="hidden" value="{{ $selectedTheme }}" data-theme-value>
+                                <div class="dropdown">
+                                <button class="btn btn-outline-secondary menu-toggle @error('theme') is-invalid @enderror"
+                                        id="theme-dropdown" type="button" data-bs-toggle="menu" aria-expanded="false"
+                                        data-theme-toggle>
+                                        <span data-theme-label>{{ __('users.themes.' . $selectedTheme) }}</span>
+                                    </button>
+                                <div class="menu" aria-labelledby="theme-dropdown">
+                                        @foreach (['redfluz', 'cerulean', 'slate', 'ember', 'verdant', 'pinkpanther', 'ruby', 'paper', 'dark'] as $themeOption)
+                                        <button class="menu-item {{ $selectedTheme === $themeOption ? 'selected' : '' }}"
+                                            type="button" data-theme-option="{{ $themeOption }}">
+                                            {{ __('users.themes.' . $themeOption) }}
+                                        </button>
+                                        @endforeach
+                                </div>
+                                </div>
+                                @error('theme')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">{{ __('users.interface_theme_hint') }}</div>
+                            </div>
+
                             <hr class="my-4" />
 
                             <h6 class="fw-bold mb-3">{{ __('users.change_password') }}</h6>
@@ -169,6 +195,32 @@
     </div>
 
     <script>
+        (() => {
+            const value = document.querySelector('[data-theme-value]');
+            const label = document.querySelector('[data-theme-label]');
+            const toggle = document.querySelector('[data-theme-toggle]');
+            const options = document.querySelectorAll('[data-theme-option]');
+            if (!value || !label || !toggle || options.length === 0) return;
+
+            const chooseTheme = (palette, selectedOption) => {
+                value.value = palette;
+                document.documentElement.dataset.palette = palette;
+                label.textContent = selectedOption.textContent.trim();
+                options.forEach((option) => {
+                    const selected = option === selectedOption;
+                    option.classList.toggle('selected', selected);
+                    option.setAttribute('aria-current', selected ? 'true' : 'false');
+                });
+            };
+
+            options.forEach((option) => {
+                option.addEventListener('click', () => chooseTheme(option.dataset.themeOption, option));
+            });
+
+            const initiallySelected = Array.from(options).find((option) => option.dataset.themeOption === value.value);
+            if (initiallySelected) chooseTheme(value.value, initiallySelected);
+        })();
+
         function previewSelectedPicture(event) {
             const input = event.target;
             const container = document.getElementById('picture-preview-container');

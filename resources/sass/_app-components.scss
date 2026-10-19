@@ -1,0 +1,107 @@
+// Small application-specific layout helpers. Colour and component states come
+// from Bootstrap 6 and the active palette, not from a separate app theme.
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+[data-lucide],
+svg.lucide {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    vertical-align: -0.15em;
+}
+
+.btn {
+    font-weight: 500;
+    gap: 0.375rem;
+}
+
+.table .btn,
+.table button[class*='btn'] {
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.card-header.d-flex:not(.d-block):not(.d-inline) {
+    flex-direction: row;
+}
+
+.dialog-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.dialog-icon {
+    flex: 0 0 auto;
+    width: 1.25rem;
+    height: 1.25rem;
+
+    svg {
+        fill: currentColor;
+    }
+}
+
+.dialog-icon-warning { color: var(--warning-base); }
+.dialog-icon-danger { color: var(--danger-base); }
+.dialog-icon-success { color: var(--success-base); }
+.dialog-icon-info { color: var(--info-base); }
+.dialog-icon-primary { color: var(--primary-base); }
+
+.fs-7 { font-size: 0.8125rem; }
+.fs-9 { font-size: 0.6875rem; }
+
+.accordion-header .accordion-icon {
+    width: var(--accordion-btn-icon-width);
+    height: var(--accordion-btn-icon-width);
+}
+
+.form-control { font-size: 0.875rem; }
+
+.document-workspace {
+    min-height: 260px;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-top: 3px solid var(--primary-base);
+    border-radius: 0 0 var(--radius-5) var(--radius-5);
+    background: var(--bg-body);
+}
+
+.sales-tab-workspace {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: 420px;
+    overflow: hidden;
+}
+
+.document-lines-heading {
+    margin-top: 0.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.sales-tab-panel {
+    grid-area: 1 / 1;
+    min-height: 0;
+    overflow: auto;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+
+    &.sales-tab-panel-active {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .sales-tab-workspace {
+        height: 360px;
+        padding: 1rem;
+    }
+}

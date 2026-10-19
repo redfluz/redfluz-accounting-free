@@ -111,7 +111,7 @@
             {{-- The double entry. Each line carries one side only, which is why
                  the debit and credit columns are never both filled on a row. --}}
             <div class="table-responsive rounded border">
-                <table class="table-form table-hover table-striped mb-0 table align-middle">
+                <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
                             <th>{{ __('payments.table.column_entry') }}</th>

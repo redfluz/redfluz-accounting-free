@@ -3,8 +3,7 @@
 
     Why this exists
     ---------------
-    Gain/loss colour is reserved for row backgrounds only (see `.fin-gain` /
-    `.fin-loss` in resources/sass/_theme.scss). Financial text itself stays in
+    Gain/loss colour is reserved for row backgrounds only. Financial text stays in
     the default foreground so the digits are easy to read, which means colour
     can no longer be the thing that tells you whether a number is positive.
 
