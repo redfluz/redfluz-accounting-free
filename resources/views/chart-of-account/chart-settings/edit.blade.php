@@ -538,6 +538,32 @@
                                 @enderror
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="md:col-6 mb-3">
+                                <label class="form-label fw-bold" for="cash_in_transit_chart_uuid">
+                                    {{ __('chart_settings.table.column_cash_in_transit_chart_uuid') }}
+                                </label>
+
+                                <select class="form-control @error('cash_in_transit_chart_uuid') is-invalid @enderror"
+                                    id="cash_in_transit_chart_uuid" name="cash_in_transit_chart_uuid">
+                                    <option value="">{{ __('common.actions.select_option') }}</option>
+
+                                    @foreach ($cashInTransitCharts as $chart)
+                                        <option value="{{ $chart->id }}"
+                                            {{ old('cash_in_transit_chart_uuid', $chartSetting->cash_in_transit_chart_uuid) === $chart->id ? 'selected' : '' }}>
+                                            {{ $chart->code ? $chart->code . ' - ' : '' }}{{ $chart->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <div class="form-text">{{ __('chart_settings.form.cash_in_transit_help') }}</div>
+
+                                @error('cash_in_transit_chart_uuid')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -80,6 +80,7 @@ class GeneralLedgerData extends Data
         LedgerSubType::PURCHASE_DEBIT_NOTE->value => LedgerSourceType::PURCHASE_ADJUSTMENT,
         LedgerSubType::PURCHASE_CREDIT_NOTE->value => LedgerSourceType::PURCHASE_ADJUSTMENT,
         LedgerSubType::BANK_JOURNAL->value => LedgerSourceType::BANK_JOURNAL,
+        LedgerSubType::TRANSFER->value => LedgerSourceType::TRANSFER,
     ];
 
     /**

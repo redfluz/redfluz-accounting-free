@@ -58,6 +58,7 @@ enum LedgerSourceType: string
     // Money movements. Neither receivable nor payable: a bank journal names no
     // counterparty, so it raises no sub-ledger row on either side.
     case BANK_JOURNAL = 'bank_journal';
+    case TRANSFER = 'transfer';
 
     /**
      * Whether this source belongs to the receivables ledger.

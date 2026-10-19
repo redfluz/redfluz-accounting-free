@@ -60,6 +60,7 @@ class ChartSettingController extends Controller
                 'incomeChart',
                 'bankChart',
                 'cashChart',
+                'cashInTransitChart',
                 'eWalletChart',
                 'clientChart',
                 'vendorChart',
@@ -150,6 +151,22 @@ class ChartSettingController extends Controller
             )
             ->values();
 
+        // Cash in transit must be an ordinary asset chart with no money account
+        // behind it. If a chart has a row in banks, cash_accounts or
+        // e_wallet_accounts, the poster recognises it by that and files its
+        // movements into the matching money ledger — so choosing one here would
+        // make transit movements post against a drawer or a real bank, which is
+        // exactly the double count this account exists to prevent. Hence the
+        // exclusion rather than a plain "assets only" filter.
+        $cashInTransitCharts = $charts
+            ->filter(
+                fn (Chart $chart) => $chart->chartType?->isAsset === true
+                    && ! $bankChartIds->contains($chart->id)
+                    && ! $cashChartIds->contains($chart->id)
+                    && ! $eWalletChartIds->contains($chart->id)
+            )
+            ->values();
+
         $clientCharts = $charts
             ->filter(
                 fn (Chart $chart) => $chart->chartType?->isAsset === true
@@ -225,6 +242,7 @@ class ChartSettingController extends Controller
                 'incomeCharts',
                 'bankCharts',
                 'cashCharts',
+                'cashInTransitCharts',
                 'eWalletCharts',
                 'clientCharts',
                 'vendorCharts',
@@ -261,6 +279,7 @@ class ChartSettingController extends Controller
             'income_chart_uuid' => $data->incomeChartUuid,
             'bank_chart_uuid' => $data->bankChartUuid,
             'cash_chart_uuid' => $data->cashChartUuid,
+            'cash_in_transit_chart_uuid' => $data->cashInTransitChartUuid,
             'e_wallet_chart_uuid' => $data->eWalletChartUuid,
             'client_chart_uuid' => $data->clientChartUuid,
             'vendor_chart_uuid' => $data->vendorChartUuid,

@@ -49,6 +49,7 @@ use Throwable;
  * @property string|null $income_chart_uuid
  * @property string|null $bank_chart_uuid
  * @property string|null $cash_chart_uuid
+ * @property string|null $cash_in_transit_chart_uuid
  * @property string|null $e_wallet_chart_uuid
  * @property string|null $client_chart_uuid
  * @property string|null $vendor_chart_uuid
@@ -73,6 +74,7 @@ use Throwable;
  * @property-read Chart|null $incomeChart
  * @property-read Chart|null $bankChart
  * @property-read Chart|null $cashChart
+ * @property-read Chart|null $cashInTransitChart
  * @property-read Chart|null $eWalletChart
  * @property-read Chart|null $clientChart
  * @property-read Chart|null $vendorChart
@@ -99,6 +101,7 @@ use Throwable;
     'income_chart_uuid',
     'bank_chart_uuid',
     'cash_chart_uuid',
+    'cash_in_transit_chart_uuid',
     'e_wallet_chart_uuid',
     'client_chart_uuid',
     'vendor_chart_uuid',
@@ -132,6 +135,7 @@ class ChartSetting extends Model
             'income_chart_uuid' => 'string',
             'bank_chart_uuid' => 'string',
             'cash_chart_uuid' => 'string',
+            'cash_in_transit_chart_uuid' => 'string',
             'e_wallet_chart_uuid' => 'string',
             'client_chart_uuid' => 'string',
             'vendor_chart_uuid' => 'string',
@@ -194,6 +198,17 @@ class ChartSetting extends Model
     public function cashChart(): BelongsTo
     {
         return $this->belongsTo(Chart::class, 'cash_chart_uuid');
+    }
+
+    /**
+     * Define an inverse one-to-one or many relationship.
+     * Get the chart that cash occupies while it is in transit.
+     *
+     * @return BelongsTo<Chart, $this>
+     */
+    public function cashInTransitChart(): BelongsTo
+    {
+        return $this->belongsTo(Chart::class, 'cash_in_transit_chart_uuid');
     }
 
     /**

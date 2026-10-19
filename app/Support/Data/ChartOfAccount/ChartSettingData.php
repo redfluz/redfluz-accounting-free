@@ -69,6 +69,9 @@ class ChartSettingData extends Data
         #[MapName('cash_chart_uuid')]
         public ?string $cashChartUuid = null,
 
+        #[MapName('cash_in_transit_chart_uuid')]
+        public ?string $cashInTransitChartUuid = null,
+
         #[MapName('e_wallet_chart_uuid')]
         public ?string $eWalletChartUuid = null,
 
@@ -157,6 +160,7 @@ class ChartSettingData extends Data
             incomeChartUuid: $model->income_chart_uuid,
             bankChartUuid: $model->bank_chart_uuid,
             cashChartUuid: $model->cash_chart_uuid,
+            cashInTransitChartUuid: $model->cash_in_transit_chart_uuid,
             eWalletChartUuid: $model->e_wallet_chart_uuid,
             clientChartUuid: $model->client_chart_uuid,
             vendorChartUuid: $model->vendor_chart_uuid,
@@ -196,6 +200,7 @@ class ChartSettingData extends Data
             'income_chart_uuid' => $this->incomeChartUuid,
             'bank_chart_uuid' => $this->bankChartUuid,
             'cash_chart_uuid' => $this->cashChartUuid,
+            'cash_in_transit_chart_uuid' => $this->cashInTransitChartUuid,
             'e_wallet_chart_uuid' => $this->eWalletChartUuid,
             'client_chart_uuid' => $this->clientChartUuid,
             'vendor_chart_uuid' => $this->vendorChartUuid,
@@ -229,6 +234,7 @@ class ChartSettingData extends Data
             'income_chart_uuid' => $this->incomeChartUuid,
             'bank_chart_uuid' => $this->bankChartUuid,
             'cash_chart_uuid' => $this->cashChartUuid,
+            'cash_in_transit_chart_uuid' => $this->cashInTransitChartUuid,
             'e_wallet_chart_uuid' => $this->eWalletChartUuid,
             'client_chart_uuid' => $this->clientChartUuid,
             'vendor_chart_uuid' => $this->vendorChartUuid,

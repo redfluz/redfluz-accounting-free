@@ -205,7 +205,7 @@ class MenuSeeder extends Seeder
                 'groupings' => [
                     'BANKING' => [
                         'icon' => 'landmark',
-                        'pages' => ['BANK ACCOUNTS', 'CASH ACCOUNTS', 'E-WALLET ACCOUNTS', 'CASH LEDGER', 'BANK LEDGER', 'E-WALLET LEDGER', 'BANK JOURNALS'],
+                        'pages' => ['BANK ACCOUNTS', 'CASH ACCOUNTS', 'E-WALLET ACCOUNTS', 'CASH LEDGER', 'BANK LEDGER', 'E-WALLET LEDGER', 'CASH TRANSFERS', 'BANK TRANSFERS', 'BANK JOURNALS'],
                     ],
                     'RECEIPTS' => ['icon' => 'arrow-down-to-line', 'pages' => ['RECEIPTS', 'CANCELLED RECEIPTS', 'RECEIPTS HISTORY']],
                     'PAYMENT VOUCHERS' => ['icon' => 'receipt-text', 'pages' => ['PAYMENT VOUCHERS', 'CANCELLED PAYMENT VOUCHERS', 'PAYMENT VOUCHERS HISTORY']],
@@ -255,6 +255,20 @@ class MenuSeeder extends Seeder
                         'name' => 'BANK JOURNALS',
                         'route_name' => FileResources::BANK_JOURNALS->value,
                         'icon' => 'arrow-left-right',
+                        'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove', 'approve', 'cancel']),
+                    ],
+                    [
+                        // Drawer to transit: the first half of a banker's deposit.
+                        'name' => 'CASH TRANSFERS',
+                        'route_name' => FileResources::CASH_TRANSFERS->value,
+                        'icon' => 'banknote',
+                        'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove', 'approve', 'cancel']),
+                    ],
+                    [
+                        // Transit to bank: the second half, once the bank credits it.
+                        'name' => 'BANK TRANSFERS',
+                        'route_name' => FileResources::BANK_TRANSFERS->value,
+                        'icon' => 'landmark',
                         'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove', 'approve', 'cancel']),
                     ],
                     [

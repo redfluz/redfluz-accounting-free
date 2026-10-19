@@ -95,6 +95,12 @@ class UpdateChartSettingRequest extends ChartSettingRequest
                 Rule::exists($chartTable, 'id'),
             ],
 
+            'cash_in_transit_chart_uuid' => [
+                'nullable',
+                'uuid',
+                Rule::exists($chartTable, 'id'),
+            ],
+
             'e_wallet_chart_uuid' => [
                 'nullable',
                 'uuid',

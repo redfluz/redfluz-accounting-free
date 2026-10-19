@@ -163,6 +163,7 @@ return [
         'refund' => 'Bayaran Balik Pelanggan', 'transfer' => 'Pindahan Dana', 'withdrawal' => 'Pengeluaran Akaun', 'journal' => 'Entri Jurnal',
         'stock_variance' => 'Perbezaan Stok',
         'manual_sales_invoice' => 'Invois Jualan Manual',
+        'bank_journal' => 'Jurnal Bank',
     ],
     'status' => ['pending' => 'Belum Selesai', 'paid' => 'Dibayar', 'cancelled' => 'Dibatalkan', 'posted' => 'Dipost'],
     'validation' => [

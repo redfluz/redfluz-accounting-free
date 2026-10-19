@@ -154,6 +154,7 @@ class FinanceConfigurationSeeder extends Seeder
             1 => '1000',
             2 => '1100',
             4 => '1120',
+            76 => '1190',
             6 => '1200',
             66 => '1250',
             7 => '1300',
@@ -304,6 +305,7 @@ class FinanceConfigurationSeeder extends Seeder
                 'income_chart_uuid' => $chartUuidMap[28],
                 'bank_chart_uuid' => $chartUuidMap[2],
                 'cash_chart_uuid' => $chartUuidMap[1],
+                'cash_in_transit_chart_uuid' => $chartUuidMap[76],
                 // No dedicated e-wallet chart exists yet, so the default stays empty
                 // until one is created and chosen in the chart settings form.
                 'e_wallet_chart_uuid' => null,

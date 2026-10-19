@@ -172,6 +172,7 @@ return [
         'journal' => 'Entri Jurnal',
         'stock_variance' => 'Selisih Stok',
         'manual_sales_invoice' => 'Faktur Penjualan Manual',
+        'bank_journal' => 'Jurnal Bank',
     ],
     'status' => ['pending' => 'Tertunda', 'paid' => 'Dibayar', 'cancelled' => 'Dibatalkan', 'posted' => 'Diposting'],
     'validation' => [

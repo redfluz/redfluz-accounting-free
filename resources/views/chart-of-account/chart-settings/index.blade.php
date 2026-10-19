@@ -31,6 +31,8 @@
 
                             <th>{{ __('chart_settings.table.column_cash_chart_uuid') }}</th>
 
+                            <th>{{ __('chart_settings.table.column_cash_in_transit_chart_uuid') }}</th>
+
                             <th>{{ __('chart_settings.table.column_e_wallet_chart_uuid') }}</th>
 
                             <th>Client</th>
@@ -76,6 +78,16 @@
                                         <span class="fw-semibold"> {{ $chartSetting->cashChart->code }} </span>
                                         -
                                         {{ $chartSetting->cashChart->name }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @if ($chartSetting->cashInTransitChart)
+                                        <span class="fw-semibold"> {{ $chartSetting->cashInTransitChart->code }} </span>
+                                        -
+                                        {{ $chartSetting->cashInTransitChart->name }}
                                     @else
                                         -
                                     @endif

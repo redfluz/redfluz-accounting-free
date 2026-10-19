@@ -38,6 +38,7 @@ return [
         'column_income_chart_uuid' => 'Akun Pendapatan',
         'column_bank_chart_uuid' => 'Akun Bank',
         'column_cash_chart_uuid' => 'Akun Kas',
+        'column_cash_in_transit_chart_uuid' => 'Akun Kas Dalam Perjalanan',
         'column_e_wallet_chart_uuid' => 'Akun E-Wallet',
         'column_client_chart_uuid' => 'Akun Klien / Piutang',
         'column_vendor_chart_uuid' => 'Akun Pemasok / Utang',
@@ -59,6 +60,7 @@ return [
         'retained_earnings_formula' => 'Formula Laba Ditahan',
         'retained_earnings_formula_help' => 'Mengontrol jumlah akhir tahun yang dialihkan ke akun laba ditahan. Tag yang didukung: CHART, TYPE, SUM_TYPE, GROUP, dan SUM_GROUP.',
         'retained_earnings_formula_example' => 'Contoh: {SUM_TYPE:INCOME} - {SUM_TYPE:EXPENSES}',
+        'cash_in_transit_help' => 'Menyimpan kas yang sudah keluar dari laci tetapi belum dikreditkan oleh bank. Harus akun aset tanpa akun kas, bank, atau e-wallet di belakangnya.',
     ],
     'validation' => [
         'invalid_retained_earnings_formula' => 'Masukkan formula laba ditahan yang valid menggunakan tag akun dan operator matematis yang didukung.',

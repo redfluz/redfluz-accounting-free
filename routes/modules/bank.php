@@ -26,8 +26,10 @@
 use App\Http\Controllers\Bank\BankController;
 use App\Http\Controllers\Bank\BankJournalController;
 use App\Http\Controllers\Bank\BankLedgerController;
+use App\Http\Controllers\Bank\BankTransferController;
 use App\Http\Controllers\Bank\CashAccountController;
 use App\Http\Controllers\Bank\CashLedgerController;
+use App\Http\Controllers\Bank\CashTransferController;
 use App\Http\Controllers\Bank\CustomerRefundController;
 use App\Http\Controllers\Bank\EWalletAccountController;
 use App\Http\Controllers\Bank\EWalletLedgerController;
@@ -135,6 +137,31 @@ Route::patch('bank-journals/{documentNumber}/cancel', [BankJournalController::cl
 Route::patch('bank-journals/{documentNumber}/restore', [BankJournalController::class, 'restore'])->name('bank.bank-journals.restore');
 Route::delete('bank-journals/{documentNumber}', [BankJournalController::class, 'destroy'])->name('bank.bank-journals.destroy');
 Route::get('bank-journals/{documentNumber}', [BankJournalController::class, 'show'])->name('bank.bank-journals.show');
+
+// Cash Transfers — a drawer hands its surplus to cash in transit.
+// Kept apart from bank journals, which stay for opening balances, and from bank
+// transfers below, which are the other half of the same deposit.
+Route::get('cash-transfers', [CashTransferController::class, 'index'])->name('bank.cash-transfers.index');
+Route::get('cash-transfers/create', [CashTransferController::class, 'create'])->name('bank.cash-transfers.create');
+Route::post('cash-transfers', [CashTransferController::class, 'store'])->name('bank.cash-transfers.store');
+Route::get('cash-transfers/{documentNumber}/edit', [CashTransferController::class, 'edit'])->name('bank.cash-transfers.edit');
+Route::put('cash-transfers/{documentNumber}', [CashTransferController::class, 'update'])->name('bank.cash-transfers.update');
+Route::patch('cash-transfers/{documentNumber}/approve', [CashTransferController::class, 'approve'])->name('bank.cash-transfers.approve');
+Route::patch('cash-transfers/{documentNumber}/cancel', [CashTransferController::class, 'cancel'])->name('bank.cash-transfers.cancel');
+Route::delete('cash-transfers/{documentNumber}', [CashTransferController::class, 'destroy'])->name('bank.cash-transfers.destroy');
+Route::get('cash-transfers/{documentNumber}', [CashTransferController::class, 'show'])->name('bank.cash-transfers.show');
+
+// Bank Transfers — cash in transit reaches a bank account.
+Route::get('bank-transfers', [BankTransferController::class, 'index'])->name('bank.bank-transfers.index');
+Route::get('bank-transfers/create', [BankTransferController::class, 'create'])->name('bank.bank-transfers.create');
+Route::post('bank-transfers', [BankTransferController::class, 'store'])->name('bank.bank-transfers.store');
+Route::get('bank-transfers/{documentNumber}/edit', [BankTransferController::class, 'edit'])->name('bank.bank-transfers.edit');
+Route::put('bank-transfers/{documentNumber}', [BankTransferController::class, 'update'])->name('bank.bank-transfers.update');
+Route::patch('bank-transfers/{documentNumber}/approve', [BankTransferController::class, 'approve'])->name('bank.bank-transfers.approve');
+Route::patch('bank-transfers/{documentNumber}/cancel', [BankTransferController::class, 'cancel'])->name('bank.bank-transfers.cancel');
+Route::delete('bank-transfers/{documentNumber}', [BankTransferController::class, 'destroy'])->name('bank.bank-transfers.destroy');
+Route::get('bank-transfers/{documentNumber}/attachment', [BankTransferController::class, 'downloadAttachment'])->name('bank.bank-transfers.attachment');
+Route::get('bank-transfers/{documentNumber}', [BankTransferController::class, 'show'])->name('bank.bank-transfers.show');
 
 // Customer Refunds
 Route::get('customer-refunds', [CustomerRefundController::class, 'index'])->name('bank.customer-refunds.index');

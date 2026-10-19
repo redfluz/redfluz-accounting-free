@@ -94,6 +94,12 @@ class FinanceChartSeeder extends Seeder
             72 => ['chart_type_id' => 2, 'code' => '1141', 'name' => 'Cash Drawer 2 - Warehouse', 'isBank' => true],
             73 => ['chart_type_id' => 2, 'code' => '1150', 'name' => 'Touch n Go Wallet', 'isBank' => true],
             74 => ['chart_type_id' => 2, 'code' => '1151', 'name' => 'GrabPay Wallet', 'isBank' => true],
+            // Cash between the drawer and the bank. Deliberately given no row in
+            // banks, cash_accounts or e_wallet_accounts: the poster recognises a
+            // money account by exactly that, so an account with one behind it
+            // would file transit movements into a money ledger and count the same
+            // cash a second time.
+            76 => ['chart_type_id' => 2, 'code' => '1190', 'name' => 'Cash in Transit', 'isBank' => false],
             6 => ['chart_type_id' => 2, 'code' => '1200', 'name' => 'Accounts Receivable', 'isBank' => false, 'isDebtor' => true],
             66 => ['chart_type_id' => 2, 'code' => '1250', 'name' => 'Employee Advance', 'isBank' => false],
             7 => ['chart_type_id' => 2, 'code' => '1300', 'name' => 'Inventory', 'isBank' => false],
@@ -169,6 +175,7 @@ class FinanceChartSeeder extends Seeder
             '1141' => ChartReportGroupEnum::CASH_AND_CASH_EQUIVALENTS,
             '1150' => ChartReportGroupEnum::CASH_AND_CASH_EQUIVALENTS,
             '1151' => ChartReportGroupEnum::CASH_AND_CASH_EQUIVALENTS,
+            '1190' => ChartReportGroupEnum::CASH_AND_CASH_EQUIVALENTS,
             '1200' => ChartReportGroupEnum::RECEIVABLE,
             '1250' => ChartReportGroupEnum::OTHER_CURRENT_ASSETS,
             '1300' => ChartReportGroupEnum::INVENTORIES,

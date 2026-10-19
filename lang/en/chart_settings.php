@@ -38,6 +38,7 @@ return [
         'column_income_chart_uuid' => 'Income Account',
         'column_bank_chart_uuid' => 'Bank Account',
         'column_cash_chart_uuid' => 'Cash Account',
+        'column_cash_in_transit_chart_uuid' => 'Cash in Transit Account',
         'column_e_wallet_chart_uuid' => 'E-Wallet Account',
         'column_client_chart_uuid' => 'Client / Receivable Account',
         'column_vendor_chart_uuid' => 'Vendor / Payable Account',
@@ -59,6 +60,7 @@ return [
         'retained_earnings_formula' => 'Retained Earnings Formula',
         'retained_earnings_formula_help' => 'Controls the year-end amount transferred to the retained earnings account. Supported tags: CHART, TYPE, SUM_TYPE, GROUP, and SUM_GROUP.',
         'retained_earnings_formula_example' => 'Example: {SUM_TYPE:INCOME} - {SUM_TYPE:EXPENSES}',
+        'cash_in_transit_help' => 'Holds cash that has left a drawer but has not yet been credited by a bank. Must be an asset account with no cash, bank or e-wallet account behind it.',
     ],
     'validation' => [
         'invalid_retained_earnings_formula' => 'Enter a valid retained earnings formula using supported account tags and mathematical operators.',

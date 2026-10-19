@@ -172,6 +172,7 @@ return [
         'journal' => 'Journal Entry',
         'stock_variance' => 'Stock Variance',
         'manual_sales_invoice' => 'Manual Sales Invoice',
+        'bank_journal' => 'Bank Journal',
     ],
     'status' => ['pending' => 'Pending', 'paid' => 'Paid', 'cancelled' => 'Cancelled', 'posted' => 'Posted'],
     'validation' => [

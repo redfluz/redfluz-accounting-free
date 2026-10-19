@@ -83,6 +83,8 @@ enum FileResources: string
     case E_WALLET_LEDGERS = 'bank.e-wallet-ledger.index';
     case E_WALLET_PROVIDERS = 'bank.e-wallet-providers.index';
     case BANK_JOURNALS = 'bank.bank-journals.index';
+    case CASH_TRANSFERS = 'bank.cash-transfers.index';
+    case BANK_TRANSFERS = 'bank.bank-transfers.index';
 
     // Purchase
     case PURCHASE_ORDER_SETTINGS = 'purchase.purchase-order-settings.index';
@@ -183,6 +185,8 @@ enum FileResources: string
             self::E_WALLET_LEDGERS => 'E-Wallet Ledger',
             self::E_WALLET_PROVIDERS => 'E-Wallet Provider',
             self::BANK_JOURNALS => 'Bank Journal',
+            self::CASH_TRANSFERS => 'Cash Transfer',
+            self::BANK_TRANSFERS => 'Bank Transfer',
 
             // Purchase
             self::PURCHASE_ORDER_SETTINGS => 'Purchase Order Setting',

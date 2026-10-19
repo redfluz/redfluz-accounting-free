@@ -30,6 +30,8 @@ return [
     'E-WALLET ACCOUNTS' => 'Akaun E-Dompet',
     'BANK ACCOUNTS' => 'Akaun Bank',
     'BANK JOURNALS' => 'Jurnal Bank',
+    'CASH TRANSFERS' => 'Pemindahan Tunai',
+    'BANK TRANSFERS' => 'Pemindahan Bank',
     'E-WALLET PROVIDERS' => 'Penyedia E-Dompet',
     'BRANDS' => 'Jenama',
     'TAXES' => 'Cukai',

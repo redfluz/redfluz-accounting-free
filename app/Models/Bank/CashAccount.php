@@ -92,6 +92,11 @@ class CashAccount extends Model
         return [
             'chart_id' => 'string',
             'asset_location_id' => 'string',
+            // A money column, so it is read back as an exact decimal. Without this
+            // the driver decides: SQLite hands back an int for a whole float and
+            // a string for a fractional one, so anything comparing it against a
+            // figure from bcmath would be handed a type it cannot take.
+            'float_amount' => 'decimal:2',
             'is_active' => 'boolean',
             'is_default' => 'boolean',
         ];

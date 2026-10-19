@@ -38,6 +38,7 @@ return [
         'column_income_chart_uuid' => 'Akaun Pendapatan',
         'column_bank_chart_uuid' => 'Akaun Bank',
         'column_cash_chart_uuid' => 'Akaun Tunai',
+        'column_cash_in_transit_chart_uuid' => 'Akaun Tunai Dalam Perjalanan',
         'column_e_wallet_chart_uuid' => 'Akaun E-Wallet',
         'column_client_chart_uuid' => 'Akaun Pelanggan / Belum Terima',
         'column_vendor_chart_uuid' => 'Akaun Pembekal / Belum Bayar',
@@ -59,6 +60,7 @@ return [
         'retained_earnings_formula' => 'Formula Pendapatan Tertahan',
         'retained_earnings_formula_help' => 'Menentukan amaun akhir tahun yang dipindahkan ke akaun pendapatan tertahan. Tag yang disokong: CHART, TYPE, SUM_TYPE, GROUP dan SUM_GROUP.',
         'retained_earnings_formula_example' => 'Contoh: {SUM_TYPE:INCOME} - {SUM_TYPE:EXPENSES}',
+        'cash_in_transit_help' => 'Menyimpan tunai yang sudah keluar dari laci tetapi belum dikreditkan oleh bank. Mesti akaun aset tanpa akaun tunai, bank atau e-wallet di sebaliknya.',
     ],
     'validation' => [
         'invalid_retained_earnings_formula' => 'Masukkan formula pendapatan tertahan yang sah menggunakan tag akaun dan operator matematik yang disokong.',
