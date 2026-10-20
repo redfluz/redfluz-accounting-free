@@ -118,7 +118,7 @@ class CustomerOutstandingController extends Controller
             }))
             ->when($startDate !== null, fn ($query) => $query->whereDate('invoices.date', '>=', (string) $startDate))
             ->when($endDate !== null, fn ($query) => $query->whereDate('invoices.date', '<=', (string) $endDate))
-            ->havingRaw('invoices.total_amount - COALESCE(payment_totals.paid_amount, 0) > 0')
+            ->whereRaw('invoices.total_amount - COALESCE(payment_totals.paid_amount, 0) > 0')
             ->when($status === 'overdue', fn ($query) => $query->where('invoices.due_date', '<', $asOfDate->toDateString()))
             ->when($status === 'due_soon', fn ($query) => $query->whereBetween('invoices.due_date', [
                 $asOfDate->toDateString(),

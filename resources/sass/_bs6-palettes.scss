@@ -22,6 +22,10 @@
     --fg-3: color-mix(in oklch, #{$muted} 72%, #{$body});
     --fg-4: color-mix(in oklch, #{$muted} 48%, #{$body});
     --border-color: #{$border};
+    --control-bg: color-mix(in oklch, #{$surface} 38%, #{$canvas});
+    --control-border-color: color-mix(in oklch, #{$border} 62%, #{$primary});
+    --control-focus-bg: #{$surface};
+    --control-placeholder: color-mix(in oklch, #{$muted} 82%, #{$text});
     --link-color: color-mix(in oklch, #{$primary} 76%, #{$text});
     --link-hover-color: #{$primary};
     --body-font-family: 'Inter', system-ui, sans-serif;
