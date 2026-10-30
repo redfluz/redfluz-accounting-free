@@ -56,7 +56,7 @@
                 <div class="md:col-5">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('chart_reports.form.search_placeholder') }}" />
+                            placeholder="{{ __('chart_reports.form.search_placeholder') }}" aria-label="{{ __('chart_reports.form.search_placeholder') }}" />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i data-lucide="search"></i>
                         </button>
@@ -75,13 +75,13 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('chart_reports.table.column_code') }}</th>
-                            <th>{{ __('chart_reports.table.column_name') }}</th>
-                            <th>{{ __('chart_reports.table.column_slug') }}</th>
-                            <th>{{ __('chart_reports.table.column_basis') }}</th>
-                            <th class="text-center">{{ __('chart_reports.table.column_default') }}</th>
-                            <th class="text-center">{{ __('chart_reports.table.column_rows') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_code') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_name') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_slug') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_basis') }}</th>
+                            <th scope="col" class="text-center">{{ __('chart_reports.table.column_default') }}</th>
+                            <th scope="col" class="text-center">{{ __('chart_reports.table.column_rows') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

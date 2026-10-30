@@ -190,10 +190,10 @@
         <table class="item-table">
             <thead>
                 <tr>
-                    <th>{{ __('purchase_orders.form.description') }}</th>
-                    <th class="text-right">{{ __('purchase_orders.form.quantity') }}</th>
-                    <th class="text-right">{{ __('purchase_orders.form.unit_price') }}</th>
-                    <th class="text-right">{{ __('purchase_orders.table.total') }}</th>
+                    <th scope="col">{{ __('purchase_orders.form.description') }}</th>
+                    <th scope="col" class="text-right">{{ __('purchase_orders.form.quantity') }}</th>
+                    <th scope="col" class="text-right">{{ __('purchase_orders.form.unit_price') }}</th>
+                    <th scope="col" class="text-right">{{ __('purchase_orders.table.total') }}</th>
                 </tr>
             </thead>
             <tbody>

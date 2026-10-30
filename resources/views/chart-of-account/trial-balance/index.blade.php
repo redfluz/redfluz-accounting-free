@@ -165,14 +165,14 @@
                     <table class="table-hover table-striped mb-0 table text-nowrap align-middle">
                         <thead class="bg-1">
                             <tr>
-                                <th>{{ __('financial_reports.table.column_account_code') }}</th>
-                                <th>{{ __('financial_reports.table.column_account') }}</th>
-                                <th class="text-end">{{ __('financial_reports.table.opening_debit') }}</th>
-                                <th class="text-end">{{ __('financial_reports.table.opening_credit') }}</th>
-                                <th class="text-end">{{ __('financial_reports.table.period_debit') }}</th>
-                                <th class="text-end">{{ __('financial_reports.table.period_credit') }}</th>
-                                <th class="text-end">{{ __('financial_reports.table.closing_debit') }}</th>
-                                <th class="text-end">{{ __('financial_reports.table.closing_credit') }}</th>
+                                <th scope="col">{{ __('financial_reports.table.column_account_code') }}</th>
+                                <th scope="col">{{ __('financial_reports.table.column_account') }}</th>
+                                <th scope="col" class="text-end">{{ __('financial_reports.table.opening_debit') }}</th>
+                                <th scope="col" class="text-end">{{ __('financial_reports.table.opening_credit') }}</th>
+                                <th scope="col" class="text-end">{{ __('financial_reports.table.period_debit') }}</th>
+                                <th scope="col" class="text-end">{{ __('financial_reports.table.period_credit') }}</th>
+                                <th scope="col" class="text-end">{{ __('financial_reports.table.closing_debit') }}</th>
+                                <th scope="col" class="text-end">{{ __('financial_reports.table.closing_credit') }}</th>
                             </tr>
                         </thead>
                         <tbody>

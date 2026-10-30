@@ -223,13 +223,13 @@
     <table class="items section">
         <thead>
             <tr>
-                <th width="18%">{{ __('sales_orders.pdf.item') }}</th>
-                <th width="13%">{{ __('sales_orders.pdf.sku') }}</th>
-                <th>{{ __('sales_orders.pdf.description') }}</th>
-                <th width="11%">{{ __('sales_orders.pdf.warranty') }}</th>
-                <th class="text-right" width="10%">{{ __('sales_orders.pdf.quantity') }}</th>
-                <th class="text-right" width="13%">{{ __('sales_orders.pdf.unit_price') }}</th>
-                <th class="text-right" width="13%">{{ __('sales_orders.pdf.amount') }}</th>
+                <th scope="col" width="18%">{{ __('sales_orders.pdf.item') }}</th>
+                <th scope="col" width="13%">{{ __('sales_orders.pdf.sku') }}</th>
+                <th scope="col">{{ __('sales_orders.pdf.description') }}</th>
+                <th scope="col" width="11%">{{ __('sales_orders.pdf.warranty') }}</th>
+                <th scope="col" class="text-right" width="10%">{{ __('sales_orders.pdf.quantity') }}</th>
+                <th scope="col" class="text-right" width="13%">{{ __('sales_orders.pdf.unit_price') }}</th>
+                <th scope="col" class="text-right" width="13%">{{ __('sales_orders.pdf.amount') }}</th>
             </tr>
         </thead>
         <tbody>

@@ -419,10 +419,6 @@
                             </div>
 
                             <div class="md:col-4 mb-3">
-                                <label class="form-label fw-bold d-block">
-                                    {{ __('chart_settings.table.column_strict_journal_posting') }}
-                                </label>
-
                                 <div class="mt-2">
                                     <input name="strict_journal_posting" type="hidden" value="0" />
 

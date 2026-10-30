@@ -135,13 +135,13 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 <table class="table-bordered table" style="table-layout: fixed; min-width: 800px">
                     <thead class="bg-1 text-center">
                         <tr>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.sunday') }}</th>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.monday') }}</th>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.tuesday') }}</th>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.wednesday') }}</th>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.thursday') }}</th>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.friday') }}</th>
-                            <th style="width: 14.28%">{{ __('companies.show.calendar.saturday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.sunday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.monday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.tuesday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.wednesday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.thursday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.friday') }}</th>
+                            <th scope="col" style="width: 14.28%">{{ __('companies.show.calendar.saturday') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -220,11 +220,11 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('contacts.table.column_name') }}</th>
-                            <th>{{ __('contacts.table.column_email') }}</th>
-                            <th>{{ __('contacts.table.column_phone') }}</th>
-                            <th>{{ __('contacts.table.column_position') }}</th>
-                            <th class="text-end">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_name') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_email') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_phone') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_position') }}</th>
+                            <th scope="col" class="text-end">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -284,11 +284,11 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('companies.addresses.fields.name') }}</th>
-                            <th>{{ __('companies.addresses.fields.phone') }}</th>
-                            <th>{{ __('companies.addresses.fields.address') }}</th>
-                            <th>{{ __('companies.addresses.fields.default') }}</th>
-                            <th class="text-end">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.name') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.phone') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.address') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.default') }}</th>
+                            <th scope="col" class="text-end">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -347,14 +347,14 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('companies.statement.document_number') }}</th>
-                            <th>{{ __('companies.statement.date') }}</th>
-                            <th>{{ __('companies.statement.applied_to') }}</th>
-                            <th>{{ __('companies.statement.product') }}</th>
-                            <th>{{ __('companies.statement.type') }}</th>
-                            <th class="text-end">{{ __('companies.statement.debit') }}</th>
-                            <th class="text-end">{{ __('companies.statement.credit') }}</th>
-                            <th class="text-end">{{ __('companies.statement.balance') }}</th>
+                            <th scope="col">{{ __('companies.statement.document_number') }}</th>
+                            <th scope="col">{{ __('companies.statement.date') }}</th>
+                            <th scope="col">{{ __('companies.statement.applied_to') }}</th>
+                            <th scope="col">{{ __('companies.statement.product') }}</th>
+                            <th scope="col">{{ __('companies.statement.type') }}</th>
+                            <th scope="col" class="text-end">{{ __('companies.statement.debit') }}</th>
+                            <th scope="col" class="text-end">{{ __('companies.statement.credit') }}</th>
+                            <th scope="col" class="text-end">{{ __('companies.statement.balance') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -422,15 +422,15 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('companies.statement.document_number') }}</th>
-                            <th>{{ __('companies.statement.date') }}</th>
-                            <th>{{ __('companies.statement.applied_to') }}</th>
-                            <th>{{ __('companies.statement.product') }}</th>
-                            <th>{{ __('companies.statement.type') }}</th>
+                            <th scope="col">{{ __('companies.statement.document_number') }}</th>
+                            <th scope="col">{{ __('companies.statement.date') }}</th>
+                            <th scope="col">{{ __('companies.statement.applied_to') }}</th>
+                            <th scope="col">{{ __('companies.statement.product') }}</th>
+                            <th scope="col">{{ __('companies.statement.type') }}</th>
 
-                            <th class="text-end">{{ __('companies.statement.debit') }}</th>
-                            <th class="text-end">{{ __('companies.statement.credit') }}</th>
-                            <th class="text-end">{{ __('companies.statement.balance') }}</th>
+                            <th scope="col" class="text-end">{{ __('companies.statement.debit') }}</th>
+                            <th scope="col" class="text-end">{{ __('companies.statement.credit') }}</th>
+                            <th scope="col" class="text-end">{{ __('companies.statement.balance') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -501,9 +501,9 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('company_files.table.column_company') }}</th>
-                            <th>{{ __('company_files.table.column_title') }}</th>
-                            <th>{{ __('company_files.table.column_attachment') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_company') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_title') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_attachment') }}</th>
                         </tr>
                     </thead>
                     <tbody>

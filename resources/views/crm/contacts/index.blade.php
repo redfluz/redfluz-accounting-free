@@ -58,6 +58,7 @@
                             type="text"
                             value="{{ $search }}"
                             placeholder="{{ __('common.actions.search') }}"
+                            aria-label="{{ __('common.actions.search') }}"
                         />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i class="" data-lucide="search"></i>
@@ -79,11 +80,11 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('contacts.table.column_name') }}</th>
-                            <th>{{ __('contacts.table.column_company') }}</th>
-                            <th>{{ __('contacts.table.column_email') }}</th>
-                            <th>{{ __('contacts.table.column_phone') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_name') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_company') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_email') }}</th>
+                            <th scope="col">{{ __('contacts.table.column_phone') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -37,7 +37,7 @@
                 <div class="md:col-4">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" />
+                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i class="" data-lucide="search"></i>
                         </button>
@@ -55,11 +55,11 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('company_files.table.column_company') }}</th>
-                            <th>{{ __('company_files.table.column_title') }}</th>
-                            <th>{{ __('company_files.table.column_attachment') }}</th>
-                            <th>{{ __('company_files.table.column_date') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_company') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_title') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_attachment') }}</th>
+                            <th scope="col">{{ __('company_files.table.column_date') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

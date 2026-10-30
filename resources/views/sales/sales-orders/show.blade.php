@@ -97,13 +97,13 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('sales_orders.form.product') }}</th>
-                            <th>{{ __('sales_orders.form.description') }}</th>
-                            <th>{{ __('sales_orders.form.warranty') }}</th>
-                            <th class="text-end">{{ __('sales_orders.form.quantity') }}</th>
-                            <th class="text-end">{{ __('sales_orders.table.delivered') }}</th>
-                            <th class="text-end">{{ __('sales_orders.table.remaining') }}</th>
-                            <th class="text-end">{{ __('sales_orders.table.total') }}</th>
+                            <th scope="col">{{ __('sales_orders.form.product') }}</th>
+                            <th scope="col">{{ __('sales_orders.form.description') }}</th>
+                            <th scope="col">{{ __('sales_orders.form.warranty') }}</th>
+                            <th scope="col" class="text-end">{{ __('sales_orders.form.quantity') }}</th>
+                            <th scope="col" class="text-end">{{ __('sales_orders.table.delivered') }}</th>
+                            <th scope="col" class="text-end">{{ __('sales_orders.table.remaining') }}</th>
+                            <th scope="col" class="text-end">{{ __('sales_orders.table.total') }}</th>
                         </tr>
                     </thead>
                     <tbody>

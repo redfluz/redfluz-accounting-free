@@ -169,13 +169,13 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_product') }}</th>
-                            <th>{{ __('ledgers.table.column_description') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_quantity') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_unit_price') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_discount_amount') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_tax_amount') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_product') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_quantity') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_unit_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_discount_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_tax_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -205,21 +205,21 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                     </tbody>
                     <tfoot class="bg-1">
                         <tr>
-                            <th class="text-end" colspan="6">{{ __('ledgers.table.column_subtotal_amount') }}</th>
-                            <th class="text-end">{{ number_format($subtotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="6">{{ __('ledgers.table.column_subtotal_amount') }}</th>
+                            <th scope="row" class="text-end">{{ number_format($subtotal, 2) }}</th>
                         </tr>
                         <tr>
-                            <th class="text-end" colspan="6">
+                            <th scope="row" class="text-end" colspan="6">
                                 {{ __('ledgers.table.column_discount_amount') }}
                                 @if ($firstLine?->discount_name)
                                     <span class="fg-secondary fw-normal">({{ $firstLine?->discount_name }} -
                                         {{ $discountType === 'percent' ? number_format((float) $firstLine?->discount_value, 4) . '%' : $currencySymbol . ' ' . number_format((float) $firstLine?->discount_value, 2) }})</span>
                                 @endif
                             </th>
-                            <th class="text-end">{{ number_format($discountTotal, 2) }}</th>
+                            <th scope="row" class="text-end">{{ number_format($discountTotal, 2) }}</th>
                         </tr>
                         <tr>
-                            <th class="text-end" colspan="6">
+                            <th scope="row" class="text-end" colspan="6">
                                 {{ __('ledgers.table.column_tax_amount') }}
                                 @if ($firstLine?->tax_name)
                                     <span class="fg-secondary fw-normal">({{ $firstLine?->tax_name }})</span>
@@ -228,11 +228,11 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                                     <span class="fg-secondary fw-normal">({{ __('ledgers.tax_mode.' . $taxMode) }})</span>
                                 @endif
                             </th>
-                            <th class="text-end">{{ number_format($taxTotal, 2) }}</th>
+                            <th scope="row" class="text-end">{{ number_format($taxTotal, 2) }}</th>
                         </tr>
                         <tr>
-                            <th class="text-end" colspan="6">{{ __('common.labels.total') }}</th>
-                            <th class="fg-primary text-end">{{ number_format($grandTotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="6">{{ __('common.labels.total') }}</th>
+                            <th scope="row" class="fg-primary text-end">{{ number_format($grandTotal, 2) }}</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -381,11 +381,11 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                         <table class="table table-striped align-middle mb-0">
                             <thead class="bg-1">
                                 <tr>
-                                    <th>{{ __('ledgers.table.column_product') }}</th>
-                                    <th class="text-end">{{ __('sales_returns.column_invoiced') }}</th>
-                                    <th class="text-end">{{ __('sales_returns.column_returned') }}</th>
-                                    <th class="text-end">{{ __('sales_returns.column_remaining') }}</th>
-                                    <th class="text-end" style="min-width: 10rem;">{{ __('sales_returns.quantity') }}</th>
+                                    <th scope="col">{{ __('ledgers.table.column_product') }}</th>
+                                    <th scope="col" class="text-end">{{ __('sales_returns.column_invoiced') }}</th>
+                                    <th scope="col" class="text-end">{{ __('sales_returns.column_returned') }}</th>
+                                    <th scope="col" class="text-end">{{ __('sales_returns.column_remaining') }}</th>
+                                    <th scope="col" class="text-end" style="min-width: 10rem;">{{ __('sales_returns.quantity') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -404,15 +404,16 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                                                 value="{{ old('returns.' . $returnableLine['id'] . '.quantity') }}"
                                                 data-unit-price="{{ $returnableLine['unit_price'] }}"
                                                 class="form-control form-control-sm text-end return-quantity"
-                                                placeholder="0.0000" />
+                                                placeholder="0.0000"
+                                                aria-label="{{ __('sales_returns.quantity') }}" />
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-1">
                                 <tr>
-                                    <th colspan="4" class="text-end">{{ __('sales_returns.credit_note_total') }}</th>
-                                    <th class="text-end" id="returnTotalAmount">{{ $currencySymbol }} 0.00</th>
+                                    <th scope="row" colspan="4" class="text-end">{{ __('sales_returns.credit_note_total') }}</th>
+                                    <th scope="row" class="text-end" id="returnTotalAmount">{{ $currencySymbol }} 0.00</th>
                                 </tr>
                             </tfoot>
                         </table>

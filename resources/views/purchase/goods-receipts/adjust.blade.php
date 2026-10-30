@@ -63,15 +63,15 @@
                     <table class="table-hover table-striped mb-0 table align-middle">
                         <thead class="bg-1">
                             <tr>
-                                <th><code>{{ __('goods_receipts.table.column_sku') }}</code></th>
-                                <th>{{ __('goods_receipts.table.column_product') }}</th>
-                                <th class="text-end">{{ __('goods_receipts.adjustment.column_current') }}</th>
-                                <th class="text-end">{{ __('goods_receipts.adjustment.column_max') }}</th>
-                                <th class="text-end">{{ __('goods_receipts.adjustment.column_headroom') }}</th>
-                                <th class="text-end" style="width: 180px;">
+                                <th scope="col"><code>{{ __('goods_receipts.table.column_sku') }}</code></th>
+                                <th scope="col">{{ __('goods_receipts.table.column_product') }}</th>
+                                <th scope="col" class="text-end">{{ __('goods_receipts.adjustment.column_current') }}</th>
+                                <th scope="col" class="text-end">{{ __('goods_receipts.adjustment.column_max') }}</th>
+                                <th scope="col" class="text-end">{{ __('goods_receipts.adjustment.column_headroom') }}</th>
+                                <th scope="col" class="text-end" style="width: 180px;">
                                     {{ __('goods_receipts.adjustment.column_corrected') }}
                                 </th>
-                                <th class="text-end">{{ __('goods_receipts.adjustment.column_difference') }}</th>
+                                <th scope="col" class="text-end">{{ __('goods_receipts.adjustment.column_difference') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,7 +91,8 @@
                                             name="lines[{{ $loop->index }}][quantity]" type="number" step="0.0001"
                                             min="0" max="{{ $current }}"
                                             data-current="{{ $current }}" data-max="{{ $line['max_quantity'] }}"
-                                            value="{{ old("lines.{$loop->index}.quantity", number_format($current, 4, '.', '')) }}" />
+                                            value="{{ old("lines.{$loop->index}.quantity", number_format($current, 4, '.', '')) }}"
+                                            aria-label="{{ __('goods_receipts.adjustment.column_corrected') }}" />
                                         <input name="lines[{{ $loop->index }}][entry_id]" type="hidden"
                                             value="{{ $line['id'] }}" />
                                         @error("lines.{$loop->index}.quantity")

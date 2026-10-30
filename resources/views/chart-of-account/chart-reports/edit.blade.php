@@ -154,14 +154,14 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th class="text-center">{{ __('chart_reports.table.column_line') }}</th>
-                            <th>{{ __('chart_reports.table.column_code') }}</th>
-                            <th>{{ __('chart_reports.table.column_name') }}</th>
-                            <th>{{ __('chart_reports.table.column_parent') }}</th>
-                            <th>{{ __('chart_reports.table.column_row_type') }}</th>
-                            <th>{{ __('chart_reports.table.column_source') }}</th>
-                            <th>{{ __('chart_reports.table.column_formula') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col" class="text-center">{{ __('chart_reports.table.column_line') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_code') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_name') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_parent') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_row_type') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_source') }}</th>
+                            <th scope="col">{{ __('chart_reports.table.column_formula') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

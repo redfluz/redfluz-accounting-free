@@ -50,10 +50,10 @@
 <table class="table table-bordered mb-0 audit-table">
     <thead class="bg-1">
         <tr>
-            <th class="audit-role">{{ __('receipts.audit.role') }}</th>
-            <th class="audit-name">{{ __('receipts.audit.name') }}</th>
-            <th class="audit-date">{{ __('receipts.audit.date') }}</th>
-            <th class="audit-signature">{{ __('receipts.audit.signature') }}</th>
+            <th scope="col" class="audit-role">{{ __('receipts.audit.role') }}</th>
+            <th scope="col" class="audit-name">{{ __('receipts.audit.name') }}</th>
+            <th scope="col" class="audit-date">{{ __('receipts.audit.date') }}</th>
+            <th scope="col" class="audit-signature">{{ __('receipts.audit.signature') }}</th>
         </tr>
     </thead>
     <tbody>

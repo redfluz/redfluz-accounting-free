@@ -126,11 +126,11 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>#</th>
-                            <th>{{ __('journal_entries.table.column_account') }}</th>
-                            <th>{{ __('journal_entries.table.column_description') }}</th>
-                            <th class="text-end">{{ __('journal_entries.table.column_debit_amount') }}</th>
-                            <th class="text-end">{{ __('journal_entries.table.column_credit_amount') }}</th>
+                            <th scope="col">#</th>
+                            <th scope="col">{{ __('journal_entries.table.column_account') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_description') }}</th>
+                            <th scope="col" class="text-end">{{ __('journal_entries.table.column_debit_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('journal_entries.table.column_credit_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>

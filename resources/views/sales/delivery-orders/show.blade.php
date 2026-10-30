@@ -111,9 +111,9 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('delivery_orders.form.stock_item') }}</th>
-                            <th>{{ __('sales_orders.form.description') }}</th>
-                            <th class="text-end">{{ __('delivery_orders.form.quantity') }}</th>
+                            <th scope="col">{{ __('delivery_orders.form.stock_item') }}</th>
+                            <th scope="col">{{ __('sales_orders.form.description') }}</th>
+                            <th scope="col" class="text-end">{{ __('delivery_orders.form.quantity') }}</th>
                         </tr>
                     </thead>
                     <tbody>

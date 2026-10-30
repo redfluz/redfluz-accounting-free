@@ -50,14 +50,14 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('goods_receipts.table.column_document_number') }}</th>
-                            <th>{{ __('goods_receipts.form.purchase_invoice') }}</th>
-                            <th>{{ __('goods_receipts.table.column_date') }}</th>
-                            <th>{{ __('goods_receipts.table.column_company') }}</th>
-                            <th class="text-end">{{ __('goods_receipt_adjustments.column_increase') }}</th>
-                            <th class="text-end">{{ __('goods_receipt_adjustments.column_decrease') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.table.column_lines') }}</th>
-                            <th class="text-center">{{ __('goods_receipts.table.column_actions') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('goods_receipts.form.purchase_invoice') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_date') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_company') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipt_adjustments.column_increase') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipt_adjustments.column_decrease') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.table.column_lines') }}</th>
+                            <th scope="col" class="text-center">{{ __('goods_receipts.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

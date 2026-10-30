@@ -131,14 +131,14 @@ $status = $goodsReceipt->status->value ?? $goodsReceipt->status;
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('goods_receipts.table.column_sku') }}</th>
-                            <th>{{ __('goods_receipts.table.column_product') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.line_state.column_ordered') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.line_state.column_received') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.line_state.column_shortfall') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.table.column_unit_cost') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.table.column_total_cost') }}</th>
-                            <th>{{ __('goods_receipts.line_state.column_state') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_sku') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_product') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.line_state.column_ordered') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.line_state.column_received') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.line_state.column_shortfall') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.table.column_unit_cost') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.table.column_total_cost') }}</th>
+                            <th scope="col">{{ __('goods_receipts.line_state.column_state') }}</th>
                         </tr>
                     </thead>
                     <tbody>

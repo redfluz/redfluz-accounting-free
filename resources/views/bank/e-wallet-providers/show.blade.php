@@ -41,10 +41,10 @@ $canUpdate = auth()->user()->hasFilePermission(FileResources::E_WALLET_PROVIDERS
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('e_wallet_providers.accounts_table.account') }}</th>
-                            <th>{{ __('e_wallet_providers.accounts_table.number') }}</th>
-                            <th>{{ __('e_wallet_providers.accounts_table.chart') }}</th>
-                            <th>{{ __('e_wallet_providers.accounts_table.status') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.accounts_table.account') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.accounts_table.number') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.accounts_table.chart') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.accounts_table.status') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -116,9 +116,9 @@ $goodsReceipt = $entries->first();
                         <table class="table-hover table-striped mb-0 table align-middle">
                             <thead class="bg-1">
                                 <tr>
-                                    <th>{{ __('goods_receipts.form.product') }}</th>
-                                    <th style="width: 22%">{{ __('goods_receipts.form.quantity') }}</th>
-                                    <th style="width: 22%">{{ __('goods_receipts.form.unit_cost') }}</th>
+                                    <th scope="col">{{ __('goods_receipts.form.product') }}</th>
+                                    <th scope="col" style="width: 22%">{{ __('goods_receipts.form.quantity') }}</th>
+                                    <th scope="col" style="width: 22%">{{ __('goods_receipts.form.unit_cost') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -130,7 +130,8 @@ $goodsReceipt = $entries->first();
                                         <td>
                                             <select
                                                 class="form-control @error('lines.' . $lineNumber . '.product_id') is-invalid @enderror"
-                                                name="lines[{{ $lineNumber }}][product_id]" data-combobox>
+                                                name="lines[{{ $lineNumber }}][product_id]" data-combobox
+                                                aria-label="{{ __('goods_receipts.form.product') }}">
                                                 <option value="">{{ __('common.actions.select_option') }}</option>
                                                 @foreach ($products as $product)
                                                     <option value="{{ $product->id }}" @selected(old("lines.$lineNumber.product_id", $entry?->product_id) === $product->id)>
@@ -177,12 +178,12 @@ $goodsReceipt = $entries->first();
                         <table class="table-hover table-striped mb-0 table align-middle">
                             <thead class="bg-1">
                                 <tr>
-                                    <th>{{ __('goods_receipts.form.product') }}</th>
-                                    <th class="text-end">{{ __('goods_receipts.form.ordered_quantity') }}</th>
-                                    <th class="text-end">{{ __('goods_receipts.form.previously_received') }}</th>
-                                    <th class="text-end">{{ __('goods_receipts.form.available_quantity') }}</th>
-                                    <th style="width: 18%">{{ __('goods_receipts.form.quantity') }}</th>
-                                    <th class="text-end">{{ __('goods_receipts.form.unit_cost') }}</th>
+                                    <th scope="col">{{ __('goods_receipts.form.product') }}</th>
+                                    <th scope="col" class="text-end">{{ __('goods_receipts.form.ordered_quantity') }}</th>
+                                    <th scope="col" class="text-end">{{ __('goods_receipts.form.previously_received') }}</th>
+                                    <th scope="col" class="text-end">{{ __('goods_receipts.form.available_quantity') }}</th>
+                                    <th scope="col" style="width: 18%">{{ __('goods_receipts.form.quantity') }}</th>
+                                    <th scope="col" class="text-end">{{ __('goods_receipts.form.unit_cost') }}</th>
                                 </tr>
                             </thead>
                             <tbody>

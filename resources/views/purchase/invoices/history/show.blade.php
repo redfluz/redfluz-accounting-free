@@ -89,13 +89,13 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_product') }}</th>
-                            <th>{{ __('ledgers.table.column_description') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_quantity') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_unit_price') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_discount_amount') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_tax_amount') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_product') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_quantity') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_unit_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_discount_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_tax_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,20 +118,20 @@
                     </tbody>
                     <tfoot class="bg-1">
                         <tr>
-                            <th class="text-end" colspan="6">{{ __('ledgers.table.column_subtotal_amount') }}</th>
-                            <th class="text-end">{{ number_format($subtotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="6">{{ __('ledgers.table.column_subtotal_amount') }}</th>
+                            <th scope="row" class="text-end">{{ number_format($subtotal, 2) }}</th>
                         </tr>
                         <tr>
-                            <th class="text-end" colspan="6">{{ __('ledgers.table.column_discount_amount') }}</th>
-                            <th class="text-end">{{ number_format($discountTotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="6">{{ __('ledgers.table.column_discount_amount') }}</th>
+                            <th scope="row" class="text-end">{{ number_format($discountTotal, 2) }}</th>
                         </tr>
                         <tr>
-                            <th class="text-end" colspan="6">{{ __('ledgers.table.column_tax_amount') }}</th>
-                            <th class="text-end">{{ number_format($taxTotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="6">{{ __('ledgers.table.column_tax_amount') }}</th>
+                            <th scope="row" class="text-end">{{ number_format($taxTotal, 2) }}</th>
                         </tr>
                         <tr>
-                            <th class="text-end" colspan="6">{{ __('common.labels.total') }}</th>
-                            <th class="fg-primary fs-2xl text-end">{{ number_format($grandTotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="6">{{ __('common.labels.total') }}</th>
+                            <th scope="row" class="fg-primary fs-2xl text-end">{{ number_format($grandTotal, 2) }}</th>
                         </tr>
                     </tfoot>
                 </table>

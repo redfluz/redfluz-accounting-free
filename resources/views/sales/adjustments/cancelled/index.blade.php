@@ -60,13 +60,13 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_document_number') }}</th>
-                            <th>{{ __('ledgers.table.column_reference_number') }}</th>
-                            <th>{{ __('ledgers.table.column_date') }}</th>
-                            <th>{{ __('ledgers.table.column_subtype') }}</th>
-                            <th>{{ __('ledgers.table.column_company') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                            <th class="text-center">{{ __('ledgers.table.column_actions') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_reference_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_subtype') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col" class="text-center">{{ __('ledgers.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

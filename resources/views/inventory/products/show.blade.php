@@ -140,16 +140,16 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('products.variants.name') }}</th>
-                            <th>{{ __('products.table.column_sku') }}</th>
-                            <th>{{ __('products.variants.details') }}</th>
-                            <th class="text-end">{{ __('products.table.column_base_price') }}</th>
-                            <th class="text-end">{{ __('products.table.column_selling_price') }}</th>
-                            <th class="text-end">{{ __('products.variants.total_in') }}</th>
-                            <th class="text-end">{{ __('products.variants.total_out') }}</th>
-                            <th class="text-end">{{ __('products.movement.current_balance') }}</th>
-                            <th>{{ __('products.form.warranty') }}</th>
-                            <th>{{ __('products.variants.use_main_selling_price') }}</th>
+                            <th scope="col">{{ __('products.variants.name') }}</th>
+                            <th scope="col">{{ __('products.table.column_sku') }}</th>
+                            <th scope="col">{{ __('products.variants.details') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.table.column_base_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.table.column_selling_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.variants.total_in') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.variants.total_out') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.current_balance') }}</th>
+                            <th scope="col">{{ __('products.form.warranty') }}</th>
+                            <th scope="col">{{ __('products.variants.use_main_selling_price') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -189,11 +189,11 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
                     @if ($product->variants->isNotEmpty())
                         <tfoot class="bg-1">
                             <tr>
-                                <th colspan="5">{{ __('products.variants.total') }}</th>
-                                <th class="text-end">{{ number_format((float) $variantTotals['in'], 4) }}</th>
-                                <th class="text-end">{{ number_format((float) $variantTotals['out'], 4) }}</th>
-                                <th class="text-end">{{ number_format((float) $variantTotals['balance'], 4) }}</th>
-                                <th colspan="2"></th>
+                                <th scope="row" colspan="5">{{ __('products.variants.total') }}</th>
+                                <th scope="row" class="text-end">{{ number_format((float) $variantTotals['in'], 4) }}</th>
+                                <th scope="row" class="text-end">{{ number_format((float) $variantTotals['out'], 4) }}</th>
+                                <th scope="row" class="text-end">{{ number_format((float) $variantTotals['balance'], 4) }}</th>
+                                <th scope="row" colspan="2"></th>
                             </tr>
                         </tfoot>
                     @endif
@@ -259,12 +259,12 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('products.movement.location_code') }}</th>
-                            <th>{{ __('products.movement.location_name') }}</th>
-                            <th>{{ __('products.movement.location_type') }}</th>
-                            <th class="text-end">{{ __('products.movement.available') }}</th>
-                            <th class="text-end">{{ __('products.movement.pending_in') }}</th>
-                            <th class="text-end">{{ __('products.movement.pending_out') }}</th>
+                            <th scope="col">{{ __('products.movement.location_code') }}</th>
+                            <th scope="col">{{ __('products.movement.location_name') }}</th>
+                            <th scope="col">{{ __('products.movement.location_type') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.available') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.pending_in') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.pending_out') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -307,18 +307,18 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('products.movement.date') }}</th>
-                            <th>{{ __('products.movement.document') }}</th>
-                            <th>{{ __('products.movement.item') }}</th>
-                            <th>{{ __('products.movement.source') }}</th>
-                            <th>{{ __('products.movement.location') }}</th>
-                            <th>{{ __('products.movement.company') }}</th>
-                            <th>{{ __('products.movement.status') }}</th>
-                            <th>{{ __('products.movement.bucket') }}</th>
-                            <th class="text-end">{{ __('products.movement.quantity_in') }}</th>
-                            <th class="text-end">{{ __('products.movement.quantity_out') }}</th>
-                            <th class="text-end">{{ __('products.movement.unit_cost') }}</th>
-                            <th class="text-end">{{ __('products.movement.running_balance') }}</th>
+                            <th scope="col">{{ __('products.movement.date') }}</th>
+                            <th scope="col">{{ __('products.movement.document') }}</th>
+                            <th scope="col">{{ __('products.movement.item') }}</th>
+                            <th scope="col">{{ __('products.movement.source') }}</th>
+                            <th scope="col">{{ __('products.movement.location') }}</th>
+                            <th scope="col">{{ __('products.movement.company') }}</th>
+                            <th scope="col">{{ __('products.movement.status') }}</th>
+                            <th scope="col">{{ __('products.movement.bucket') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.quantity_in') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.quantity_out') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.unit_cost') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.movement.running_balance') }}</th>
                         </tr>
                     </thead>
                     <tbody>

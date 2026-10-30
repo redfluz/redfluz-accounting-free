@@ -27,7 +27,7 @@
             @include('partials.alerts')
             <form autocomplete="off" class="row g-2 mb-3" action="{{ route('crm.company-addresses.index') }}" method="GET">
                 <div class="md:col-4">
-                    <select class="form-control" name="company">
+                    <select class="form-control" name="company" aria-label="{{ __('companies.addresses.all_companies') }}">
                         <option value="">{{ __('companies.addresses.all_companies') }}</option>
                         @foreach ($companies as $company)
                             <option value="{{ $company->id }}" @selected($companyId === $company->id)>
@@ -38,7 +38,7 @@
                 </div>
                 <div class="md:col-5">
                     <input class="form-control" name="search" value="{{ $search }}"
-                        placeholder="{{ __('companies.addresses.search_placeholder') }}" />
+                        placeholder="{{ __('companies.addresses.search_placeholder') }}" aria-label="{{ __('companies.addresses.search_placeholder') }}" />
                 </div>
                 <div class="md:col-3 d-flex gap-2">
                     <button class="btn btn-solid theme-secondary" type="submit">{{ __('common.actions.filter') }}</button>
@@ -51,12 +51,12 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('companies.addresses.fields.company') }}</th>
-                            <th>{{ __('companies.addresses.fields.name') }}</th>
-                            <th>{{ __('companies.addresses.fields.phone') }}</th>
-                            <th>{{ __('companies.addresses.fields.address') }}</th>
-                            <th>{{ __('companies.addresses.fields.default') }}</th>
-                            <th class="text-end">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.company') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.name') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.phone') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.address') }}</th>
+                            <th scope="col">{{ __('companies.addresses.fields.default') }}</th>
+                            <th scope="col" class="text-end">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

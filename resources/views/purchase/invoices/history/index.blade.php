@@ -43,7 +43,7 @@
             <form autocomplete="off" class="row g-2 mb-3" method="GET" action="{{ route('purchase.invoices.history.index') }}">
                 <div class="md:col-3">
                     <input class="form-control" name="search" type="text" value="{{ $search }}"
-                        placeholder="{{ __('common.actions.search') }}" />
+                        placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                 </div>
                 <div class="md:col-2">
                     <label class="form-control form-adorn">
@@ -79,12 +79,12 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_document_number') }}</th>
-                            <th>{{ __('ledgers.table.column_reference_number') }}</th>
-                            <th>{{ __('ledgers.table.column_date') }}</th>
-                            <th>{{ __('ledgers.table.column_company') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                            <th class="text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_reference_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col" class="text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -196,11 +196,11 @@
     <table class="table-striped mb-0 table align-middle" id="quotation-lines">
         <thead class="bg-1">
             <tr>
-                <th>{{ __('quotations.form.product') }}</th>
-                <th>{{ __('quotations.form.description') }}</th>
-                <th>{{ __('quotations.form.quantity') }}</th>
-                <th>{{ __('quotations.form.unit_price') }}</th>
-                <th class="text-end">{{ __('quotations.form.total_amount') }}</th>
+                <th scope="col">{{ __('quotations.form.product') }}</th>
+                <th scope="col">{{ __('quotations.form.description') }}</th>
+                <th scope="col">{{ __('quotations.form.quantity') }}</th>
+                <th scope="col">{{ __('quotations.form.unit_price') }}</th>
+                <th scope="col" class="text-end">{{ __('quotations.form.total_amount') }}</th>
             </tr>
         </thead>
         <tbody>

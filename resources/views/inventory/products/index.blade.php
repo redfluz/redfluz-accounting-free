@@ -58,7 +58,7 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::PRODUCTS, FileActi
                 <div class="md:col-4">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" />
+                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i data-lucide="search"></i>
                         </button>
@@ -76,16 +76,16 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::PRODUCTS, FileActi
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('products.table.column_sku') }}</th>
-                            <th>{{ __('products.table.column_name') }}</th>
-                            <th>{{ __('products.table.column_brand') }}</th>
-                            <th>{{ __('products.table.column_category') }}</th>
-                            <th>{{ __('products.table.column_product_type') }}</th>
-                            <th>{{ __('products.table.column_type') }}</th>
-                            <th class="text-center">{{ __('products.table.column_variants') }}</th>
-                            <th class="text-end">{{ __('products.table.column_base_price') }}</th>
-                            <th class="text-end">{{ __('products.table.column_selling_price') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('products.table.column_sku') }}</th>
+                            <th scope="col">{{ __('products.table.column_name') }}</th>
+                            <th scope="col">{{ __('products.table.column_brand') }}</th>
+                            <th scope="col">{{ __('products.table.column_category') }}</th>
+                            <th scope="col">{{ __('products.table.column_product_type') }}</th>
+                            <th scope="col">{{ __('products.table.column_type') }}</th>
+                            <th scope="col" class="text-center">{{ __('products.table.column_variants') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.table.column_base_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.table.column_selling_price') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

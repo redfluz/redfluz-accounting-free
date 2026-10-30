@@ -6,9 +6,9 @@
     <table class="table-hover table-striped mb-0 table align-middle">
         <thead class="bg-1">
             <tr>
-                <th class="sm:col">{{ __('folder_permissions.table.column_role_id') }}</th>
-                <th>{{ __('folder_permissions.table.column_folder_id') }}</th>
-                <th class="col-action text-center">
+                <th scope="col" class="sm:col">{{ __('folder_permissions.table.column_role_id') }}</th>
+                <th scope="col">{{ __('folder_permissions.table.column_folder_id') }}</th>
+                <th scope="col" class="col-action text-center">
                     <div class="d-flex flex-column align-items-center gap-1">
                         <label class="fw-bold" for="check-all-header">
                             {{ __('folder_permissions.table.column_can_read') }}

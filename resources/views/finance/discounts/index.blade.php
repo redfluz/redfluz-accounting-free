@@ -27,13 +27,13 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead>
                         <tr>
-                            <th>{{ __('discounts.table.code') }}</th>
-                            <th>{{ __('discounts.table.name') }}</th>
-                            <th>{{ __('discounts.table.type') }}</th>
-                            <th>{{ __('discounts.table.value') }}</th>
-                            <th>{{ __('discounts.table.date_range') }}</th>
-                            <th>{{ __('discounts.table.status') }}</th>
-                            <th class="text-end">{{ __('discounts.table.action') }}</th>
+                            <th scope="col">{{ __('discounts.table.code') }}</th>
+                            <th scope="col">{{ __('discounts.table.name') }}</th>
+                            <th scope="col">{{ __('discounts.table.type') }}</th>
+                            <th scope="col">{{ __('discounts.table.value') }}</th>
+                            <th scope="col">{{ __('discounts.table.date_range') }}</th>
+                            <th scope="col">{{ __('discounts.table.status') }}</th>
+                            <th scope="col" class="text-end">{{ __('discounts.table.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -112,12 +112,12 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 24%">{{ __('ledgers.table.column_document_number') }}</th>
-                <th style="width: 12%">{{ __('ledgers.table.column_date') }}</th>
-                <th style="width: 18%">{{ __('ledgers.table.column_type') }}</th>
-                <th style="width: 24%">{{ __('ledgers.table.column_company') }}</th>
-                <th class="text-end" style="width: 11%">{{ __('ledgers.table.column_debit_amount') }}</th>
-                <th class="text-end" style="width: 11%">{{ __('ledgers.table.column_credit_amount') }}</th>
+                <th scope="col" style="width: 24%">{{ __('ledgers.table.column_document_number') }}</th>
+                <th scope="col" style="width: 12%">{{ __('ledgers.table.column_date') }}</th>
+                <th scope="col" style="width: 18%">{{ __('ledgers.table.column_type') }}</th>
+                <th scope="col" style="width: 24%">{{ __('ledgers.table.column_company') }}</th>
+                <th scope="col" class="text-end" style="width: 11%">{{ __('ledgers.table.column_debit_amount') }}</th>
+                <th scope="col" class="text-end" style="width: 11%">{{ __('ledgers.table.column_credit_amount') }}</th>
             </tr>
         </thead>
         <tbody>

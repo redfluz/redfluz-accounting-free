@@ -50,10 +50,10 @@
 <table class="table table-bordered mb-0 audit-table">
     <thead class="bg-1">
         <tr>
-            <th class="audit-role">{{ __('payment_vouchers.audit.role') }}</th>
-            <th class="audit-name">{{ __('payment_vouchers.audit.name') }}</th>
-            <th class="audit-date">{{ __('payment_vouchers.audit.date') }}</th>
-            <th class="audit-signature">{{ __('payment_vouchers.audit.signature') }}</th>
+            <th scope="col" class="audit-role">{{ __('payment_vouchers.audit.role') }}</th>
+            <th scope="col" class="audit-name">{{ __('payment_vouchers.audit.name') }}</th>
+            <th scope="col" class="audit-date">{{ __('payment_vouchers.audit.date') }}</th>
+            <th scope="col" class="audit-signature">{{ __('payment_vouchers.audit.signature') }}</th>
         </tr>
     </thead>
     <tbody>

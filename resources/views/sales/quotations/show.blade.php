@@ -91,11 +91,11 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('quotations.form.product') }}</th>
-                            <th>{{ __('quotations.form.description') }}</th>
-                            <th class="text-end">{{ __('quotations.form.quantity') }}</th>
-                            <th class="text-end">{{ __('quotations.form.unit_price') }}</th>
-                            <th class="text-end">{{ __('quotations.form.total_amount') }}</th>
+                            <th scope="col">{{ __('quotations.form.product') }}</th>
+                            <th scope="col">{{ __('quotations.form.description') }}</th>
+                            <th scope="col" class="text-end">{{ __('quotations.form.quantity') }}</th>
+                            <th scope="col" class="text-end">{{ __('quotations.form.unit_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('quotations.form.total_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,8 +111,8 @@
                     </tbody>
                     <tfoot class="bg-1">
                         <tr>
-                            <th class="text-end" colspan="4">{{ __('common.labels.total') }}</th>
-                            <th class="text-end">{{ number_format((float) $quotationTotal, 2) }}</th>
+                            <th scope="row" class="text-end" colspan="4">{{ __('common.labels.total') }}</th>
+                            <th scope="row" class="text-end">{{ number_format((float) $quotationTotal, 2) }}</th>
                         </tr>
                     </tfoot>
                 </table>

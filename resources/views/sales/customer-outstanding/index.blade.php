@@ -38,42 +38,42 @@
                             <form autocomplete="off" action="{{ route('sales.customer-outstanding.index') }}" method="GET">
                                 <div class="row g-2 align-items-end">
                                     <div class="md:col-3">
-                                        <label class="form-label small mb-1">{{ __('common.actions.search') }}</label>
-                                        <input class="form-control" name="search" value="{{ $search }}"
+                                        <label class="form-label small mb-1" for="search">{{ __('common.actions.search') }}</label>
+                                        <input class="form-control" id="search" name="search" value="{{ $search }}"
                                             placeholder="{{ __('customer_outstanding.search_placeholder') }}" />
                                     </div>
                                     <div class="md:col-2">
                                         <label
-                                            class="form-label small mb-1">{{ __('customer_outstanding.invoice_date_from') }}</label>
+                                            class="form-label small mb-1" for="start_date">{{ __('customer_outstanding.invoice_date_from') }}</label>
                                         <label class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
-                                            <input class="form-ghost" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
+                                            <input class="form-ghost" id="start_date" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                                 value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
                                         </label>
                                     </div>
                                     <div class="md:col-2">
                                         <label
-                                            class="form-label small mb-1">{{ __('customer_outstanding.invoice_date_to') }}</label>
+                                            class="form-label small mb-1" for="end_date">{{ __('customer_outstanding.invoice_date_to') }}</label>
                                         <label class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
-                                            <input class="form-ghost" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
+                                            <input class="form-ghost" id="end_date" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                                 value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
                                         </label>
                                     </div>
                                     <div class="md:col-2">
                                         <label
-                                            class="form-label small mb-1">{{ __('customer_outstanding.as_of_date') }}</label>
-                                        <input class="form-control" name="as_of_date" type="text"
+                                            class="form-label small mb-1" for="as_of_date">{{ __('customer_outstanding.as_of_date') }}</label>
+                                        <input class="form-control" id="as_of_date" name="as_of_date" type="text"
                                             data-bs-toggle="datepicker" autocomplete="off" value="{{ $asOfDate->toDateString() }}" />
                                     </div>
                                     <div class="md:col-2">
                                         <label
-                                            class="form-label small mb-1">{{ __('customer_outstanding.status') }}</label>
-                                        <select class="form-control" name="status">
+                                            class="form-label small mb-1" for="status">{{ __('customer_outstanding.status') }}</label>
+                                        <select class="form-control" id="status" name="status">
                                             @foreach (['outstanding', 'overdue', 'due_soon'] as $option)
                                                 <option value="{{ $option }}" @selected($status === $option)>
                                                     {{ __('customer_outstanding.statuses.' . $option) }}
@@ -102,17 +102,17 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('customer_outstanding.reference') }}</th>
-                            <th>{{ __('customer_outstanding.customer') }}</th>
-                            <th class="text-end">{{ __('customer_outstanding.items_delivered') }}</th>
-                            <th class="text-end">{{ __('customer_outstanding.delivery_completion') }}</th>
-                            <th>{{ __('customer_outstanding.invoice_date') }}</th>
-                            <th>{{ __('customer_outstanding.credit_term') }}</th>
-                            <th>{{ __('customer_outstanding.due_date') }}</th>
-                            <th class="text-end">{{ __('customer_outstanding.invoice_amount') }}</th>
-                            <th class="text-end">{{ __('customer_outstanding.paid_amount') }}</th>
-                            <th class="text-end">{{ __('customer_outstanding.balance') }}</th>
-                            <th>{{ __('customer_outstanding.status') }}</th>
+                            <th scope="col">{{ __('customer_outstanding.reference') }}</th>
+                            <th scope="col">{{ __('customer_outstanding.customer') }}</th>
+                            <th scope="col" class="text-end">{{ __('customer_outstanding.items_delivered') }}</th>
+                            <th scope="col" class="text-end">{{ __('customer_outstanding.delivery_completion') }}</th>
+                            <th scope="col">{{ __('customer_outstanding.invoice_date') }}</th>
+                            <th scope="col">{{ __('customer_outstanding.credit_term') }}</th>
+                            <th scope="col">{{ __('customer_outstanding.due_date') }}</th>
+                            <th scope="col" class="text-end">{{ __('customer_outstanding.invoice_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('customer_outstanding.paid_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('customer_outstanding.balance') }}</th>
+                            <th scope="col">{{ __('customer_outstanding.status') }}</th>
                         </tr>
                     </thead>
                     <tbody>

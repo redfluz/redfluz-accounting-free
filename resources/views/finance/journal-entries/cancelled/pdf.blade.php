@@ -87,12 +87,12 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 16%">{{ __('journal_entries.table.column_document_number') }}</th>
-                <th style="width: 14%">{{ __('journal_entries.table.column_reference_number') }}</th>
-                <th style="width: 12%">{{ __('journal_entries.table.column_date') }}</th>
-                <th style="width: 28%">{{ __('journal_entries.table.column_notes') }}</th>
-                <th class="text-end" style="width: 15%">{{ __('journal_entries.table.column_debit_amount') }}</th>
-                <th class="text-end" style="width: 15%">{{ __('journal_entries.table.column_credit_amount') }}</th>
+                <th scope="col" style="width: 16%">{{ __('journal_entries.table.column_document_number') }}</th>
+                <th scope="col" style="width: 14%">{{ __('journal_entries.table.column_reference_number') }}</th>
+                <th scope="col" style="width: 12%">{{ __('journal_entries.table.column_date') }}</th>
+                <th scope="col" style="width: 28%">{{ __('journal_entries.table.column_notes') }}</th>
+                <th scope="col" class="text-end" style="width: 15%">{{ __('journal_entries.table.column_debit_amount') }}</th>
+                <th scope="col" class="text-end" style="width: 15%">{{ __('journal_entries.table.column_credit_amount') }}</th>
             </tr>
         </thead>
         <tbody>

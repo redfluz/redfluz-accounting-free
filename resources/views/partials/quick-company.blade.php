@@ -9,6 +9,7 @@
                 id="quick-company-name"
                 maxlength="255"
                 placeholder="{{ $quickCompanyNamePlaceholder }}"
+                aria-label="{{ $quickCompanyNamePlaceholder }}"
                 type="text"
             />
             <button class="btn btn-solid theme-primary" id="save-quick-company" type="button">{{ $quickCompanySaveLabel }}</button>

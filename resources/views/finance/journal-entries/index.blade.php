@@ -152,18 +152,18 @@
                     <thead class="bg-1">
                         <tr>
                             @if ($canApprove)
-                                <th class="text-center" style="width: 40px">
-                                    <input class="check entry-selection-checkbox" id="checkAll" type="checkbox" />
+                                <th scope="col" class="text-center" style="width: 40px">
+                                    <input class="check entry-selection-checkbox" id="checkAll" type="checkbox" aria-label="{{ __('common.actions.select_all') }}" />
                                 </th>
                             @endif
-                            <th>{{ __('journal_entries.table.column_document_number') }}</th>
-                            <th>{{ __('journal_entries.table.column_reference_number') }}</th>
-                            <th>{{ __('journal_entries.table.column_date') }}</th>
-                            <th>{{ __('journal_entries.table.column_notes') }}</th>
-                            <th>{{ __('journal_entries.table.column_status') }}</th>
-                            <th class="text-end">{{ __('journal_entries.table.column_debit_amount') }}</th>
-                            <th class="text-end">{{ __('journal_entries.table.column_credit_amount') }}</th>
-                            <th class="text-center">{{ __('journal_entries.table.column_actions') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_reference_number') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_date') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_notes') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_status') }}</th>
+                            <th scope="col" class="text-end">{{ __('journal_entries.table.column_debit_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('journal_entries.table.column_credit_amount') }}</th>
+                            <th scope="col" class="text-center">{{ __('journal_entries.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

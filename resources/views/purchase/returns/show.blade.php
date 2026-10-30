@@ -23,7 +23,7 @@
             <table class="table">
                 <tbody>
                     <tr>
-                        <th>{{ $return->product_name }}</th>
+                        <th scope="row">{{ $return->product_name }}</th>
                         <td>{{ $return->quantity }}</td>
                         <td>{{ $return->date->format(Setting::getDefaultDate()) }}</td>
                     </tr>

@@ -37,10 +37,10 @@
                         <table class="table-hover table-striped mb-0 table align-middle">
                             <thead class="bg-1">
                                 <tr>
-                                    <th>{{ __('inventory_dashboard.product') }}</th>
-                                    <th>{{ __('inventory_dashboard.supplier') }}</th>
-                                    <th class="text-end">{{ __('inventory_dashboard.available') }}</th>
-                                    <th class="text-end">{{ __('inventory_dashboard.reorder_level') }}</th>
+                                    <th scope="col">{{ __('inventory_dashboard.product') }}</th>
+                                    <th scope="col">{{ __('inventory_dashboard.supplier') }}</th>
+                                    <th scope="col" class="text-end">{{ __('inventory_dashboard.available') }}</th>
+                                    <th scope="col" class="text-end">{{ __('inventory_dashboard.reorder_level') }}</th>
                                 </tr>
                             </thead>
                             <tbody>

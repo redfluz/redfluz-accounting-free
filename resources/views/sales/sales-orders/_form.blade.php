@@ -132,14 +132,14 @@
         <table class="table-striped mb-0 table align-middle" id="sales-order-lines">
             <thead class="bg-1">
                 <tr>
-                    <th>{{ __('sales_orders.form.product') }}</th>
-                    <th>{{ __('sales_orders.form.description') }}</th>
-                    <th>{{ __('sales_orders.form.quantity') }}</th>
-                    <th>{{ __('sales_orders.form.unit_price') }}</th>
-                    <th>{{ __('sales_orders.form.warranty') }}</th>
-                    <th>{{ __('products.form.default_discount') }}</th>
-                    <th>{{ __('products.form.default_tax') }}</th>
-                    <th>{{ __('sales_orders.form.total') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.product') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.description') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.quantity') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.unit_price') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.warranty') }}</th>
+                    <th scope="col">{{ __('products.form.default_discount') }}</th>
+                    <th scope="col">{{ __('products.form.default_tax') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.total') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -147,7 +147,8 @@
                     @php($line = $existingLines->get($index))
                     <tr>
                         <td style="min-width: 220px">
-                            <select class="form-control so-product" name="lines[{{ $index }}][product_id]">
+                            <select class="form-control so-product" name="lines[{{ $index }}][product_id]"
+                                aria-label="{{ __('sales_orders.form.product') }}">
                                 <option value="">{{ __('common.actions.select_option') }}</option>
                                 @foreach ($products as $product)
                                     <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}"
@@ -183,7 +184,8 @@
                         </td>
                         <td style="min-width: 150px">
                             <select class="form-control so-warranty"
-                                name="lines[{{ $index }}][warranty_months]">
+                                name="lines[{{ $index }}][warranty_months]"
+                                aria-label="{{ __('sales_orders.form.warranty') }}">
                                 @foreach ([-1, 0, 3, 6, 12, 24, 36] as $months)
                                     <option value="{{ $months }}" @selected((int) old("lines.$index.warranty_months", $line?->warranty_months ?? -1) === $months)>
                                         {{ $months === -1 ? __('products.warranty.unlimited') : ($months === 0 ? __('products.warranty.none') : __('products.warranty.months', ['count' => $months])) }}
@@ -193,7 +195,8 @@
                         </td>
                         <td style="min-width: 210px">
                             <select class="form-control so-discount"
-                                name="lines[{{ $index }}][discount_option]">
+                                name="lines[{{ $index }}][discount_option]"
+                                aria-label="{{ __('products.form.default_discount') }}">
                                 <option value="none" data-type="percent" data-value="0">
                                     {{ __('discounts.form.none') }}
                                 </option>
@@ -209,7 +212,8 @@
                             </select>
                             <div class="input-group input-group-sm mt-1">
                                 <select class="form-control so-discount-type"
-                                    name="lines[{{ $index }}][discount_type]">
+                                    name="lines[{{ $index }}][discount_type]"
+                                    aria-label="{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}">
                                     <option value="percent">%</option>
                                     <option value="amount">RM</option>
                                 </select><label class="form-control form-adorn">
@@ -221,7 +225,8 @@
                             </div>
                         </td>
                         <td style="min-width: 210px">
-                            <select class="form-control so-tax" name="lines[{{ $index }}][tax_option]">
+                            <select class="form-control so-tax" name="lines[{{ $index }}][tax_option]"
+                                aria-label="{{ __('products.form.default_tax') }}">
                                 <option value="none" data-rate="0" data-mode="exclusive">
                                     {{ __('taxes.form.none') }}
                                 </option>
@@ -240,7 +245,8 @@
                                     <input class="form-ghost so-tax-rate" name="lines[{{ $index }}][tax_rate]"
                                         type="number" min="0" max="100" step="0.0001"
                                         value="{{ old("lines.$index.tax_rate", $line?->tax_rate ?? 0) }}" /></label><select
-                                    class="form-control so-tax-mode" name="lines[{{ $index }}][tax_mode]">
+                                    class="form-control so-tax-mode" name="lines[{{ $index }}][tax_mode]"
+                                    aria-label="{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}">
                                     <option value="exclusive">{{ __('ledgers.tax_mode.exclusive') }}</option>
                                     <option value="inclusive">{{ __('ledgers.tax_mode.inclusive') }}</option>
                                 </select>

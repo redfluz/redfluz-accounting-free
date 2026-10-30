@@ -29,12 +29,12 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('taxes.table.code') }}</th>
-                            <th>{{ __('taxes.table.name') }}</th>
-                            <th class="text-end">{{ __('taxes.table.rate') }}</th>
-                            <th>{{ __('taxes.table.mode') }}</th>
-                            <th>{{ __('taxes.table.status') }}</th>
-                            <th class="text-center">{{ __('taxes.table.action') }}</th>
+                            <th scope="col">{{ __('taxes.table.code') }}</th>
+                            <th scope="col">{{ __('taxes.table.name') }}</th>
+                            <th scope="col" class="text-end">{{ __('taxes.table.rate') }}</th>
+                            <th scope="col">{{ __('taxes.table.mode') }}</th>
+                            <th scope="col">{{ __('taxes.table.status') }}</th>
+                            <th scope="col" class="text-center">{{ __('taxes.table.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>

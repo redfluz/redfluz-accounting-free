@@ -110,12 +110,12 @@
                 <table class="table-sm table align-middle">
                     <thead>
                         <tr>
-                            <th>{{ __('dashboard.recent.table.date') }}</th>
-                            <th>{{ __('dashboard.recent.table.company') }}</th>
-                            <th>{{ __('dashboard.recent.table.product') }}</th>
-                            <th>{{ __('dashboard.recent.table.contact') }}</th>
-                            <th>{{ __('dashboard.recent.table.type') }}</th>
-                            <th class="text-end">{{ __('dashboard.recent.table.total') }}</th>
+                            <th scope="col">{{ __('dashboard.recent.table.date') }}</th>
+                            <th scope="col">{{ __('dashboard.recent.table.company') }}</th>
+                            <th scope="col">{{ __('dashboard.recent.table.product') }}</th>
+                            <th scope="col">{{ __('dashboard.recent.table.contact') }}</th>
+                            <th scope="col">{{ __('dashboard.recent.table.type') }}</th>
+                            <th scope="col" class="text-end">{{ __('dashboard.recent.table.total') }}</th>
                         </tr>
                     </thead>
                     <tbody>

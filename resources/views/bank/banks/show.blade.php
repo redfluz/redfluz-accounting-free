@@ -98,12 +98,12 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('banks.statistics.month') }}</th>
-                            <th class="text-center">{{ __('banks.statistics.transactions') }}</th>
-                            <th class="text-end">{{ __('banks.statistics.money_in') }}</th>
-                            <th class="text-end">{{ __('banks.statistics.money_out') }}</th>
-                            <th class="text-end">{{ __('banks.statistics.net_movement') }}</th>
-                            <th class="text-end">{{ __('banks.statistics.closing_balance') }}</th>
+                            <th scope="col">{{ __('banks.statistics.month') }}</th>
+                            <th scope="col" class="text-center">{{ __('banks.statistics.transactions') }}</th>
+                            <th scope="col" class="text-end">{{ __('banks.statistics.money_in') }}</th>
+                            <th scope="col" class="text-end">{{ __('banks.statistics.money_out') }}</th>
+                            <th scope="col" class="text-end">{{ __('banks.statistics.net_movement') }}</th>
+                            <th scope="col" class="text-end">{{ __('banks.statistics.closing_balance') }}</th>
                         </tr>
                     </thead>
                     <tbody>

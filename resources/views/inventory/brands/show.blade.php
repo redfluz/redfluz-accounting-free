@@ -38,10 +38,10 @@ $canUpdate = auth()->user()->hasFilePermission(FileResources::BRANDS, FileAction
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('products.table.column_sku') }}</th>
-                            <th>{{ __('products.table.column_name') }}</th>
-                            <th>{{ __('products.table.column_type') }}</th>
-                            <th class="text-end">{{ __('products.table.column_selling_price') }}</th>
+                            <th scope="col">{{ __('products.table.column_sku') }}</th>
+                            <th scope="col">{{ __('products.table.column_name') }}</th>
+                            <th scope="col">{{ __('products.table.column_type') }}</th>
+                            <th scope="col" class="text-end">{{ __('products.table.column_selling_price') }}</th>
                         </tr>
                     </thead>
                     <tbody>

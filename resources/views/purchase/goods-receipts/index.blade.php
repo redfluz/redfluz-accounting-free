@@ -67,16 +67,16 @@ use Carbon\Carbon;
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('goods_receipts.table.column_document_number') }}</th>
-                            <th>{{ __('goods_receipts.table.column_purchase_invoice') }}</th>
-                            <th>{{ __('goods_receipts.table.column_date') }}</th>
-                            <th>{{ __('goods_receipts.table.column_company') }}</th>
-                            <th>{{ __('goods_receipts.table.column_stock_location') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.table.column_lines') }}</th>
-                            <th class="text-end">{{ __('goods_receipts.table.column_quantity') }}</th>
-                            <th>{{ __('goods_receipts.table.column_status') }}</th>
-                            <th>{{ __('goods_receipts.table.column_completion') }}</th>
-                            <th class="text-center">{{ __('goods_receipts.table.column_actions') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_purchase_invoice') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_date') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_company') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_stock_location') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.table.column_lines') }}</th>
+                            <th scope="col" class="text-end">{{ __('goods_receipts.table.column_quantity') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_status') }}</th>
+                            <th scope="col">{{ __('goods_receipts.table.column_completion') }}</th>
+                            <th scope="col" class="text-center">{{ __('goods_receipts.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

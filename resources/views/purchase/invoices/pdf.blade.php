@@ -195,10 +195,10 @@
         <table class="item-table">
             <thead>
                 <tr>
-                    <th>{{ __('invoice_designs.pdf.description') }}</th>
-                    <th class="text-right">{{ __('invoice_designs.pdf.quantity') }}</th>
-                    <th class="text-right">{{ __('invoice_designs.pdf.unit_price') }}</th>
-                    <th class="text-right">{{ __('invoice_designs.pdf.amount') }}</th>
+                    <th scope="col">{{ __('invoice_designs.pdf.description') }}</th>
+                    <th scope="col" class="text-right">{{ __('invoice_designs.pdf.quantity') }}</th>
+                    <th scope="col" class="text-right">{{ __('invoice_designs.pdf.unit_price') }}</th>
+                    <th scope="col" class="text-right">{{ __('invoice_designs.pdf.amount') }}</th>
                 </tr>
             </thead>
             <tbody>

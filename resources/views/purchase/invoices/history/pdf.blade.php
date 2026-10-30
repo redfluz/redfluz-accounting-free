@@ -89,11 +89,11 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 20%">{{ __('ledgers.table.column_document_number') }}</th>
-                <th style="width: 15%">{{ __('ledgers.table.column_reference_number') }}</th>
-                <th style="width: 12%">{{ __('ledgers.table.column_date') }}</th>
-                <th style="width: 28%">{{ __('ledgers.table.column_company') }}</th>
-                <th style="width: 15%" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                <th scope="col" style="width: 20%">{{ __('ledgers.table.column_document_number') }}</th>
+                <th scope="col" style="width: 15%">{{ __('ledgers.table.column_reference_number') }}</th>
+                <th scope="col" style="width: 12%">{{ __('ledgers.table.column_date') }}</th>
+                <th scope="col" style="width: 28%">{{ __('ledgers.table.column_company') }}</th>
+                <th scope="col" style="width: 15%" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
             </tr>
         </thead>
         <tbody>

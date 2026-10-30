@@ -141,8 +141,8 @@
                     @enderror
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">{{ __('companies.roles.title') }}</label>
+                <fieldset class="mb-4" style="border: none; padding: 0; margin: 0;">
+                    <legend class="form-label fw-bold">{{ __('companies.roles.title') }}</legend>
                     <div class="d-flex flex-wrap gap-4">
                         @foreach (['is_debtor', 'is_creditor', 'is_courier'] as $role)
                             <input name="{{ $role }}" type="hidden" value="0" />
@@ -159,7 +159,7 @@
                             >{{ __('companies.roles.'.$role) }}</label>
                         @endforeach
                     </div>
-                </div>
+                </fieldset>
 
                 <div class="d-flex justify-content-between pt-2">
                     <a class="btn btn-solid theme-secondary" href="{{ route('crm.companies.index') }}">

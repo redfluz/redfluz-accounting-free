@@ -140,10 +140,10 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('bank_journals.show.column_side') }}</th>
-                            <th>{{ __('bank_journals.show.column_account') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                            <th scope="col">{{ __('bank_journals.show.column_side') }}</th>
+                            <th scope="col">{{ __('bank_journals.show.column_account') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -98,10 +98,10 @@
             <table class="table-hover table-striped mb-0 table align-middle">
                 <thead class="bg-1">
                     <tr>
-                        <th>{{ __('purchase_orders.form.description') }}</th>
-                        <th class="text-end">{{ __('purchase_orders.form.quantity') }}</th>
-                        <th class="text-end">{{ __('purchase_orders.form.unit_price') }}</th>
-                        <th class="text-end">{{ __('purchase_orders.table.total') }}</th>
+                        <th scope="col">{{ __('purchase_orders.form.description') }}</th>
+                        <th scope="col" class="text-end">{{ __('purchase_orders.form.quantity') }}</th>
+                        <th scope="col" class="text-end">{{ __('purchase_orders.form.unit_price') }}</th>
+                        <th scope="col" class="text-end">{{ __('purchase_orders.table.total') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -116,8 +116,8 @@
                 </tbody>
                 <tfoot class="bg-1">
                     <tr>
-                        <th class="text-end" colspan="3">{{ __('purchase_orders.form.grand_total') }}</th>
-                        <th class="text-end">{{ $currencySymbol }} {{ number_format((float) $purchaseOrder->total_amount, 2) }}</th>
+                        <th scope="row" class="text-end" colspan="3">{{ __('purchase_orders.form.grand_total') }}</th>
+                        <th scope="row" class="text-end">{{ $currencySymbol }} {{ number_format((float) $purchaseOrder->total_amount, 2) }}</th>
                     </tr>
                 </tfoot>
             </table>

@@ -131,11 +131,11 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 28px">#</th>
-                <th>{{ __('ledgers.table.column_debit_acc') }}</th>
-                <th>{{ __('ledgers.table.column_credit_acc') }}</th>
-                <th class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                <th class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                <th scope="col" style="width: 28px">#</th>
+                <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
+                <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
+                <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -155,11 +155,11 @@
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="3" class="text-end">{{ __('common.labels.total') }}:</th>
-                <th class="text-end">
+                <th scope="row" colspan="3" class="text-end">{{ __('common.labels.total') }}:</th>
+                <th scope="row" class="text-end">
                     {{ number_format((float) $receipt->charts->whereNotNull('debit_id')->sum('debit_amount'), 2) }}
                 </th>
-                <th class="text-end">
+                <th scope="row" class="text-end">
                     {{ number_format((float) $receipt->charts->whereNotNull('credit_id')->sum('credit_amount'), 2) }}
                 </th>
             </tr>
@@ -178,10 +178,10 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 130px">{{ __('receipts.audit.role') }}</th>
-                <th style="width: 160px">{{ __('receipts.audit.name') }}</th>
-                <th style="width: 110px">{{ __('receipts.audit.date') }}</th>
-                <th>{{ __('receipts.audit.signature') }}</th>
+                <th scope="col" style="width: 130px">{{ __('receipts.audit.role') }}</th>
+                <th scope="col" style="width: 160px">{{ __('receipts.audit.name') }}</th>
+                <th scope="col" style="width: 110px">{{ __('receipts.audit.date') }}</th>
+                <th scope="col">{{ __('receipts.audit.signature') }}</th>
             </tr>
         </thead>
         <tbody>

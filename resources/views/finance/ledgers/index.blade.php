@@ -60,10 +60,10 @@
                             <input name="order" type="hidden" value="{{ request('order') }}" />
                             <div class="md:col-3">
                                 <input class="form-control" name="search" type="text" value="{{ $search }}"
-                                    placeholder="{{ __('common.actions.search') }}" />
+                                    placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                             </div>
                             <div class="md:col-2">
-                                <select class="form-control" name="type">
+                                <select class="form-control" name="type" aria-label="{{ __('ledgers.all_types') }}">
                                     <option value="">{{ __('ledgers.all_types') }}</option>
                                     @foreach (LedgerType::cases() as $ledgerType)
                                         <option value="{{ $ledgerType->value }}" @selected(request('type') === $ledgerType->value)>
@@ -129,7 +129,7 @@
             'date' => 'ledgers.table.column_date',
             'type' => 'ledgers.table.column_type',
         ] as $column => $label)
-                                    <th>
+                                    <th scope="col">
                                         <a class="fg-black text-decoration-none"
                                             href="{{ request()->fullUrlWithQuery(['sort_by' => $column, 'order' => request('sort_by') === $column && request('order') === 'asc' ? 'desc' : 'asc']) }}">
                                             {{ __($label) }}
@@ -140,10 +140,10 @@
                                         </a>
                                     </th>
                                 @endforeach
-                                <th>{{ __('ledgers.table.column_company') }}</th>
-                                <th>{{ __('ledgers.table.column_description') }}</th>
+                                <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                                <th scope="col">{{ __('ledgers.table.column_description') }}</th>
                                 @foreach (['debit_amount', 'credit_amount'] as $column)
-                                    <th class="text-end">
+                                    <th scope="col" class="text-end">
                                         <a class="fg-black text-decoration-none"
                                             href="{{ request()->fullUrlWithQuery(['sort_by' => $column, 'order' => request('sort_by') === $column && request('order') === 'asc' ? 'desc' : 'asc']) }}">
                                             {{ __('ledgers.table.column_' . $column) }}

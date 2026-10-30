@@ -11,9 +11,9 @@
     <table class="table-hover table-striped mb-0 table align-middle">
         <thead class="bg-1">
             <tr>
-                <th class="text-start">{{ __('page_permissions.table.column_role_id') }}</th>
-                <th class="text-start">{{ __('page_permissions.table.column_folder_id') }}</th>
-                <th class="text-start">{{ __('page_permissions.table.column_page_id') }}</th>
+                <th scope="col" class="text-start">{{ __('page_permissions.table.column_role_id') }}</th>
+                <th scope="col" class="text-start">{{ __('page_permissions.table.column_folder_id') }}</th>
+                <th scope="col" class="text-start">{{ __('page_permissions.table.column_page_id') }}</th>
                 @foreach ($permissionKeys as $key)
                     @php
                         $translationKey = "page_permissions.table.column_{$key}";
@@ -21,7 +21,7 @@
                         $label = __($translationKey) !== $translationKey ? __($translationKey) : $fallbackLabel;
                         $allChecked = $permissions->count() > 0 && $permissions->every(fn ($permission) => $permission->$key);
                     @endphp
-                    <th style="width: 110px">
+                    <th scope="col" style="width: 110px">
                         <div class="d-flex flex-column align-items-center gap-1">
                             <label class="text-capitalize small fw-bold" for="check-column-{{ $key }}">
                                 {{ $label }}

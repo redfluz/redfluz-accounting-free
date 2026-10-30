@@ -70,7 +70,7 @@
                 <div class="md:col-3">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" />
+                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i class="" data-lucide="search"></i>
                         </button>
@@ -84,7 +84,7 @@
                 </div>
 
                 <div class="md:col-2">
-                    <select class="form-control" name="chart_type" id="chart_type_filter">
+                    <select class="form-control" name="chart_type" id="chart_type_filter" aria-label="{{ __('charts.all_types') }}">
                         <option value="">{{ __('charts.all_types') }}</option>
                         @foreach (ChartTypeEnum::cases() as $chartType)
                             @continue($chartType === ChartTypeEnum::NONE)
@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="md:col-3">
-                    <select class="form-control" name="report_group" id="report_group_filter">
+                    <select class="form-control" name="report_group" id="report_group_filter" aria-label="{{ __('charts.all_report_groups') }}">
                         <option value="">{{ __('charts.all_report_groups') }}</option>
                         @foreach (ChartReportGroupEnum::cases() as $reportGroup)
                             <option value="{{ $reportGroup->value }}" @selected(($reportGroupFilter ?? '') === $reportGroup->value)>
@@ -128,15 +128,15 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('charts.table.column_code') }}</th>
-                            <th>{{ __('charts.table.column_name') }}</th>
-                            <th>{{ __('charts.table.column_type') }}</th>
-                            <th>{{ __('charts.table.column_report_group') }}</th>
-                            <th>{{ __('charts.table.column_bank') }}</th>
-                            <th>{{ __('charts.table.column_debtor') }}</th>
-                            <th>{{ __('charts.table.column_creditor') }}</th>
-                            <th class="col-date">{{ __('common.labels.created_at') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('charts.table.column_code') }}</th>
+                            <th scope="col">{{ __('charts.table.column_name') }}</th>
+                            <th scope="col">{{ __('charts.table.column_type') }}</th>
+                            <th scope="col">{{ __('charts.table.column_report_group') }}</th>
+                            <th scope="col">{{ __('charts.table.column_bank') }}</th>
+                            <th scope="col">{{ __('charts.table.column_debtor') }}</th>
+                            <th scope="col">{{ __('charts.table.column_creditor') }}</th>
+                            <th scope="col" class="col-date">{{ __('common.labels.created_at') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

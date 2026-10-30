@@ -56,9 +56,9 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('roles.table.column_user_name') }}</th>
-                            <th>{{ __('roles.table.column_email') }}</th>
-                            <th>{{ __('roles.table.column_department') }}</th>
+                            <th scope="col">{{ __('roles.table.column_user_name') }}</th>
+                            <th scope="col">{{ __('roles.table.column_email') }}</th>
+                            <th scope="col">{{ __('roles.table.column_department') }}</th>
                         </tr>
                     </thead>
                     <tbody>

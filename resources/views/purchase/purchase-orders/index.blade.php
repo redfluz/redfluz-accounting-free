@@ -22,12 +22,12 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('purchase_orders.table.number') }}</th>
-                            <th>{{ __('purchase_orders.table.date') }}</th>
-                            <th>{{ __('purchase_orders.table.supplier') }}</th>
-                            <th>{{ __('purchase_orders.table.status') }}</th>
-                            <th class="text-end">{{ __('purchase_orders.table.total') }}</th>
-                            <th class="text-center">{{ __('purchase_orders.table.action') }}</th>
+                            <th scope="col">{{ __('purchase_orders.table.number') }}</th>
+                            <th scope="col">{{ __('purchase_orders.table.date') }}</th>
+                            <th scope="col">{{ __('purchase_orders.table.supplier') }}</th>
+                            <th scope="col">{{ __('purchase_orders.table.status') }}</th>
+                            <th scope="col" class="text-end">{{ __('purchase_orders.table.total') }}</th>
+                            <th scope="col" class="text-center">{{ __('purchase_orders.table.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>

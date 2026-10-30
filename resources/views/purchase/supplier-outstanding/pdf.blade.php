@@ -41,16 +41,16 @@
     <table width="100%" cellspacing="0" cellpadding="5" border="1">
         <thead>
             <tr>
-                <th>Reference</th>
-                <th>Supplier</th>
-                <th>Items Received</th>
-                <th>Invoice Date</th>
-                <th>Credit Term</th>
-                <th>Payment Due</th>
-                <th>Invoice Amount</th>
-                <th>Allocated Paid</th>
-                <th>Outstanding Balance</th>
-                <th>Status</th>
+                <th scope="col">Reference</th>
+                <th scope="col">Supplier</th>
+                <th scope="col">Items Received</th>
+                <th scope="col">Invoice Date</th>
+                <th scope="col">Credit Term</th>
+                <th scope="col">Payment Due</th>
+                <th scope="col">Invoice Amount</th>
+                <th scope="col">Allocated Paid</th>
+                <th scope="col">Outstanding Balance</th>
+                <th scope="col">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -73,11 +73,11 @@
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="6">{{ __('supplier_outstanding.grand_total') }}</th>
-                <th align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('invoice_amount'), 2) }}</th>
-                <th align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('paid_amount'), 2) }}</th>
-                <th align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('balance_amount'), 2) }}</th>
-                <th></th>
+                <th scope="row" colspan="6">{{ __('supplier_outstanding.grand_total') }}</th>
+                <th scope="row" align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('invoice_amount'), 2) }}</th>
+                <th scope="row" align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('paid_amount'), 2) }}</th>
+                <th scope="row" align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('balance_amount'), 2) }}</th>
+                <th scope="row"></th>
             </tr>
         </tfoot>
     </table>

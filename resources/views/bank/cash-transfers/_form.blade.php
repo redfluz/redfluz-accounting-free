@@ -90,9 +90,9 @@
     </div>
 
     <div class="md:col-6 mb-3">
-        <label class="form-label fw-bold">
+        <span class="form-label fw-bold">
             {{ __('cash_transfers.form.to') }}
-        </label>
+        </span>
         <div class="form-control-plaintext fw-semibold">
             {{ $transit->code }} ~ {{ $transit->name }}
         </div>

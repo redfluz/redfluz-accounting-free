@@ -229,10 +229,10 @@
         <table class="item-table">
             <thead>
                 <tr>
-                    <th>{{ __('quotations.pdf.description') }}</th>
-                    <th class="text-right">{{ __('quotations.pdf.quantity') }}</th>
-                    <th class="text-right">{{ __('quotations.pdf.unit_price') }}</th>
-                    <th class="text-right">{{ __('quotations.pdf.amount') }}</th>
+                    <th scope="col">{{ __('quotations.pdf.description') }}</th>
+                    <th scope="col" class="text-right">{{ __('quotations.pdf.quantity') }}</th>
+                    <th scope="col" class="text-right">{{ __('quotations.pdf.unit_price') }}</th>
+                    <th scope="col" class="text-right">{{ __('quotations.pdf.amount') }}</th>
                 </tr>
             </thead>
             <tbody>

@@ -49,7 +49,7 @@
                 <div class="row g-2 align-items-center">
                     <div class="md:col-9">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" />
+                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                     </div>
                     <div class="md:col-3 d-flex gap-2">
                         <button class="btn btn-solid theme-primary flex-fill" type="submit">
@@ -69,12 +69,12 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_document_number') }}</th>
-                            <th>{{ __('ledgers.table.column_date') }}</th>
-                            <th>{{ __('bank_transfers.table.column_from') }}</th>
-                            <th>{{ __('bank_transfers.table.column_to') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                            <th class="text-center">{{ __('ledgers.table.column_actions') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                            <th scope="col">{{ __('bank_transfers.table.column_from') }}</th>
+                            <th scope="col">{{ __('bank_transfers.table.column_to') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col" class="text-center">{{ __('ledgers.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

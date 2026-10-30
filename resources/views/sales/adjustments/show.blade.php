@@ -108,11 +108,11 @@ $canReverse = $canApprove && $isPosted && ! $adjustment->reversal_journal_id && 
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('adjustments.table.column_entry') }}</th>
-                            <th>{{ __('ledgers.table.column_debit_acc') }}</th>
-                            <th>{{ __('ledgers.table.column_credit_acc') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                            <th scope="col">{{ __('adjustments.table.column_entry') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>

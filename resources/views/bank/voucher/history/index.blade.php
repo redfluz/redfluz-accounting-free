@@ -32,7 +32,7 @@
                                 <div class="row g-2 align-items-center">
                                     <div class="md:col-3">
                                         <input class="form-control" name="search" type="text"
-                                            value="{{ $search }}" placeholder="{{ __('common.actions.search') }}" />
+                                            value="{{ $search }}" placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                                     </div>
                                     <div class="md:col-3">
                                         <label class="form-control form-adorn">
@@ -73,14 +73,14 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_document_number') }}</th>
-                            <th>{{ __('ledgers.table.column_reference_number') }}</th>
-                            <th>{{ __('ledgers.table.column_date') }}</th>
-                            <th>{{ __('ledgers.table.column_company') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                            <th>{{ __('payment_vouchers.audit.created_by') }}</th>
-                            <th>{{ __('payment_vouchers.audit.approved_by') }}</th>
-                            <th class="text-center">{{ __('ledgers.table.column_actions') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_reference_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col">{{ __('payment_vouchers.audit.created_by') }}</th>
+                            <th scope="col">{{ __('payment_vouchers.audit.approved_by') }}</th>
+                            <th scope="col" class="text-center">{{ __('ledgers.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

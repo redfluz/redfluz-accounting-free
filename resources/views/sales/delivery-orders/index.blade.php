@@ -27,13 +27,13 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('delivery_orders.table.number') }}</th>
-                            <th>{{ __('delivery_orders.table.sales_order') }}</th>
-                            <th>{{ __('delivery_orders.table.customer') }}</th>
-                            <th>{{ __('delivery_orders.table.stock_location') }}</th>
-                            <th>{{ __('delivery_orders.table.date') }}</th>
-                            <th>{{ __('delivery_orders.table.status') }}</th>
-                            <th class="text-center">{{ __('delivery_orders.table.action') }}</th>
+                            <th scope="col">{{ __('delivery_orders.table.number') }}</th>
+                            <th scope="col">{{ __('delivery_orders.table.sales_order') }}</th>
+                            <th scope="col">{{ __('delivery_orders.table.customer') }}</th>
+                            <th scope="col">{{ __('delivery_orders.table.stock_location') }}</th>
+                            <th scope="col">{{ __('delivery_orders.table.date') }}</th>
+                            <th scope="col">{{ __('delivery_orders.table.status') }}</th>
+                            <th scope="col" class="text-center">{{ __('delivery_orders.table.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>

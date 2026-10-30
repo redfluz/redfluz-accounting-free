@@ -58,7 +58,7 @@
                                 action="{{ route('finance.journal-entries.history.index') }}">
                                 <div class="md:col-3">
                                     <input class="form-control" name="search" type="text" value="{{ $search }}"
-                                        placeholder="{{ __('common.actions.search') }}" />
+                                        placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                                 </div>
                                 <div class="md:col-2">
                                     <label class="form-control form-adorn">
@@ -98,14 +98,14 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('journal_entries.table.column_document_number') }}</th>
-                            <th>{{ __('journal_entries.table.column_reference_number') }}</th>
-                            <th>{{ __('journal_entries.table.column_date') }}</th>
-                            <th>{{ __('journal_entries.table.column_notes') }}</th>
-                            <th>{{ __('journal_entries.table.column_status') }}</th>
-                            <th class="text-end">{{ __('journal_entries.table.column_debit_amount') }}</th>
-                            <th class="text-end">{{ __('journal_entries.table.column_credit_amount') }}</th>
-                            <th class="text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_reference_number') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_date') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_notes') }}</th>
+                            <th scope="col">{{ __('journal_entries.table.column_status') }}</th>
+                            <th scope="col" class="text-end">{{ __('journal_entries.table.column_debit_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('journal_entries.table.column_credit_amount') }}</th>
+                            <th scope="col" class="text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

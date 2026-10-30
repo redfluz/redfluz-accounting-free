@@ -50,7 +50,7 @@
                                 <div class="row g-2 align-items-center">
                                     <div class="md:col-3">
                                         <input class="form-control" name="search" type="text"
-                                            value="{{ $search }}" placeholder="{{ __('common.actions.search') }}" />
+                                            value="{{ $search }}" placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                                     </div>
                                     <div class="md:col-3">
                                         <label class="form-control form-adorn">
@@ -108,16 +108,16 @@
                     <thead class="bg-1">
                         <tr>
                             @if ($canApprove)
-                                <th class="text-center" style="width: 40px">
-                                    <input class="check voucher-selection-checkbox" id="checkAll" type="checkbox" />
+                                <th scope="col" class="text-center" style="width: 40px">
+                                    <input class="check voucher-selection-checkbox" id="checkAll" type="checkbox" aria-label="{{ __('common.actions.select_all') }}" />
                                 </th>
                             @endif
-                            <th>{{ __('ledgers.table.column_document_number') }}</th>
-                            <th>{{ __('ledgers.table.column_reference_number') }}</th>
-                            <th>{{ __('ledgers.table.column_date') }}</th>
-                            <th>{{ __('ledgers.table.column_company') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                            <th class="text-center">{{ __('ledgers.table.column_actions') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_reference_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col" class="text-center">{{ __('ledgers.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

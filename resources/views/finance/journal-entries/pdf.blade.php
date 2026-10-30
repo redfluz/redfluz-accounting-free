@@ -176,11 +176,11 @@
     <table class="lines">
         <thead>
             <tr>
-                <th style="width: 6%">#</th>
-                <th style="width: 22%">{{ __('journal_entries.table.column_account') }}</th>
-                <th>{{ __('journal_entries.table.column_description') }}</th>
-                <th class="amount" style="width: 16%">{{ __('journal_entries.table.column_debit_amount') }}</th>
-                <th class="amount" style="width: 16%">{{ __('journal_entries.table.column_credit_amount') }}</th>
+                <th scope="col" style="width: 6%">#</th>
+                <th scope="col" style="width: 22%">{{ __('journal_entries.table.column_account') }}</th>
+                <th scope="col">{{ __('journal_entries.table.column_description') }}</th>
+                <th scope="col" class="amount" style="width: 16%">{{ __('journal_entries.table.column_debit_amount') }}</th>
+                <th scope="col" class="amount" style="width: 16%">{{ __('journal_entries.table.column_credit_amount') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -220,10 +220,10 @@
     <table style="width: 100%; border-collapse: collapse;">
         <thead>
             <tr>
-                <th style="width: 130px; border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.role') }}</th>
-                <th style="width: 160px; border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.name') }}</th>
-                <th style="width: 110px; border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.date') }}</th>
-                <th style="border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.signature') }}</th>
+                <th scope="col" style="width: 130px; border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.role') }}</th>
+                <th scope="col" style="width: 160px; border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.name') }}</th>
+                <th scope="col" style="width: 110px; border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.date') }}</th>
+                <th scope="col" style="border: 1px solid #d9e1e8; padding: 5px 7px; background: #f4f7fa; text-align: left;">{{ __('journal_entries.audit.signature') }}</th>
             </tr>
         </thead>
         <tbody>

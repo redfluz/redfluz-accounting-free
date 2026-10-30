@@ -84,9 +84,9 @@
     </div>
 
     <div class="md:col-6 mb-3">
-        <label class="form-label fw-bold">
+        <span class="form-label fw-bold">
             {{ __('bank_transfers.form.from') }}
-        </label>
+        </span>
         <div class="form-control-plaintext fw-semibold">
             {{ $transit->code }} ~ {{ $transit->name }}
         </div>

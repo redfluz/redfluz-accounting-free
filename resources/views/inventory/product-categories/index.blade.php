@@ -32,19 +32,19 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::PRODUCT_CATEGORIES
             <form autocomplete="off" class="row g-2 mb-4" method="GET" action="{{ route('inventory.product-categories.index') }}">
                 <div class="md:col-5">
                     <input class="form-control" name="search" type="text" value="{{ $search }}"
-                        placeholder="{{ __('common.actions.search') }}" />
+                        placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                 </div>
             </form>
             <div class="table-responsive rounded border">
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('product_categories.table.code') }}</th>
-                            <th>{{ __('product_categories.table.name') }}</th>
-                            <th class="text-center">{{ __('product_categories.table.types') }}</th>
-                            <th class="text-center">{{ __('product_categories.table.products') }}</th>
-                            <th>{{ __('product_categories.table.status') }}</th>
-                            <th class="text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('product_categories.table.code') }}</th>
+                            <th scope="col">{{ __('product_categories.table.name') }}</th>
+                            <th scope="col" class="text-center">{{ __('product_categories.table.types') }}</th>
+                            <th scope="col" class="text-center">{{ __('product_categories.table.products') }}</th>
+                            <th scope="col">{{ __('product_categories.table.status') }}</th>
+                            <th scope="col" class="text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

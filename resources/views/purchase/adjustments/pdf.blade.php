@@ -216,10 +216,10 @@
         <table class="item-table">
             <thead>
                 <tr>
-                    <th>{{ __('purchase_adjustments.pdf.description') }}</th>
-                    <th class="text-right">{{ __('purchase_adjustments.pdf.quantity') }}</th>
-                    <th class="text-right">{{ __('purchase_adjustments.pdf.unit_price') }}</th>
-                    <th class="text-right">{{ __('purchase_adjustments.pdf.amount') }}</th>
+                    <th scope="col">{{ __('purchase_adjustments.pdf.description') }}</th>
+                    <th scope="col" class="text-right">{{ __('purchase_adjustments.pdf.quantity') }}</th>
+                    <th scope="col" class="text-right">{{ __('purchase_adjustments.pdf.unit_price') }}</th>
+                    <th scope="col" class="text-right">{{ __('purchase_adjustments.pdf.amount') }}</th>
                 </tr>
             </thead>
             <tbody>

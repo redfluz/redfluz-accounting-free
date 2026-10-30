@@ -32,20 +32,20 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::E_WALLET_PROVIDERS
             <form autocomplete="off" class="row g-2 mb-4" method="GET" action="{{ route('bank.e-wallet-providers.index') }}">
                 <div class="md:col-5">
                     <input class="form-control" name="search" type="text" value="{{ $search }}"
-                        placeholder="{{ __('common.actions.search') }}" />
+                        placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                 </div>
             </form>
             <div class="table-responsive rounded border">
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('e_wallet_providers.table.name') }}</th>
-                            <th>{{ __('e_wallet_providers.table.country') }}</th>
-                            <th>{{ __('e_wallet_providers.table.identifier_label') }}</th>
-                            <th>{{ __('e_wallet_providers.table.chart') }}</th>
-                            <th class="text-center">{{ __('e_wallet_providers.table.accounts') }}</th>
-                            <th>{{ __('e_wallet_providers.table.status') }}</th>
-                            <th class="text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.table.name') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.table.country') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.table.identifier_label') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.table.chart') }}</th>
+                            <th scope="col" class="text-center">{{ __('e_wallet_providers.table.accounts') }}</th>
+                            <th scope="col">{{ __('e_wallet_providers.table.status') }}</th>
+                            <th scope="col" class="text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

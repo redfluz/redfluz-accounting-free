@@ -89,20 +89,21 @@
                     <thead>
                         <tr>
                             @if ($canApprove)
-                                <th class="text-center" style="width: 40px">
+                                <th scope="col" class="text-center" style="width: 40px">
                                     <input
                                         class="check return-selection-checkbox"
                                         id="checkAll"
                                         type="checkbox"
+                                        aria-label="{{ __('common.actions.select_all') }}"
                                     />
                                 </th>
                             @endif
-                            <th>{{ __('ledgers.table.column_document_number') }}</th>
-                            <th>{{ __('ledgers.table.column_company') }}</th>
-                            <th>{{ __('purchase_returns.date') }}</th>
-                            <th>{{ __('purchase_returns.quantity') }}</th>
-                            <th>{{ __('ledgers.table.column_status') }}</th>
-                            <th class="text-center">{{ __('ledgers.table.column_actions') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                            <th scope="col">{{ __('purchase_returns.date') }}</th>
+                            <th scope="col">{{ __('purchase_returns.quantity') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_status') }}</th>
+                            <th scope="col" class="text-center">{{ __('ledgers.table.column_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

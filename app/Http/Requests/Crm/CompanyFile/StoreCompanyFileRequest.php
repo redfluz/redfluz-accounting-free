@@ -76,7 +76,7 @@ class StoreCompanyFileRequest extends CompanyFileRequest
             // bytes that finfo classified as text/plain as a text upload, so a
             // payload.exe was accepted and stored. The list matches the accept
             // attribute on the file input.
-            'attachments.*' => ['file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:10240'],
+            'attachments.*' => ['file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:1024'],
         ];
     }
 }

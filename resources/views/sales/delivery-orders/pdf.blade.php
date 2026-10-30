@@ -204,10 +204,10 @@
     <table class="items section">
         <thead>
             <tr>
-                <th width="28%">{{ __('delivery_orders.pdf.item') }}</th>
-                <th width="20%">{{ __('delivery_orders.pdf.sku') }}</th>
-                <th>{{ __('delivery_orders.pdf.description') }}</th>
-                <th class="text-right" width="12%">{{ __('delivery_orders.pdf.quantity') }}</th>
+                <th scope="col" width="28%">{{ __('delivery_orders.pdf.item') }}</th>
+                <th scope="col" width="20%">{{ __('delivery_orders.pdf.sku') }}</th>
+                <th scope="col">{{ __('delivery_orders.pdf.description') }}</th>
+                <th scope="col" class="text-right" width="12%">{{ __('delivery_orders.pdf.quantity') }}</th>
             </tr>
         </thead>
         <tbody>

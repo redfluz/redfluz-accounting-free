@@ -187,9 +187,9 @@
         <table class="table-hover table-striped mb-0 table align-middle">
             <thead class="bg-1">
                 <tr>
-                    <th>{{ __('delivery_orders.form.stock_item') }}</th>
-                    <th>{{ __('sales_orders.form.description') }}</th>
-                    <th class="text-end">{{ __('delivery_orders.form.quantity') }}</th>
+                    <th scope="col">{{ __('delivery_orders.form.stock_item') }}</th>
+                    <th scope="col">{{ __('sales_orders.form.description') }}</th>
+                    <th scope="col" class="text-end">{{ __('delivery_orders.form.quantity') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -211,11 +211,11 @@
         <table class="table-striped mb-0 table align-middle" id="delivery-lines">
             <thead class="bg-1">
                 <tr>
-                    <th>{{ __('delivery_orders.form.stock_item') }}</th>
-                    <th class="text-end">{{ __('delivery_orders.form.ordered') }}</th>
-                    <th class="text-end">{{ __('delivery_orders.form.previously_delivered') }}</th>
-                    <th class="text-end">{{ __('delivery_orders.form.available') }}</th>
-                    <th style="width: 180px">{{ __('delivery_orders.form.quantity') }}</th>
+                    <th scope="col">{{ __('delivery_orders.form.stock_item') }}</th>
+                    <th scope="col" class="text-end">{{ __('delivery_orders.form.ordered') }}</th>
+                    <th scope="col" class="text-end">{{ __('delivery_orders.form.previously_delivered') }}</th>
+                    <th scope="col" class="text-end">{{ __('delivery_orders.form.available') }}</th>
+                    <th scope="col" style="width: 180px">{{ __('delivery_orders.form.quantity') }}</th>
                 </tr>
             </thead>
             <tbody>

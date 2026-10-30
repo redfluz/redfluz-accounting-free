@@ -152,19 +152,19 @@
     <table class="{{ $hasPeriodColumns ? 'monthly' : '' }}">
         <thead>
             <tr>
-                <th style="width: 22%">{{ __('financial_reports.table.column_account_code') }}</th>
-                <th>{{ __('financial_reports.table.column_account') }}</th>
+                <th scope="col" style="width: 22%">{{ __('financial_reports.table.column_account_code') }}</th>
+                <th scope="col">{{ __('financial_reports.table.column_account') }}</th>
                 @if ($hasPeriodColumns)
                     @foreach ($periodColumns as $column)
-                        <th class="text-end">{{ $column }}</th>
+                        <th scope="col" class="text-end">{{ $column }}</th>
                     @endforeach
                 @else
-                    <th class="text-end" style="width: 22%">
+                    <th scope="col" class="text-end" style="width: 22%">
                         {{ $hasComparison ? $periodLabel : __('financial_reports.table.column_amount') }}
                     </th>
                 @endif
                 @if ($hasComparison)
-                    <th class="text-end" style="width: 22%">{{ $comparisonLabel }}</th>
+                    <th scope="col" class="text-end" style="width: 22%">{{ $comparisonLabel }}</th>
                 @endif
             </tr>
         </thead>

@@ -32,18 +32,18 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::BRANDS, FileAction
             <form autocomplete="off" class="row g-2 mb-4" method="GET" action="{{ route('inventory.brands.index') }}">
                 <div class="md:col-5">
                     <input class="form-control" name="search" type="text" value="{{ $search }}"
-                        placeholder="{{ __('common.actions.search') }}" />
+                        placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                 </div>
             </form>
             <div class="table-responsive rounded border">
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('brands.table.name') }}</th>
-                            <th>{{ __('brands.table.description') }}</th>
-                            <th class="text-center">{{ __('brands.table.products') }}</th>
-                            <th>{{ __('brands.table.status') }}</th>
-                            <th class="text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('brands.table.name') }}</th>
+                            <th scope="col">{{ __('brands.table.description') }}</th>
+                            <th scope="col" class="text-center">{{ __('brands.table.products') }}</th>
+                            <th scope="col">{{ __('brands.table.status') }}</th>
+                            <th scope="col" class="text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

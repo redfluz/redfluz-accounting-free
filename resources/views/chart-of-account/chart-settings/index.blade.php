@@ -25,26 +25,26 @@
                     <thead class="bg-1">
                         <tr>
 
-                            <th>Income</th>
+                            <th scope="col">Income</th>
 
-                            <th>Bank</th>
+                            <th scope="col">Bank</th>
 
-                            <th>{{ __('chart_settings.table.column_cash_chart_uuid') }}</th>
+                            <th scope="col">{{ __('chart_settings.table.column_cash_chart_uuid') }}</th>
 
-                            <th>{{ __('chart_settings.table.column_cash_in_transit_chart_uuid') }}</th>
+                            <th scope="col">{{ __('chart_settings.table.column_cash_in_transit_chart_uuid') }}</th>
 
-                            <th>{{ __('chart_settings.table.column_e_wallet_chart_uuid') }}</th>
+                            <th scope="col">{{ __('chart_settings.table.column_e_wallet_chart_uuid') }}</th>
 
-                            <th>Client</th>
+                            <th scope="col">Client</th>
 
-                            <th>Vendor</th>
+                            <th scope="col">Vendor</th>
 
-                            <th>{{ __('chart_settings.table.column_input_tax_chart_uuid') }}</th>
+                            <th scope="col">{{ __('chart_settings.table.column_input_tax_chart_uuid') }}</th>
 
-                            <th>{{ __('chart_settings.table.column_output_tax_chart_uuid') }}</th>
+                            <th scope="col">{{ __('chart_settings.table.column_output_tax_chart_uuid') }}</th>
 
                             @if ($canUpdate)
-                                <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                                <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                             @endif
                         </tr>
                     </thead>

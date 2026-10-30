@@ -109,12 +109,12 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                     <table class="table-striped table-sm mb-0 table align-middle">
                         <thead class="bg-1">
                             <tr>
-                                <th style="width: 30%">{{ __('journal_entries.table.column_account') }}</th>
-                                <th style="width: 35%">{{ __('journal_entries.table.column_description') }}</th>
-                                <th class="text-end" style="width: 15%">
+                                <th scope="col" style="width: 30%">{{ __('journal_entries.table.column_account') }}</th>
+                                <th scope="col" style="width: 35%">{{ __('journal_entries.table.column_description') }}</th>
+                                <th scope="col" class="text-end" style="width: 15%">
                                     {{ __('journal_entries.table.column_debit_amount') }}
                                 </th>
-                                <th class="text-end" style="width: 15%">
+                                <th scope="col" class="text-end" style="width: 15%">
                                     {{ __('journal_entries.table.column_credit_amount') }}
                                 </th>
                             </tr>
@@ -130,7 +130,8 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
 
                                         <select
                                             class="form-control form-control-sm js-chart-select @error('items.' . $i . '.chart_id') is-invalid @enderror"
-                                            name="items[{{ $i }}][chart_id]">
+                                            name="items[{{ $i }}][chart_id]"
+                                            aria-label="{{ __('journal_entries.table.column_account') }}">
                                             <option value="">{{ __('common.actions.select_option') }}</option>
                                             @if (filled($selectedChartId) && !$charts->contains(fn($chart) => (string) $chart->id === (string) $selectedChartId))
                                                 <option value="{{ $selectedChartId }}" selected>
@@ -151,7 +152,8 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                                         <label class="form-control form-adorn">
                                             <input class="form-ghost form-control-sm"
                                                 name="items[{{ $i }}][description]" type="text"
-                                                value="{{ old('items.' . $i . '.description', $item?->description) }}" />
+                                                value="{{ old('items.' . $i . '.description', $item?->description) }}"
+                                                aria-label="{{ __('journal_entries.table.column_description') }}" />
                                         </label>
                                     </td>
                                     <td>
@@ -159,7 +161,8 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                                             <input class="form-ghost form-control-sm debit-input text-end"
                                                 name="items[{{ $i }}][debit_amount]" type="number"
                                                 value="{{ old('items.' . $i . '.debit_amount', number_format((float) ($item?->debit_amount ?? 0), 2, '.', '')) }}"
-                                                step="0.01" min="0" oninput="calculateTotals()" />
+                                                step="0.01" min="0" oninput="calculateTotals()"
+                                                aria-label="{{ __('journal_entries.table.column_debit_amount') }}" />
                                         </label>
                                     </td>
                                     <td>
@@ -167,7 +170,8 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                                             <input class="form-ghost form-control-sm credit-input text-end"
                                                 name="items[{{ $i }}][credit_amount]" type="number"
                                                 value="{{ old('items.' . $i . '.credit_amount', number_format((float) ($item?->credit_amount ?? 0), 2, '.', '')) }}"
-                                                step="0.01" min="0" oninput="calculateTotals()" />
+                                                step="0.01" min="0" oninput="calculateTotals()"
+                                                aria-label="{{ __('journal_entries.table.column_credit_amount') }}" />
                                         </label>
                                     </td>
                                 </tr>

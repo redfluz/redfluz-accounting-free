@@ -100,7 +100,7 @@
                             </div>
                         </div>
                         <div class="md:col-3">
-                            <label class="form-label fw-bold">{{ __('ledgers.table.column_due_date') }}</label>
+                            <span class="form-label fw-bold">{{ __('ledgers.table.column_due_date') }}</span>
                             <div class="form-control bg-2" id="invoice-due-date" aria-live="polite">-</div>
                         </div>
                     </div>
@@ -189,14 +189,14 @@
                         <table class="table-striped mb-0 table align-middle" id="invoice-lines-table">
                             <thead class="bg-1">
                                 <tr>
-                                    <th style="min-width: 220px">
+                                    <th scope="col" style="min-width: 220px">
                                         {{ __('ledgers.table.column_description') }} <span class="fg-danger">*</span>
                                     </th>
-                                    <th style="min-width: 110px">{{ __('ledgers.table.column_quantity') }}</th>
-                                    <th style="min-width: 140px">{{ __('ledgers.table.column_unit_price') }}</th>
-                                    <th style="min-width: 150px">{{ __('ledgers.table.column_discount_amount') }}</th>
-                                    <th style="min-width: 150px">{{ __('ledgers.table.column_tax_amount') }}</th>
-                                    <th class="text-end" style="min-width: 130px">
+                                    <th scope="col" style="min-width: 110px">{{ __('ledgers.table.column_quantity') }}</th>
+                                    <th scope="col" style="min-width: 140px">{{ __('ledgers.table.column_unit_price') }}</th>
+                                    <th scope="col" style="min-width: 150px">{{ __('ledgers.table.column_discount_amount') }}</th>
+                                    <th scope="col" style="min-width: 150px">{{ __('ledgers.table.column_tax_amount') }}</th>
+                                    <th scope="col" class="text-end" style="min-width: 130px">
                                         {{ __('ledgers.table.column_total_amount') }}
                                     </th>
                                 </tr>
@@ -262,24 +262,24 @@
                             </tbody>
                             <tfoot class="bg-1">
                                 <tr>
-                                    <th class="text-end" colspan="5">
+                                    <th scope="row" class="text-end" colspan="5">
                                         {{ __('ledgers.table.column_subtotal_amount') }}
                                     </th>
-                                    <th class="text-end" id="invoice-subtotal">0.00</th>
+                                    <th scope="row" class="text-end" id="invoice-subtotal">0.00</th>
                                 </tr>
                                 <tr>
-                                    <th class="text-end" colspan="5">
+                                    <th scope="row" class="text-end" colspan="5">
                                         {{ __('ledgers.table.column_discount_amount') }}
                                     </th>
-                                    <th class="fg-danger text-end" id="invoice-discount-total">0.00</th>
+                                    <th scope="row" class="fg-danger text-end" id="invoice-discount-total">0.00</th>
                                 </tr>
                                 <tr>
-                                    <th class="text-end" colspan="5">{{ __('ledgers.table.column_tax_amount') }}</th>
-                                    <th class="text-end" id="invoice-tax-total">0.00</th>
+                                    <th scope="row" class="text-end" colspan="5">{{ __('ledgers.table.column_tax_amount') }}</th>
+                                    <th scope="row" class="text-end" id="invoice-tax-total">0.00</th>
                                 </tr>
                                 <tr>
-                                    <th class="text-end" colspan="5">{{ __('common.labels.total') }}</th>
-                                    <th class="fg-primary text-end" id="invoice-grand-total">0.00</th>
+                                    <th scope="row" class="text-end" colspan="5">{{ __('common.labels.total') }}</th>
+                                    <th scope="row" class="fg-primary text-end" id="invoice-grand-total">0.00</th>
                                 </tr>
                             </tfoot>
                         </table>

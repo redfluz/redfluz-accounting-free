@@ -48,17 +48,17 @@
     <table width="100%" cellspacing="0" cellpadding="5" border="1">
         <thead>
             <tr>
-                <th>{{ __('customer_outstanding.reference') }}</th>
-                <th>{{ __('customer_outstanding.customer') }}</th>
-                <th>{{ __('customer_outstanding.items_delivered') }}</th>
-                <th>{{ __('customer_outstanding.delivery_completion') }}</th>
-                <th>{{ __('customer_outstanding.invoice_date') }}</th>
-                <th>{{ __('customer_outstanding.credit_term') }}</th>
-                <th>{{ __('customer_outstanding.due_date') }}</th>
-                <th>{{ __('customer_outstanding.invoice_amount') }}</th>
-                <th>{{ __('customer_outstanding.paid_amount') }}</th>
-                <th>{{ __('customer_outstanding.balance') }}</th>
-                <th>{{ __('customer_outstanding.status') }}</th>
+                <th scope="col">{{ __('customer_outstanding.reference') }}</th>
+                <th scope="col">{{ __('customer_outstanding.customer') }}</th>
+                <th scope="col">{{ __('customer_outstanding.items_delivered') }}</th>
+                <th scope="col">{{ __('customer_outstanding.delivery_completion') }}</th>
+                <th scope="col">{{ __('customer_outstanding.invoice_date') }}</th>
+                <th scope="col">{{ __('customer_outstanding.credit_term') }}</th>
+                <th scope="col">{{ __('customer_outstanding.due_date') }}</th>
+                <th scope="col">{{ __('customer_outstanding.invoice_amount') }}</th>
+                <th scope="col">{{ __('customer_outstanding.paid_amount') }}</th>
+                <th scope="col">{{ __('customer_outstanding.balance') }}</th>
+                <th scope="col">{{ __('customer_outstanding.status') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -88,11 +88,11 @@
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="7">{{ __('customer_outstanding.grand_total') }}</th>
-                <th align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('invoice_amount'), 2) }}</th>
-                <th align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('paid_amount'), 2) }}</th>
-                <th align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('balance_amount'), 2) }}</th>
-                <th></th>
+                <th scope="row" colspan="7">{{ __('customer_outstanding.grand_total') }}</th>
+                <th scope="row" align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('invoice_amount'), 2) }}</th>
+                <th scope="row" align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('paid_amount'), 2) }}</th>
+                <th scope="row" align="right">{{ $currencySymbol }} {{ number_format((float) $exportInvoices->sum('balance_amount'), 2) }}</th>
+                <th scope="row"></th>
             </tr>
         </tfoot>
     </table>

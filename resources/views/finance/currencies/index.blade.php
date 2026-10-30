@@ -21,7 +21,7 @@
                 <div class="md:col-4">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" />
+                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i class="" data-lucide="search"></i>
                         </button>
@@ -39,10 +39,10 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('currencies.table.column_code') }}</th>
-                            <th>{{ __('currencies.table.column_name') }}</th>
-                            <th>{{ __('currencies.table.column_symbol') }}</th>
-                            <th>{{ __('currencies.table.column_default') }}</th>
+                            <th scope="col">{{ __('currencies.table.column_code') }}</th>
+                            <th scope="col">{{ __('currencies.table.column_name') }}</th>
+                            <th scope="col">{{ __('currencies.table.column_symbol') }}</th>
+                            <th scope="col">{{ __('currencies.table.column_default') }}</th>
                         </tr>
                     </thead>
                     <tbody>

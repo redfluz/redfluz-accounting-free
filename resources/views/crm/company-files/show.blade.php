@@ -80,25 +80,25 @@
                             <table class="table-hover table-striped mb-0 table align-middle">
                                 <tbody>
                                     <tr>
-                                        <th class="bg-2 fg-secondary fw-semibold px-3" style="width: 35%">
+                                        <th scope="row" class="bg-2 fg-secondary fw-semibold px-3" style="width: 35%">
                                             {{ __('company_files.table.column_company') }}
                                         </th>
                                         <td class="fw-bold fg-black px-3">{{ $companyFile->company->name ?? '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-2 fg-secondary fw-semibold px-3">
+                                        <th scope="row" class="bg-2 fg-secondary fw-semibold px-3">
                                             {{ __('company_files.table.column_title') }}
                                         </th>
                                         <td class="px-3">{{ $companyFile->title }}</td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-2 fg-secondary fw-semibold px-3">
+                                        <th scope="row" class="bg-2 fg-secondary fw-semibold px-3">
                                             {{ __('company_files.table.column_file_name') }}
                                         </th>
                                         <td class="text-break px-3">{{ $companyFile->file_name ?? '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-2 fg-secondary fw-semibold px-3">
+                                        <th scope="row" class="bg-2 fg-secondary fw-semibold px-3">
                                             {{ __('company_files.table.column_mime_type') }}
                                         </th>
                                         <td class="px-3">
@@ -108,7 +108,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-2 fg-secondary fw-semibold px-3">
+                                        <th scope="row" class="bg-2 fg-secondary fw-semibold px-3">
                                             {{ __('company_files.table.column_file_size') }}
                                         </th>
                                         <td class="px-3">
@@ -120,7 +120,7 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <th class="bg-2 fg-secondary fw-semibold px-3">
+                                        <th scope="row" class="bg-2 fg-secondary fw-semibold px-3">
                                             {{ __('company_files.table.column_date') }}
                                         </th>
                                         <td class="px-3">{{ $companyFile->created_at->format(Setting::getDefaultDate('long_date_format')) }}</td>

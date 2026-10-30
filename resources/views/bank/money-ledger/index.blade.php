@@ -85,7 +85,7 @@
                         <form autocomplete="off" class="row g-2" method="GET"
                             action="{{ route($routes[$ledger]) }}">
                             <div class="md:col-3">
-                                <select class="form-control" name="account_id">
+                                <select class="form-control" name="account_id" aria-label="{{ __('money_ledgers.all_accounts') }}">
                                     <option value="">{{ __('money_ledgers.all_accounts') }}</option>
                                     @foreach ($accounts as $account)
                                         <option value="{{ $account->id }}" @selected($accountId === $account->id)>
@@ -118,7 +118,7 @@
                             </div>
                             <div class="md:col-2">
                                 <input class="form-control" name="search" type="text" value="{{ $search }}"
-                                    placeholder="{{ __('common.actions.search') }}" />
+                                    placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                             </div>
                             <div class="md:col-3 d-flex gap-1">
                                 <button class="btn btn-solid theme-secondary flex-grow-1" type="submit">
@@ -139,13 +139,13 @@
                     <table class="table-hover table-striped mb-0 table align-middle">
                         <thead class="bg-1">
                             <tr>
-                                <th>{{ __('money_ledgers.fields.document_number') }}</th>
-                                <th>{{ __('money_ledgers.fields.date') }}</th>
-                                <th>{{ __('money_ledgers.fields.account') }}</th>
-                                <th>{{ __('money_ledgers.fields.reference_number') }}</th>
-                                <th>{{ __('money_ledgers.fields.description') }}</th>
-                                <th class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                                <th class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                <th scope="col">{{ __('money_ledgers.fields.document_number') }}</th>
+                                <th scope="col">{{ __('money_ledgers.fields.date') }}</th>
+                                <th scope="col">{{ __('money_ledgers.fields.account') }}</th>
+                                <th scope="col">{{ __('money_ledgers.fields.reference_number') }}</th>
+                                <th scope="col">{{ __('money_ledgers.fields.description') }}</th>
+                                <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
                             </tr>
                         </thead>
                         <tbody>

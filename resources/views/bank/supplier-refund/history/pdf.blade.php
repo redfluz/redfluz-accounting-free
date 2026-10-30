@@ -61,13 +61,13 @@
     <table>
         <thead>
             <tr>
-                <th>{{ __('ledgers.table.column_document_number') }}</th>
-                <th>{{ __('ledgers.table.column_reference_number') }}</th>
-                <th>{{ __('ledgers.table.column_date') }}</th>
-                <th>{{ __('ledgers.table.column_company') }}</th>
-                <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                <th>{{ __('refunds.audit.created_by') }}</th>
-                <th>{{ __('refunds.audit.approved_by') }}</th>
+                <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                <th scope="col">{{ __('ledgers.table.column_reference_number') }}</th>
+                <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                <th scope="col">{{ __('ledgers.table.column_company') }}</th>
+                <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                <th scope="col">{{ __('refunds.audit.created_by') }}</th>
+                <th scope="col">{{ __('refunds.audit.approved_by') }}</th>
             </tr>
         </thead>
         <tbody>

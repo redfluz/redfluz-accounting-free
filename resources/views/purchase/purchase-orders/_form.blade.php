@@ -140,17 +140,17 @@
     <table class="table-striped mb-0 table align-middle" id="purchase-order-lines-table">
         <thead class="bg-1">
             <tr>
-                <th style="min-width: 220px">
+                <th scope="col" style="min-width: 220px">
                     {{ __('purchase_orders.form.description') }}
                     <span class="fg-danger">*</span>
                 </th>
-                <th style="min-width: 110px">
+                <th scope="col" style="min-width: 110px">
                     {{ __('purchase_orders.form.quantity') }}
                 </th>
-                <th style="min-width: 140px">
+                <th scope="col" style="min-width: 140px">
                     {{ __('purchase_orders.form.unit_price') }}
                 </th>
-                <th class="text-end" style="min-width: 130px">
+                <th scope="col" class="text-end" style="min-width: 130px">
                     {{ __('purchase_orders.table.total') }}
                 </th>
             </tr>
@@ -199,10 +199,10 @@
         </tbody>
         <tfoot class="bg-1">
             <tr>
-                <th class="text-end" colspan="3">
+                <th scope="row" class="text-end" colspan="3">
                     {{ __('common.labels.total') }}
                 </th>
-                <th class="fg-primary text-end" id="po-grand-total">0.00</th>
+                <th scope="row" class="fg-primary text-end" id="po-grand-total">0.00</th>
             </tr>
         </tfoot>
     </table>

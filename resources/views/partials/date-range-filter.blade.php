@@ -25,7 +25,7 @@
                     <div class="row g-2 align-items-center">
                         <div class="{{ $searchColumn }}">
                             <input class="form-control" name="search" type="text" value="{{ $search }}"
-                                placeholder="{{ $placeholder }}" />
+                                placeholder="{{ $placeholder }}" aria-label="{{ $placeholder }}" />
                         </div>
                         <div class="{{ $dateColumn }}">
                             <label class="form-control form-adorn">

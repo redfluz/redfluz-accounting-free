@@ -149,13 +149,13 @@
                         <table class="table-striped mb-0 table align-middle" id="invoice-lines-table">
                             <thead class="bg-1">
                             <tr>
-                                <th style="min-width: 220px">{{ __('ledgers.table.column_product') }}</th>
-                                <th style="min-width: 220px">{{ __('ledgers.table.column_description') }}</th>
-                                <th style="min-width: 110px">{{ __('ledgers.table.column_quantity') }}</th>
-                                <th style="min-width: 140px">{{ __('ledgers.table.column_unit_price') }}</th>
-                                <th style="min-width: 230px">{{ __('products.form.default_discount') }}</th>
-                                <th style="min-width: 230px">{{ __('products.form.default_tax') }}</th>
-                                <th class="text-end" style="min-width: 130px">
+                                <th scope="col" style="min-width: 220px">{{ __('ledgers.table.column_product') }}</th>
+                                <th scope="col" style="min-width: 220px">{{ __('ledgers.table.column_description') }}</th>
+                                <th scope="col" style="min-width: 110px">{{ __('ledgers.table.column_quantity') }}</th>
+                                <th scope="col" style="min-width: 140px">{{ __('ledgers.table.column_unit_price') }}</th>
+                                <th scope="col" style="min-width: 230px">{{ __('products.form.default_discount') }}</th>
+                                <th scope="col" style="min-width: 230px">{{ __('products.form.default_tax') }}</th>
+                                <th scope="col" class="text-end" style="min-width: 130px">
                                     {{ __('ledgers.table.column_total_amount') }}
                                 </th>
                             </tr>
@@ -166,7 +166,8 @@
                                     <td>
                                         <select
                                             class="form-control form-control-sm js-product-select @error("lines.$lineIndex.product_id") is-invalid @enderror"
-                                            name="lines[{{ $lineIndex }}][product_id]">
+                                            name="lines[{{ $lineIndex }}][product_id]"
+                                            aria-label="{{ __('ledgers.table.column_product') }}">
                                             <option value="">{{ __('common.actions.select_option') }}</option>
                                             @foreach ($products as $product)
                                                 <option data-base-price="{{ $product->base_price }}"
@@ -220,7 +221,8 @@
                                     </td>
                                     <td>
                                         <select class="form-control form-control-sm line-discount-option"
-                                                name="lines[{{ $lineIndex }}][discount_option]">
+                                                name="lines[{{ $lineIndex }}][discount_option]"
+                                                aria-label="{{ __('products.form.default_discount') }}">
                                             <option data-type="percent" data-value="0" value="none"
                                                 @selected(old("lines.$lineIndex.discount_option", 'none') === 'none')>
                                                 {{ __('discounts.form.none') }}
@@ -240,7 +242,8 @@
                                         </select>
                                         <div class="input-group input-group-sm mt-1">
                                             <select class="form-control line-discount-type"
-                                                    name="lines[{{ $lineIndex }}][discount_type]">
+                                                    name="lines[{{ $lineIndex }}][discount_type]"
+                                                    aria-label="{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}">
                                                 <option
                                                     value="percent" @selected(old("lines.$lineIndex.discount_type", 'percent') === 'percent')>
                                                     %
@@ -260,7 +263,8 @@
                                     </td>
                                     <td>
                                         <select class="form-control form-control-sm line-tax-option"
-                                                name="lines[{{ $lineIndex }}][tax_option]">
+                                                name="lines[{{ $lineIndex }}][tax_option]"
+                                                aria-label="{{ __('products.form.default_tax') }}">
                                             <option data-mode="exclusive" data-rate="0" value="none"
                                                 @selected(old("lines.$lineIndex.tax_option", 'none') === 'none')>
                                                 {{ __('taxes.form.none') }}
@@ -286,7 +290,8 @@
                                                        max="100" step="0.0001"/>
                                             </label>
                                             <select class="form-control line-tax-mode"
-                                                    name="lines[{{ $lineIndex }}][tax_mode]">
+                                                    name="lines[{{ $lineIndex }}][tax_mode]"
+                                                    aria-label="{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}">
                                                 <option
                                                     value="exclusive" @selected(old("lines.$lineIndex.tax_mode", 'exclusive') === 'exclusive')>
                                                     {{ __('ledgers.tax_mode.exclusive') }}
@@ -304,24 +309,24 @@
                             </tbody>
                             <tfoot class="bg-1">
                             <tr>
-                                <th class="text-end" colspan="6">
+                                <th scope="row" class="text-end" colspan="6">
                                     {{ __('ledgers.table.column_subtotal_amount') }}
                                 </th>
-                                <th class="text-end" id="invoice-subtotal">0.00</th>
+                                <th scope="row" class="text-end" id="invoice-subtotal">0.00</th>
                             </tr>
                             <tr>
-                                <th class="text-end" colspan="6">
+                                <th scope="row" class="text-end" colspan="6">
                                     {{ __('ledgers.table.column_discount_amount') }}
                                 </th>
-                                <th class="fg-danger text-end" id="invoice-discount-total">0.00</th>
+                                <th scope="row" class="fg-danger text-end" id="invoice-discount-total">0.00</th>
                             </tr>
                             <tr>
-                                <th class="text-end" colspan="6">{{ __('ledgers.table.column_tax_amount') }}</th>
-                                <th class="text-end" id="invoice-tax-total">0.00</th>
+                                <th scope="row" class="text-end" colspan="6">{{ __('ledgers.table.column_tax_amount') }}</th>
+                                <th scope="row" class="text-end" id="invoice-tax-total">0.00</th>
                             </tr>
                             <tr>
-                                <th class="text-end" colspan="6">{{ __('common.labels.total') }}</th>
-                                <th class="fg-primary text-end" id="invoice-grand-total">0.00</th>
+                                <th scope="row" class="text-end" colspan="6">{{ __('common.labels.total') }}</th>
+                                <th scope="row" class="fg-primary text-end" id="invoice-grand-total">0.00</th>
                             </tr>
                             </tfoot>
                         </table>

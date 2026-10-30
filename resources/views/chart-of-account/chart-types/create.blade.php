@@ -41,8 +41,8 @@
                     @enderror
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold"> Account Type </label>
+                <fieldset class="mb-3" style="border: none; padding: 0; margin: 0;">
+                    <legend class="form-label fw-bold"> Account Type </legend>
 
                     <div class="row g-3">
                         <div class="md:col-4">
@@ -120,7 +120,7 @@
                     @error('account_type')
                         <div class="fg-danger small mt-2">{{ $message }}</div>
                     @enderror
-                </div>
+                </fieldset>
 
                 <div class="d-flex justify-content-between pt-2">
                     <a class="btn btn-solid theme-secondary" href="{{ route('chart-of-account.chart-types.index') }}">

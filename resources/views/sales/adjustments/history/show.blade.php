@@ -74,11 +74,11 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('ledgers.table.column_product') }}</th>
-                            <th>{{ __('ledgers.table.column_description') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_quantity') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_unit_price') }}</th>
-                            <th class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_product') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_quantity') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_unit_price') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>

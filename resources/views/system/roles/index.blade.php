@@ -35,7 +35,7 @@
                 <div class="md:col-4">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" />
+                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i class="" data-lucide="search"></i>
                         </button>
@@ -53,10 +53,10 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th>{{ __('roles.table.column_name') }}</th>
-                            <th>{{ __('roles.table.column_dashboard') }}</th>
-                            <th class="w-md">{{ __('roles.grid.assigned_user') }}</th>
-                            <th class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                            <th scope="col">{{ __('roles.table.column_name') }}</th>
+                            <th scope="col">{{ __('roles.table.column_dashboard') }}</th>
+                            <th scope="col" class="w-md">{{ __('roles.grid.assigned_user') }}</th>
+                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

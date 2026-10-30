@@ -67,7 +67,7 @@ class UpdateCompanyRequest extends CompanyRequest
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
-            'logo' => ['nullable', 'image', UploadType::IMAGES->rule(), 'max:2048'],
+            'logo' => ['nullable', 'image', UploadType::IMAGES->rule(), 'max:1024'],
             'is_debtor' => ['required', 'boolean'],
             'is_creditor' => ['required', 'boolean'],
             'is_courier' => ['required', 'boolean'],
