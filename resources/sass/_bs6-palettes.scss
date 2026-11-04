@@ -12,6 +12,7 @@
     --primary-focus-ring: color-mix(in oklch, #{$primary} 40%, transparent);
 
     --accent-base: #{$accent};
+    --accent-bg: #{$accent};
     --bg-body: #{$body};
     --bg-1: #{$surface};
     --bg-2: color-mix(in oklch, #{$surface} 82%, #{$canvas});
@@ -45,6 +46,9 @@
 @include palette('pinkpanther', #d63384, #861653, #ff8fc7, #f3e3ec, #fff5fa, #fffaff, #e2c2d4, #3d1c31, #805a70);
 @include palette('ruby', #c6283d, #861b2b, #ff7a82, #f1e0e2, #fff5f5, #fffafa, #e2c5c7, #401b22, #80545a);
 @include palette('paper', #66745b, #34402d, #bd8b55, #e9e4d9, #f5f2ea, #fffdf8, #d6d0c3, #292a24, #6c6b61);
+@include palette('pastel_fantasy', #7bdff2, #1a3a4a, #f2b5d4, #eff7f6, #f8fbfb, #fff, #c8e8ec, #1a3a4a, #6a8a94);
+@include palette('electric_blast', #0a85ed, #ffffff, #07c8f9, #e8f4fd, #f0f7ff, #fff, #b8d8f0, #0d1b2a, #5a7a8a);
+@include palette('rainbow_burst', #ff00a1, #ffffff, #24dfe2, #fff5f8, #fffafc, #fff, #ffb8d8, #2d0a1f, #8a5a6e);
 @include palette('dark', #8ea4ff, #27325f, #ff9ebd, #0c1220, #141c2c, #1d2738, #354258, #edf1f8, #aab6c8, dark, #17203b);
 
 [data-palette='dark'] {

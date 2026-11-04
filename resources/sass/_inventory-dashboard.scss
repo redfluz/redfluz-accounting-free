@@ -1,0 +1,135 @@
+// =============================================================================
+// INVENTORY DASHBOARD — KPI cards, chart bars, movement items.
+// =============================================================================
+
+.inventory-dashboard {
+    --inventory-radius: 1rem;
+}
+
+.inventory-hero {
+    padding: 1.5rem 1.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--inventory-radius);
+    background: linear-gradient(120deg, var(--bg-1), var(--primary-bg-muted));
+    box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--fg-body) 10%, transparent);
+}
+
+.inventory-title {
+    letter-spacing: -.02em;
+}
+
+.inventory-kpi,
+.inventory-panel {
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: var(--inventory-radius);
+    background: var(--bg-1);
+    box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--fg-body) 10%, transparent);
+}
+
+.inventory-kpi {
+    border-top: 3px solid var(--kpi-accent);
+}
+
+.inventory-kpi .card-body {
+    padding: 1.25rem;
+}
+
+.inventory-kpi-icon {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border-radius: .85rem;
+    color: var(--kpi-accent);
+    background: color-mix(in srgb, var(--kpi-accent) 14%, var(--bg-2));
+}
+
+.inventory-kpi-primary {
+    --kpi-accent: var(--primary-base);
+}
+
+.inventory-kpi-info {
+    --kpi-accent: var(--info-fg-emphasis);
+}
+
+.inventory-kpi-success {
+    --kpi-accent: var(--success-fg-emphasis);
+}
+
+.inventory-kpi-warning {
+    --kpi-accent: var(--warning-fg-emphasis);
+}
+
+.inventory-panel-header {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-2);
+    padding: 1rem 1.25rem;
+}
+
+.inventory-chart {
+    display: flex;
+    height: 7rem;
+    align-items: end;
+    gap: .45rem;
+    padding-top: .75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.inventory-chart-bar {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+    gap: .35rem;
+}
+
+.inventory-chart-bar span {
+    width: 100%;
+    min-height: 4px;
+    border-radius: .35rem .35rem 0 0;
+    background: linear-gradient(180deg, var(--primary-base), var(--primary-bg-muted));
+}
+
+.inventory-chart-bar small {
+    color: var(--fg-2);
+    font-size: .65rem;
+}
+
+.inventory-panel .table {
+    --bs-table-bg: var(--bg-1);
+    --bs-table-striped-bg: var(--bg-2);
+    --bs-table-hover-bg: var(--primary-bg-muted);
+}
+
+.inventory-panel .table th {
+    color: var(--fg-2);
+    font-size: .72rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.inventory-movement-item {
+    border-color: var(--border-color);
+    background: var(--bg-1);
+}
+
+.inventory-movement-amount {
+    padding: .25rem .55rem;
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.inventory-movement-in {
+    color: var(--success-fg-emphasis);
+    background: color-mix(in srgb, var(--success-fg-emphasis) 14%, var(--bg-2));
+}
+
+.inventory-movement-out {
+    color: var(--danger-fg-emphasis);
+    background: color-mix(in srgb, var(--danger-fg-emphasis) 14%, var(--bg-2));
+}

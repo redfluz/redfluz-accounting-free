@@ -1,0 +1,46 @@
+// =============================================================================
+// APP BACKGROUND — decorative canvas
+// =============================================================================
+//
+// A trial layer behind the application chrome. It sits under every page but
+// above the body fill, so cards and tables keep their own opaque surfaces and
+// only the gutters between them show the pattern.
+//
+// The layer is one fixed element, not a background on every page, so scrolling
+// does not repaint it and dashboard scroll areas stay cheap. Opacity is kept in
+// one place: 0.8 leaves enough of the paper tone through the image that the
+// pastel mesh reads as texture rather than a photo.
+//
+// Remove the @use in app.scss (or this file) to return to the plain canvas.
+
+body.app-background {
+    position: relative;
+    background-color: var(--bg-2);
+}
+
+// The image is a custom property so a signed-in user can replace the shared
+// wallpaper from their profile without rebuilding the stylesheet. The fallback
+// is the shipped pastel mesh.
+body.app-background::before {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    content: "";
+    background: var(--app-background-image, url('../images/app-background.webp')) center / cover no-repeat;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+// A photograph is much stronger than the shipped paper mesh, so it is held back
+// a little further. The glass cards and topbar provide the rest of the scrim,
+// keeping text readable without hiding the image the user chose.
+body.app-background.has-custom-background::before {
+    opacity: 0.6;
+}
+
+// The chrome must paint over the fixed layer. A stacking context is enough and
+// leaves the page content itself untouched.
+body.app-background > .app-wrapper {
+    position: relative;
+    z-index: 1;
+}

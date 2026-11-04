@@ -1,0 +1,83 @@
+// =============================================================================
+// CANDIDATE FORM — onboarding candidate create/edit page styles.
+// =============================================================================
+
+.candidate-form {
+    --candidate-surface: color-mix(in srgb, var(--bg-1) 82%, var(--primary-base) 18%);
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    background: var(--candidate-surface);
+}
+
+.candidate-form .card-header {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-base) 14%, var(--bg-1)), var(--bg-1)) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.candidate-form .card-header h4 {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+}
+
+.candidate-form .nav-tabs {
+    gap: .35rem;
+    border-bottom-color: var(--border-color);
+}
+
+.candidate-form .nav-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border: 1px solid transparent;
+    border-radius: .65rem .65rem 0 0;
+    color: var(--fg-2);
+}
+
+.candidate-form .nav-tabs .nav-link.active {
+    color: var(--primary-base);
+    background: var(--bg-body);
+    border-color: var(--border-color) var(--border-color) var(--bg-body);
+}
+
+.candidate-form .form-label {
+    letter-spacing: .01em;
+}
+
+.candidate-form .form-control,
+.candidate-form .form-adorn {
+    background: color-mix(in srgb, var(--bg-body) 88%, var(--primary-base) 12%) !important;
+    border-color: color-mix(in srgb, var(--border-color) 75%, var(--primary-base) 25%) !important;
+}
+
+.candidate-form .form-control:focus,
+.candidate-form .form-adorn:focus-within {
+    background: var(--bg-body) !important;
+    border-color: var(--primary-base) !important;
+}
+
+.candidate-form .field-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: .35rem;
+    color: var(--primary-base);
+    vertical-align: -.15rem;
+}
+
+.check {
+    width: 1.2em;
+    height: 1.2em;
+    border: 2px solid #6c757d;
+    cursor: pointer;
+}
+
+.check:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.check:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}

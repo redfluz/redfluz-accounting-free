@@ -1,0 +1,95 @@
+// =============================================================================
+// GLASS CHROME
+// =============================================================================
+//
+// The application sits on a wallpaper, so the surfaces above it are translucent
+// and blur what is behind them. That is what makes the background read as depth
+// instead of a flat image behind opaque boxes.
+//
+// Bootstrap 6 already ships `.card-translucent` and `.menu-translucent`, but the
+// app decorates cards by class alone (there are hundreds of `.card` elements and
+// no shared Blade component), and `_theme.scss` pins the card surface with
+// `!important`. Restating the surface here, after that file, keeps one source of
+// truth instead of adding a modifier to every card in the application.
+//
+// Blur is deliberately light: enough to soften the wallpaper, not so much that
+// the chrome becomes a frosted panel that hides the image the user uploaded.
+// =============================================================================
+
+:root {
+    --app-glass-blur: 20px;
+    --app-glass-saturate: 160%;
+
+    // Cards carry more text than the topbar, so they stay a little more opaque.
+    --app-glass-card-bg: color-mix(in srgb, var(--bg-1) 76%, transparent);
+    --app-glass-card-header-bg: color-mix(in srgb, var(--bg-1) 58%, transparent);
+
+    // Chrome is a single horizontal band, so it can be lighter.
+    --app-glass-chrome-bg: color-mix(in srgb, var(--bg-1) 68%, transparent);
+    --app-glass-menu-bg: color-mix(in srgb, var(--bg-body) 82%, transparent);
+
+    --app-glass-border: color-mix(in srgb, var(--border-color) 66%, transparent);
+}
+
+// --- Topbar -----------------------------------------------------------------
+// The wrapper's `.bg-1` utility paints an opaque strip, and the container repeats
+// it. Make the wrapper transparent and let the sticky container do the blur, so
+// the wallpaper stays visible through the bar.
+.topbar-wrapper {
+    background-color: transparent !important;
+    border-bottom-color: var(--app-glass-border) !important;
+}
+
+.topbar-container {
+    background-color: var(--app-glass-chrome-bg) !important;
+    -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+    backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+}
+
+// --- Cards ------------------------------------------------------------------
+// `!important` is required because `_theme.scss` sets the card background with
+// the same weight. Both files are unlayered, so this later rule wins.
+.card {
+    background-color: var(--app-glass-card-bg) !important;
+    border-color: var(--app-glass-border) !important;
+    -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+    backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+}
+
+// `backdrop-filter` makes every card its own stacking context. A menu opened
+// inside a card would otherwise be painted under any later sibling card, so the
+// card holding the open menu is lifted while it is open. `:has` is broadly
+// supported and lets this stay a CSS concern rather than a script hook.
+.card:has(.menu.show) {
+    z-index: 2;
+}
+
+.card-header,
+.card-footer {
+    background-color: var(--app-glass-card-header-bg) !important;
+    border-color: var(--app-glass-border);
+}
+
+// Dashboards intentionally tint their panels a little warmer. Keep that tint but
+// let it sit on the same glass instead of falling back to an opaque slab.
+.dashboard-page .card,
+.dashboard-page .dashboard-card,
+.dashboard-page .summary-card,
+.dashboard-page .inventory-panel {
+    background-color: var(--app-glass-card-bg) !important;
+}
+
+.dashboard-page .card-header,
+.dashboard-page .panel-heading {
+    background-color: var(--app-glass-card-header-bg) !important;
+}
+
+// --- Menus ------------------------------------------------------------------
+// Menus are overlays, so they need slightly more body than the cards behind them.
+// This also covers submenus and the menus outside the topbar (the theme picker),
+// which is why it is not restricted to `.topbar-container`.
+.menu {
+    background-color: var(--app-glass-menu-bg);
+    -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+    backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+}

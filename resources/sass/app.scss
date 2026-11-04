@@ -17,6 +17,31 @@
 @use 'bootstrap/scss/bootstrap';
 
 @use 'theme';
+@use 'app-background';
 @use 'app-components';
 @use 'topnav';
+@use 'glass';
 @use 'calendar';
+@use 'crm-dashboard';
+@use 'candidate';
+@use 'inventory-dashboard';
+@use 'auth';
+
+.sortable-handle {
+    display: inline-flex;
+    align-items: center;
+    cursor: grab;
+    touch-action: none;
+}
+
+.sortable-handle:active {
+    cursor: grabbing;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sortable-chosen {
+    background-color: var(--bs-tertiary-bg);
+}
