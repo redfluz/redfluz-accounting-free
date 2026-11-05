@@ -7,31 +7,34 @@
     use Carbon\Carbon;
 @endphp
 
-@props(['documentNumber', 'lines'])
+@props(['documentNumber', 'invoice', 'lines'])
 
 @extends('layouts.app')
 
 @section('content')
     @php
-        $invoice = $lines->first();
-        $subtotal = $lines->sum(
-            fn($line) => (float) $line->subtotal_amount !== 0.0
-                ? (float) $line->subtotal_amount
-                : (float) $line->quantity * (float) $line->unit_price,
-        );
+        $subtotal = $lines->isEmpty()
+            ? (float) $invoice->subtotal
+            : $lines->sum(
+                fn($line) => (float) $line->subtotal_amount !== 0.0
+                    ? (float) $line->subtotal_amount
+                    : (float) $line->quantity * (float) $line->unit_price,
+            );
         $discountTotal = $lines->sum('discount_amount');
         $taxTotal = $lines->sum('tax_amount');
-        $grandTotal = $lines->sum(
-            fn($line) => (float) $line->line_total_amount !== 0.0
-                ? (float) $line->line_total_amount
-                : (float) $line->total_amount,
-        );
+        $grandTotal = $lines->isEmpty()
+            ? (float) $invoice->total_amount
+            : $lines->sum(
+                fn($line) => (float) $line->line_total_amount !== 0.0
+                    ? (float) $line->line_total_amount
+                    : (float) $line->total_amount,
+            );
     @endphp
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
             <div>
                 <h4 class="fw-bold mb-0">{{ $documentNumber }}</h4>
-                <span class="fg-secondary small">{{ $invoice->company?->name ?? '-' }} |
+                <span class="fg-secondary small">{{ $invoice->company?->name ?? $invoice->company_name ?? '-' }} |
                     {{ Carbon::parse($invoice->date)->format(Setting::getDefaultDate()) }}</span>
             </div>
             <div class="d-flex gap-2">
@@ -67,7 +70,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($lines as $line)
+                        @php
+                            /** @var \App\Models\Sales\SalesInvoiceLine $line */
+                        @endphp
+                        @forelse ($lines as $line)
                             <tr>
                                 <td>{{ $line->product?->name ?? '-' }}</td>
                                 <td>{{ $line->description ?? '-' }}</td>
@@ -79,7 +85,13 @@
                                     {{ number_format((float) $line->line_total_amount !== 0.0 ? (float) $line->line_total_amount : (float) $line->total_amount, 2) }}
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="7" class="fg-secondary py-4 text-center">
+                                    {{ __('common.batch_rejected.no_lines', ['number' => $documentNumber]) }}
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                     <tfoot class="bg-1">
                         <tr>

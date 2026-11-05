@@ -54,12 +54,14 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $locale
  * @property string $theme
  * @property string $picture
+ * @property string|null $background_image
  * @property string $password
  * @property bool $must_change_password
  * @property bool $is_employee
  * @property string|null $remember_token
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
+ * @property CarbonInterface|null $deleted_at
  * @property CarbonInterface|null $email_verified_at
  * @property-read Role|null $role
  *
@@ -82,6 +84,7 @@ class User extends Authenticatable
         'role_id',
         'must_change_password',
         'theme',
+        'background_image',
     ];
 
     /**
@@ -98,6 +101,7 @@ class User extends Authenticatable
             'locale' => 'string',
             'theme' => 'string',
             'picture' => 'string',
+            'background_image' => 'string',
             'password' => 'hashed',
             'must_change_password' => 'boolean',
             'is_employee' => 'boolean',

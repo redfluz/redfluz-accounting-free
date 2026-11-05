@@ -623,7 +623,7 @@ class SalesAdjustmentController extends Controller
     /**
      * Reverse a posted adjustment by creating a new reversing journal entry.
      *
-     * @param  Request  $request  The HTTP request instance containing the reversal date and reason.
+     * @param  Request  $request  The HTTP request instance containing the reversal reason.
      * @param  string  $documentNumber  The adjustment document number.
      * @return RedirectResponse Redirects to the adjustment detail page.
      *
@@ -633,12 +633,13 @@ class SalesAdjustmentController extends Controller
     {
         $this->allows(FileResources::SALES_ADJUSTMENTS, FileAction::APPROVE);
 
-        /** @var array<string, mixed> $validated */
+        /** @var array{reason: string} $validated */
         $validated = $request->validate([
-            'reversal_date' => ['required', 'date'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
-        DB::transaction(function () use ($documentNumber, $validated): void {
+        $reversalDate = now()->toDateString();
+
+        DB::transaction(function () use ($documentNumber, $validated, $reversalDate): void {
             $adjustment = SalesAdjustment::query()
                 ->where('document_number', $documentNumber)
                 ->lockForUpdate()
@@ -672,7 +673,7 @@ class SalesAdjustmentController extends Controller
                 'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $documentNumber,
-                'date' => $validated['reversal_date'],
+                'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => LedgerStatus::POSTED,

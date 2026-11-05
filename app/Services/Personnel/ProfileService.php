@@ -23,6 +23,8 @@ class ProfileService
      * @param  string  $theme  The selected interface theme.
      * @param  UploadedFile|null  $picture  The optional profile picture.
      * @param  string|null  $password  The optional new password.
+     * @param  UploadedFile|null  $backgroundImage  The optional personal background image.
+     * @param  bool  $removeBackground  Whether the user asked to clear their background.
      * @return bool Whether the user must re-authenticate (forced password change was completed).
      */
     public function updateProfile(
@@ -32,6 +34,8 @@ class ProfileService
         string $theme,
         ?UploadedFile $picture = null,
         ?string $password = null,
+        ?UploadedFile $backgroundImage = null,
+        bool $removeBackground = false,
     ): bool {
         $mustReauthenticate = $user->must_change_password;
 
@@ -44,6 +48,22 @@ class ProfileService
             }
 
             $user->picture = $picturePath;
+        }
+
+        if ($backgroundImage !== null) {
+            $backgroundPath = $this->storeUpload($backgroundImage, 'profiles/backgrounds', self::PUBLIC_DISK);
+
+            if ($user->background_image && Storage::disk('public')->exists($user->background_image)) {
+                Storage::disk('public')->delete($user->background_image);
+            }
+
+            $user->background_image = $backgroundPath;
+        } elseif ($removeBackground) {
+            if ($user->background_image && Storage::disk('public')->exists($user->background_image)) {
+                Storage::disk('public')->delete($user->background_image);
+            }
+
+            $user->background_image = null;
         }
 
         $user->name = $name;

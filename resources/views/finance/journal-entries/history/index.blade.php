@@ -184,18 +184,9 @@
                     </div>
                     <div class="dialog-body">
                         <div class="alert alert theme-warning">{{ __('journal_entries.reverse_explanation') }}</div>
-                        <div class="mb-3">
-                            <label class="form-label" for="reversal_date-{{ $entry->id }}">
-                                {{ __('journal_entries.reversal_date') }}
-                            </label>
-                            <input class="form-control @error('reversal_date') is-invalid @enderror"
-                                id="reversal_date-{{ $entry->id }}" name="reversal_date" type="text"
-                                data-bs-toggle="datepicker" autocomplete="off" value="{{ old('reversal_date', now()->toDateString()) }}"
-                                min="{{ $postingDateMin ?? '' }}" max="{{ $postingDateMax ?? '' }}" required />
-                            @error('reversal_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @error('reversal_date')
+                            <div class="alert alert theme-danger">{{ $message }}</div>
+                        @enderror
                         <div>
                             <label class="form-label" for="reason-{{ $entry->id }}">
                                 {{ __('journal_entries.reversal_reason') }}

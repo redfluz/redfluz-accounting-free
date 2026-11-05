@@ -38,6 +38,8 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * @return void Creates the user, password reset, and session tables.
      */
     public function up(): void
     {
@@ -48,6 +50,7 @@ return new class extends Migration
             $table->string('locale', 5)->default('en');
             $table->boolean('is_employee')->default(false)->index();
             $table->string('picture')->nullable();
+            $table->string('background_image')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('must_change_password')->default(false);

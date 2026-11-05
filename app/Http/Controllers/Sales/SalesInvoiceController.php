@@ -1445,7 +1445,7 @@ class SalesInvoiceController extends Controller
     /**
      * Reverse a posted sales invoice by creating a new reversing journal entry.
      *
-     * @param  Request  $request  The HTTP request instance containing the reversal date and reason.
+     * @param  Request  $request  The HTTP request instance containing the reversal reason.
      * @param  string  $documentNumber  The invoice document number.
      * @return RedirectResponse Redirects to the invoice detail page.
      *
@@ -1455,13 +1455,13 @@ class SalesInvoiceController extends Controller
     {
         $this->allows(FileResources::SALES_INVOICES, FileAction::APPROVE);
 
-        /** @var array{reversal_date: string, reason: string} $validated */
+        /** @var array{reason: string} $validated */
         $validated = $request->validate([
-            'reversal_date' => ['required', 'date'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
+        $reversalDate = now()->toDateString();
 
-        DB::transaction(function () use ($documentNumber, $validated): void {
+        DB::transaction(function () use ($documentNumber, $validated, $reversalDate): void {
             $invoice = SalesInvoice::query()
                 ->where('document_number', $documentNumber)
                 ->lockForUpdate()
@@ -1495,7 +1495,7 @@ class SalesInvoiceController extends Controller
                 'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $documentNumber,
-                'date' => $validated['reversal_date'],
+                'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => LedgerStatus::POSTED,
@@ -1635,7 +1635,7 @@ class SalesInvoiceController extends Controller
                         'reference_number' => $documentNumber,
                         'source_type' => ProductMovementSource::SALES_RETURN->value,
                         'direction' => ProductMovementDirection::IN->value,
-                        'date' => $validated['reversal_date'],
+                        'date' => $reversalDate,
                         'quantity' => $remaining,
                         'unit_cost' => DecimalService::normalize((string) $product->base_price),
                         'total_cost' => $costAmount,
@@ -1656,7 +1656,7 @@ class SalesInvoiceController extends Controller
                         'reference_number' => $documentNumber,
                         'company_name' => $invoice->company_name,
                         'contact_name' => $invoice->contact_name,
-                        'date' => $validated['reversal_date'],
+                        'date' => $reversalDate,
                         'status' => LedgerStatus::POSTED,
                         'subtotal' => $creditAmount,
                         'total_amount' => $creditAmount,
@@ -1680,7 +1680,7 @@ class SalesInvoiceController extends Controller
                         'debit_acc_desc' => $revenueChart->name,
                         'document_number' => $adjustmentNumber,
                         'reference_number' => $documentNumber,
-                        'date' => $validated['reversal_date'],
+                        'date' => $reversalDate,
                         'description' => __('sales_returns.undo_note', ['document' => $documentNumber]),
                         'debit_amount' => $creditAmount,
                         'credit_amount' => '0.00',
@@ -1693,7 +1693,7 @@ class SalesInvoiceController extends Controller
                         'credit_acc_desc' => $receivableChart->name,
                         'document_number' => $adjustmentNumber,
                         'reference_number' => $documentNumber,
-                        'date' => $validated['reversal_date'],
+                        'date' => $reversalDate,
                         'description' => __('sales_returns.undo_note', ['document' => $documentNumber]),
                         'debit_amount' => '0.00',
                         'credit_amount' => $creditAmount,
@@ -1714,7 +1714,7 @@ class SalesInvoiceController extends Controller
                     $this->invoicePoster->post(
                         $adjustment,
                         $adjustmentNumber,
-                        Carbon::parse($validated['reversal_date']),
+                        Carbon::parse($reversalDate),
                         LedgerType::INVOICE,
                         LedgerSubType::DECREASE_ADJUSTMENT,
                         $generalRows,

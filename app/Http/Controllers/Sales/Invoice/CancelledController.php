@@ -136,7 +136,7 @@ class CancelledController extends Controller
                 ->with('info', __('common.messages.no_longer_cancelled'));
         }
 
-        return view('sales.invoices.cancelled.show', compact('documentNumber', 'lines'));
+        return view('sales.invoices.cancelled.show', compact('documentNumber', 'invoice', 'lines'));
     }
 
     /**

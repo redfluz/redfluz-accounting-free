@@ -1,6 +1,7 @@
 import './bootstrap';
 
 import { confirmDialog } from './confirm-dialog';
+import { initImageCompression } from './image-upload';
 import { createIcons, icons } from 'lucide';
 import { Datepicker } from 'bootstrap';
 
@@ -34,6 +35,7 @@ window.lucide = {
 // Initialize icons when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     renderIcons();
+    initImageCompression();
 
     // Initialize all Bootstrap 6 datepickers with YYYY-MM-DD format
     document.querySelectorAll('[data-bs-toggle="datepicker"]').forEach((element) => {

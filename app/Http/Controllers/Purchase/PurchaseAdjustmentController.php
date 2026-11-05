@@ -613,7 +613,7 @@ class PurchaseAdjustmentController extends Controller
     /**
      * Reverse a posted adjustment by creating a new reversing journal entry.
      *
-     * @param  Request  $request  The HTTP request instance containing the reversal date and reason.
+     * @param  Request  $request  The HTTP request instance containing the reversal reason.
      * @param  string  $documentNumber  The adjustment document number.
      * @return RedirectResponse Redirects to the adjustment detail page.
      *
@@ -623,13 +623,13 @@ class PurchaseAdjustmentController extends Controller
     {
         $this->allows(FileResources::PURCHASE_ADJUSTMENTS, FileAction::APPROVE);
 
-        /** @var array<string, mixed> $validated */
+        /** @var array{reason: string} $validated */
         $validated = $request->validate([
-            'reversal_date' => ['required', 'date'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
+        $reversalDate = now()->toDateString();
 
-        DB::transaction(function () use ($documentNumber, $validated): void {
+        DB::transaction(function () use ($documentNumber, $validated, $reversalDate): void {
             $adjustment = PurchaseAdjustment::query()
                 ->where('document_number', $documentNumber)
                 ->lockForUpdate()
@@ -662,7 +662,7 @@ class PurchaseAdjustmentController extends Controller
                 'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $documentNumber,
-                'date' => $validated['reversal_date'],
+                'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => LedgerStatus::POSTED,

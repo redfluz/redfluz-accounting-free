@@ -82,6 +82,8 @@ class ProfileController extends Controller
             $data->theme ?? 'pinkpanther',
             $request->file('picture'),
             $data->password,
+            $request->file('background_image'),
+            (bool) ($data->removeBackground ?? false),
         );
 
         if ($mustReauthenticate) {

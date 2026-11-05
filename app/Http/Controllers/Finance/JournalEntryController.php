@@ -424,10 +424,10 @@ class JournalEntryController extends Controller
      * and an original entry can be reversed only once. The posted General Ledger rows
      * are used as the authoritative source. A new posted journal is created with every
      * debit and credit swapped, while the original journal and ledger rows remain intact.
-     * The reversal date must belong to an open posting period and a reason is mandatory
-     * so the audit history explains why the correction was made.
+     * The reversal date is fixed to the current application date and must belong to an
+     * open posting period. A reason is mandatory to explain why the correction was made.
      *
-     * @param  Request  $request  Request containing the reversal date and reason.
+     * @param  Request  $request  Request containing the reversal reason.
      * @param  JournalEntry  $journalEntry  Original posted journal entry to reverse.
      * @return RedirectResponse Redirect response to the original journal entry.
      *
@@ -438,13 +438,13 @@ class JournalEntryController extends Controller
     {
         $this->allows(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
 
-        /** @var array{reversal_date: string, reason: string} $validated */
+        /** @var array{reason: string} $validated */
         $validated = $request->validate([
-            'reversal_date' => ['required', 'date'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
+        $reversalDate = now()->toDateString();
 
-        DB::transaction(function () use ($journalEntry, $validated): void {
+        DB::transaction(function () use ($journalEntry, $validated, $reversalDate): void {
             $lockedEntry = JournalEntry::query()
                 ->with('charts')
                 ->whereKey($journalEntry->id)
@@ -509,7 +509,7 @@ class JournalEntryController extends Controller
                 'reversal_of_id' => $lockedEntry->id,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $lockedEntry->reference_number,
-                'date' => $validated['reversal_date'],
+                'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => LedgerStatus::POSTED,

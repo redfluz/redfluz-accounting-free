@@ -1196,7 +1196,7 @@ class PurchaseInvoiceController extends Controller
     /**
      * Reverse a posted purchase invoice by creating a new reversing journal entry.
      *
-     * @param  Request  $request  The HTTP request instance containing reversal data.
+     * @param  Request  $request  The HTTP request instance containing the reversal reason.
      * @param  string  $documentNumber  The purchase invoice number.
      * @return RedirectResponse Redirects to the specified route.
      *
@@ -1206,13 +1206,13 @@ class PurchaseInvoiceController extends Controller
     {
         $this->allows(FileResources::PURCHASE_INVOICES, FileAction::APPROVE);
 
-        /** @var array{reversal_date: string, reason: string} $validated */
+        /** @var array{reason: string} $validated */
         $validated = $request->validate([
-            'reversal_date' => ['required', 'date'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
+        $reversalDate = now()->toDateString();
 
-        DB::transaction(function () use ($documentNumber, $validated): void {
+        DB::transaction(function () use ($documentNumber, $validated, $reversalDate): void {
             $invoice = PurchaseInvoice::query()
                 ->where('document_number', $documentNumber)
                 ->lockForUpdate()
@@ -1245,7 +1245,7 @@ class PurchaseInvoiceController extends Controller
                 'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $documentNumber,
-                'date' => $validated['reversal_date'],
+                'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
                 'status' => LedgerStatus::POSTED,

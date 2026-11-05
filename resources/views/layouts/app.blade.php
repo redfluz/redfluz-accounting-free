@@ -1,4 +1,8 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+
+    $backgroundImage = auth()->user()?->background_image;
+@endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-palette="{{ auth()->user()?->theme ?? 'pinkpanther' }}">
 <head>
@@ -12,12 +16,13 @@
     @vite(['resources/sass/app.scss', 'resources/sass/themes.scss', 'resources/js/app.js'])
 </head>
 
-<body class="bg-2">
+<body class="bg-2 app-background {{ $backgroundImage ? 'has-custom-background' : '' }}"
+    @if ($backgroundImage) style="--app-background-image: url('{{ asset('storage/' . $backgroundImage) }}')" @endif>
     {{-- Navigation lives in the topbar (see layouts.nav). There is no
          sidebar rail and no show/hide state to restore. --}}
     <div class="app-wrapper d-flex flex-column w-100 min-vh-100" id="app">
         <!-- Topbar (contains main navigation + user menu) -->
-        <header class="topbar-wrapper border-bottom bg-white flex-shrink-0">
+        <header class="topbar-wrapper border-bottom bg-1 flex-shrink-0">
             @include('layouts.topbar')
         </header>
 
