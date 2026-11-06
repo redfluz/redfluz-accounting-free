@@ -21,7 +21,7 @@
             @include('partials.errors')
             <form autocomplete="off" action="{{ route('bank.e-wallet-accounts.store') }}" method="POST">
                 @csrf
-                @include('bank.e-wallet-accounts._fields', ['eWalletAccount' => null, 'charts' => $charts, 'eWalletProviders' => $eWalletProviders])
+                @include('bank.e-wallet-accounts._fields', ['eWalletAccount' => null, 'charts' => $charts])
                 <div class="d-flex justify-content-between pt-4 border-top mt-4">
                     <a class="btn btn-solid theme-secondary" href="{{ route('bank.e-wallet-accounts.index') }}"
                         ><i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}</a>

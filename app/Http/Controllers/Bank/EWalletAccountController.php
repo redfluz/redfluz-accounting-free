@@ -33,7 +33,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Bank\EWalletAccount\StoreEWalletAccountRequest;
 use App\Http\Requests\Bank\EWalletAccount\UpdateEWalletAccountRequest;
 use App\Models\Bank\EWalletAccount;
-use App\Models\Bank\EWalletProvider;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Data\Bank\EWalletAccountData;
 use Illuminate\Contracts\View\View;
@@ -43,11 +42,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * E-wallet accounts: one row per wallet held with a provider.
+ * E-wallet accounts: one row per wallet held by the company.
  *
  * Money in a third-party wallet, separate from bank accounts and physical cash.
- * Each wallet is its own row so movements can be reconciled against the provider
- * statement independently.
+ * Each wallet is its own row so movements can be reconciled independently.
  */
 class EWalletAccountController extends Controller
 {
@@ -64,12 +62,8 @@ class EWalletAccountController extends Controller
         $search = $request->string('search')->toString();
 
         $eWalletAccounts = EWalletAccount::query()
-            ->with(['chart', 'eWalletProvider'])
-            ->when($search !== '', fn ($query) => $query->where(
-                fn ($subQuery) => $subQuery->where('name', 'like', "%$search%")
-                    ->orWhere('account_name', 'like', "%$search%")
-                    ->orWhere('account_number', 'like', "%$search%")
-            ))
+            ->with('chart')
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%$search%"))
             ->orderBy('name')
             ->paginate(static::PER_PAGE_GRID_NORMAL)
             ->withQueryString();
@@ -91,7 +85,6 @@ class EWalletAccountController extends Controller
 
         return view('bank.e-wallet-accounts.create', [
             'charts' => $this->freeCharts(null),
-            'eWalletProviders' => $this->eWalletProviders(),
         ]);
     }
 
@@ -104,8 +97,6 @@ class EWalletAccountController extends Controller
     public function store(StoreEWalletAccountRequest $request): RedirectResponse
     {
         $data = EWalletAccountData::from($request->validated());
-        $data->countryCode = strtoupper($data->countryCode ?? '');
-        $data->isActive = $request->boolean('is_active');
         $eWalletAccount = EWalletAccount::query()->create($data->toCreateRow());
 
         return redirect()->route('bank.e-wallet-accounts.show', $eWalletAccount)
@@ -121,7 +112,7 @@ class EWalletAccountController extends Controller
     public function show(EWalletAccount $eWalletAccount): View
     {
         $this->allows(FileResources::BANKS);
-        $eWalletAccount->load(['chart', 'eWalletProvider']);
+        $eWalletAccount->load('chart');
 
         return view('bank.e-wallet-accounts.show', compact('eWalletAccount'));
     }
@@ -139,7 +130,6 @@ class EWalletAccountController extends Controller
         return view('bank.e-wallet-accounts.edit', [
             'eWalletAccount' => $eWalletAccount,
             'charts' => $this->freeCharts($eWalletAccount),
-            'eWalletProviders' => $this->eWalletProviders(),
         ]);
     }
 
@@ -153,11 +143,11 @@ class EWalletAccountController extends Controller
     public function update(UpdateEWalletAccountRequest $request, EWalletAccount $eWalletAccount): RedirectResponse
     {
         $data = EWalletAccountData::from($request->validated());
-        $data->countryCode = strtoupper($data->countryCode ?? '');
-        $data->isActive = $request->boolean('is_active');
-        $row = $data->toRow();
-        unset($row['id'], $row['created_at'], $row['updated_at'], $row['deleted_at']);
-        $eWalletAccount->update($row);
+
+        $eWalletAccount->chart_id = $data->chartId ?? '';
+        $eWalletAccount->name = $data->name ?? '';
+        $eWalletAccount->account_name = $data->accountName ?? $data->name ?? '';
+        $eWalletAccount->save();
 
         return redirect()->route('bank.e-wallet-accounts.show', $eWalletAccount)
             ->with('success', FlashMessage::updated(FileResources::BANKS));
@@ -177,16 +167,6 @@ class EWalletAccountController extends Controller
 
         return redirect()->route('bank.e-wallet-accounts.index')
             ->with('success', FlashMessage::deleted(FileResources::BANKS));
-    }
-
-    /**
-     * The active e-wallet providers, for the issuer selector.
-     *
-     * @return Collection<int, EWalletProvider> The providers ordered by name.
-     */
-    private function eWalletProviders(): Collection
-    {
-        return EWalletProvider::query()->active()->orderBy('name')->get();
     }
 
     /**

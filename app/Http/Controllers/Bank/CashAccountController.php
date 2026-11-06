@@ -67,7 +67,6 @@ class CashAccountController extends Controller
             ->with('chart')
             ->when($search !== '', fn ($query) => $query->where(
                 fn ($subQuery) => $subQuery->where('name', 'like', "%$search%")
-                    ->orWhere('account_name', 'like', "%$search%")
             ))
             ->orderBy('name')
             ->paginate(static::PER_PAGE_GRID_NORMAL)
@@ -103,8 +102,6 @@ class CashAccountController extends Controller
     public function store(StoreCashAccountRequest $request): RedirectResponse
     {
         $data = CashAccountData::from($request->validated());
-        $data->countryCode = strtoupper($data->countryCode ?? '');
-        $data->isActive = $request->boolean('is_active');
         $cashAccount = CashAccount::query()->create($data->toCreateRow());
 
         return redirect()->route('bank.cash-accounts.show', $cashAccount)
@@ -152,11 +149,12 @@ class CashAccountController extends Controller
     public function update(UpdateCashAccountRequest $request, CashAccount $cashAccount): RedirectResponse
     {
         $data = CashAccountData::from($request->validated());
-        $data->countryCode = strtoupper($data->countryCode ?? '');
-        $data->isActive = $request->boolean('is_active');
-        $row = $data->toRow();
-        unset($row['id'], $row['created_at'], $row['updated_at'], $row['deleted_at']);
-        $cashAccount->update($row);
+
+        $cashAccount->chart_id = $data->chartId ?? '';
+        $cashAccount->name = $data->name ?? '';
+        $cashAccount->account_name = $data->accountName ?? $data->name ?? '';
+        $cashAccount->asset_location_id = $data->assetLocationId;
+        $cashAccount->save();
 
         return redirect()->route('bank.cash-accounts.show', $cashAccount)
             ->with('success', FlashMessage::updated(FileResources::BANKS));

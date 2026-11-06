@@ -49,12 +49,9 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th scope="col">{{ __('banks.fields.name') }}</th>
-                            <th scope="col">{{ __('banks.fields.account_name') }}</th>
+                            <th scope="col">{{ __('banks.fields.cash_name') }}</th>
                             <th scope="col">{{ __('banks.fields.chart') }}</th>
                             <th scope="col">{{ __('banks.fields.asset_location') }}</th>
-                            <th scope="col">{{ __('banks.fields.float_amount') }}</th>
-                            <th scope="col">{{ __('banks.fields.is_active') }}</th>
                             <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
@@ -62,13 +59,8 @@
                         @forelse ($cashAccounts as $cashAccount)
                             <tr>
                                 <td class="fw-bold">{{ $cashAccount->name }}</td>
-                                <td>{{ $cashAccount->account_name }}</td>
                                 <td>{{ $cashAccount->chart?->code ?? '-' }} - {{ $cashAccount->chart?->name ?? '-' }}</td>
                                 <td>{{ $cashAccount->assetLocation?->name ?? '-' }}</td>
-                                <td>{{ $cashAccount->float_amount !== null ? number_format((float) $cashAccount->float_amount, 2) : '-' }}</td>
-                                <td>
-                                    <span class="badge {{ $cashAccount->is_active ? 'theme-success' : 'theme-secondary' }}">{{ $cashAccount->is_active ? __('banks.status.active') : __('banks.status.inactive') }}</span>
-                                </td>
                                 <td class="text-nowrap text-center">
                                     <a
                                         class="btn btn-sm btn-solid theme-info me-1"
@@ -107,7 +99,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="fg-secondary py-4 text-center" colspan="7">
+                                <td class="fg-secondary py-4 text-center" colspan="4">
                                     {{ __('common.labels.not_found_record') }}
                                 </td>
                             </tr>

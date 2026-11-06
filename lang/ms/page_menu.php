@@ -32,7 +32,6 @@ return [
     'BANK JOURNALS' => 'Jurnal Bank',
     'CASH TRANSFERS' => 'Pemindahan Tunai',
     'BANK TRANSFERS' => 'Pemindahan Bank',
-    'E-WALLET PROVIDERS' => 'Penyedia E-Dompet',
     'BRANDS' => 'Jenama',
     'TAXES' => 'Cukai',
     'DISCOUNTS' => 'Diskaun',

@@ -33,7 +33,6 @@ use App\Http\Controllers\Bank\CashTransferController;
 use App\Http\Controllers\Bank\CustomerRefundController;
 use App\Http\Controllers\Bank\EWalletAccountController;
 use App\Http\Controllers\Bank\EWalletLedgerController;
-use App\Http\Controllers\Bank\EWalletProviderController;
 use App\Http\Controllers\Bank\PaymentVoucher\CancelledController as VoucherCancelledController;
 use App\Http\Controllers\Bank\PaymentVoucher\HistoryController as VoucherHistoryController;
 use App\Http\Controllers\Bank\PaymentVoucherController;
@@ -62,14 +61,6 @@ Route::get('e-wallet-accounts/{eWalletAccount}', [EWalletAccountController::clas
 Route::get('e-wallet-accounts/{eWalletAccount}/edit', [EWalletAccountController::class, 'edit'])->name('bank.e-wallet-accounts.edit');
 Route::put('e-wallet-accounts/{eWalletAccount}', [EWalletAccountController::class, 'update'])->name('bank.e-wallet-accounts.update');
 Route::delete('e-wallet-accounts/{eWalletAccount}', [EWalletAccountController::class, 'destroy'])->name('bank.e-wallet-accounts.destroy');
-
-Route::get('e-wallet-providers', [EWalletProviderController::class, 'index'])->name('bank.e-wallet-providers.index');
-Route::get('e-wallet-providers/create', [EWalletProviderController::class, 'create'])->name('bank.e-wallet-providers.create');
-Route::post('e-wallet-providers', [EWalletProviderController::class, 'store'])->name('bank.e-wallet-providers.store');
-Route::get('e-wallet-providers/{provider}', [EWalletProviderController::class, 'show'])->name('bank.e-wallet-providers.show');
-Route::get('e-wallet-providers/{provider}/edit', [EWalletProviderController::class, 'edit'])->name('bank.e-wallet-providers.edit');
-Route::put('e-wallet-providers/{provider}', [EWalletProviderController::class, 'update'])->name('bank.e-wallet-providers.update');
-Route::delete('e-wallet-providers/{provider}', [EWalletProviderController::class, 'destroy'])->name('bank.e-wallet-providers.destroy');
 
 // Money ledgers: what is in the drawer, in the bank and on the wallet
 Route::get('cash-ledger', [CashLedgerController::class, 'index'])->name('bank.cash-ledger.index');

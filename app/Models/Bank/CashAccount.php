@@ -48,17 +48,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $chart_id
  * @property string $name
  * @property string $account_name
- * @property string|null $account_type
  * @property string|null $asset_location_id
- * @property numeric-string|null $float_amount
- * @property string $country_code
- * @property string|null $email
- * @property string|null $phone
- * @property string|null $website
- * @property string|null $address
- * @property string|null $notes
- * @property bool $is_active
- * @property bool $is_default
  * @property CarbonInterface|null $deleted_at
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
@@ -73,10 +63,7 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Table('cash_accounts', key: 'id')]
 #[Fillable([
-    'chart_id', 'name', 'account_name', 'account_type',
-    'asset_location_id', 'float_amount',
-    'country_code', 'email', 'phone', 'website', 'address', 'notes',
-    'is_active', 'is_default',
+    'chart_id', 'name', 'account_name', 'asset_location_id',
 ])]
 class CashAccount extends Model
 {
@@ -92,13 +79,6 @@ class CashAccount extends Model
         return [
             'chart_id' => 'string',
             'asset_location_id' => 'string',
-            // A money column, so it is read back as an exact decimal. Without this
-            // the driver decides: SQLite hands back an int for a whole float and
-            // a string for a fractional one, so anything comparing it against a
-            // figure from bcmath would be handed a type it cannot take.
-            'float_amount' => 'decimal:2',
-            'is_active' => 'boolean',
-            'is_default' => 'boolean',
         ];
     }
 

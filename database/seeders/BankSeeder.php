@@ -60,29 +60,19 @@ class BankSeeder extends Seeder
         ];
 
         // -- Cash accounts ---------------------------------------------------
-        // Company cash that is not banked: one held on hand, one held in a
-        // point of sales drawer. Both are assets, and both need to be money
-        // accounts of their own so each can hold a balance and so cash can be
-        // banked from one to the other. Neither has an account number, a
-        // branch, a bank code or a swift code, because none of those apply.
-        // More than one cash account, because a business that counts a
-        // drawer at the counter and a drawer in the warehouse cannot tell
-        // them apart on one figure. Petty Cash is the default so money
-        // leaves from somewhere known when a document does not say.
         $cashAccounts = [
-            ['chart' => '1000', 'name' => 'Cash in Hand', 'account_name' => 'Redfluz Trading Sdn Bhd', 'account_type' => 'Cash on Hand'],
-            ['chart' => '1130', 'name' => 'Petty Cash', 'account_name' => 'Redfluz Trading Sdn Bhd', 'account_type' => 'Petty Cash', 'is_default' => true],
-            ['chart' => '1140', 'name' => 'Counter Drawer 1', 'account_name' => 'Redfluz Trading Sdn Bhd', 'account_type' => 'Cash Drawer', 'is_default' => false],
-            ['chart' => '1141', 'name' => 'Warehouse Drawer 2', 'account_name' => 'Redfluz Trading Sdn Bhd', 'account_type' => 'Cash Drawer', 'is_default' => false],
+            ['chart' => '1000', 'name' => 'Cash in Hand'],
+            ['chart' => '1130', 'name' => 'Petty Cash'],
+            ['chart' => '1140', 'name' => 'Counter Drawer 1'],
+            ['chart' => '1141', 'name' => 'Warehouse Drawer 2'],
         ];
 
         // -- E-wallet accounts -----------------------------------------------
-        // Wallets are money accounts like any other, but they are issued by
-        // somebody rather than opened by the company, so each names the
-        // provider that issued it. None of the banking codes apply.
+        // Wallets are money accounts like any other. None of the banking codes
+        // apply, so a chart and a name are all that is stored.
         $eWalletAccounts = [
-            ['chart' => '1150', 'name' => 'Touch n Go Wallet', 'account_name' => 'Redfluz Trading Sdn Bhd', 'account_number' => '012-3456789', 'account_type' => 'E-Wallet', 'provider' => 'Touch n Go eWallet', 'is_default' => true],
-            ['chart' => '1151', 'name' => 'GrabPay Wallet', 'account_name' => 'Redfluz Trading Sdn Bhd', 'account_number' => '012-9876543', 'account_type' => 'E-Wallet', 'provider' => 'GrabPay', 'is_default' => false],
+            ['chart' => '1150', 'name' => 'Touch n Go Wallet'],
+            ['chart' => '1151', 'name' => 'GrabPay Wallet'],
         ];
 
         $allAccounts = array_merge($bankAccounts, $cashAccounts, $eWalletAccounts);
@@ -93,13 +83,6 @@ class BankSeeder extends Seeder
         }
 
         $now = now();
-
-        // Providers are managed through /e-wallet-providers, not seeded.
-        // Resolve by name if they exist, otherwise leave null so the account
-        // can still be created and the provider assigned later.
-        $providerIds = DB::table('e_wallet_providers')
-            ->whereNull('deleted_at')
-            ->pluck('id', 'name');
 
         // -- Upsert banks ----------------------------------------------------
         $bankRows = collect($bankAccounts)->map(fn (array $account): array => [
@@ -138,27 +121,15 @@ class BankSeeder extends Seeder
             'id' => (string) Str::uuid7(),
             'chart_id' => $chartIds->get($account['chart']),
             'name' => $account['name'],
-            'account_name' => $account['account_name'],
-            'account_type' => $account['account_type'],
-            'country_code' => 'MY',
-            'email' => null,
-            'phone' => null,
-            'website' => null,
-            'address' => null,
-            'notes' => null,
-            'is_active' => true,
-            'is_default' => $account['is_default'] ?? false,
+            'account_name' => $account['name'],
             'asset_location_id' => null,
-            'float_amount' => 0,
             'created_at' => $now,
             'updated_at' => $now,
             'deleted_at' => null,
         ])->all();
 
         DB::table('cash_accounts')->upsert($cashRows, ['chart_id'], [
-            'name', 'account_name', 'account_type', 'country_code',
-            'is_active', 'is_default', 'asset_location_id', 'float_amount',
-            'updated_at', 'deleted_at',
+            'name', 'account_name', 'asset_location_id', 'updated_at', 'deleted_at',
         ]);
 
         // -- Upsert e-wallet accounts ----------------------------------------
@@ -166,30 +137,14 @@ class BankSeeder extends Seeder
             'id' => (string) Str::uuid7(),
             'chart_id' => $chartIds->get($account['chart']),
             'name' => $account['name'],
-            'account_name' => $account['account_name'],
-            'account_number' => $account['account_number'],
-            'account_type' => $account['account_type'],
-            // Only a wallet is issued by somebody. Resolved by name so a
-            // provider renamed in the seed does not silently attach the wrong
-            // issuer to an account.
-            'e_wallet_provider_id' => $providerIds->get($account['provider']),
-            'country_code' => 'MY',
-            'email' => null,
-            'phone' => null,
-            'website' => null,
-            'address' => null,
-            'notes' => null,
-            'is_active' => true,
-            'is_default' => $account['is_default'] ?? false,
+            'account_name' => $account['name'],
             'created_at' => $now,
             'updated_at' => $now,
             'deleted_at' => null,
         ])->all();
 
         DB::table('e_wallet_accounts')->upsert($eWalletRows, ['chart_id'], [
-            'name', 'account_name', 'account_number', 'account_type',
-            'e_wallet_provider_id', 'country_code', 'is_active',
-            'is_default', 'updated_at', 'deleted_at',
+            'name', 'account_name', 'updated_at', 'deleted_at',
         ]);
     }
 }

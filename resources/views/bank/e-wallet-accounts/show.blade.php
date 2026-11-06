@@ -16,7 +16,6 @@
                 </div>
                 <div>
                     <h4 class="fw-bold mb-0">{{ $eWalletAccount->name }}</h4>
-                    <span class="fg-secondary small">{{ $eWalletAccount->account_name }} | {{ $eWalletAccount->account_number }}</span>
                 </div>
             </div>
             <div class="d-flex gap-2">
@@ -34,16 +33,6 @@
             @php
                 $details = [
                     __('banks.fields.chart') => ($eWalletAccount->chart?->code ?? '-') . ' - ' . ($eWalletAccount->chart?->name ?? '-'),
-                    __('banks.fields.e_wallet_provider') => $eWalletAccount->eWalletProvider?->name,
-                    __('banks.fields.account_name') => $eWalletAccount->account_name,
-                    __('banks.fields.account_number') => $eWalletAccount->account_number,
-                    __('banks.fields.account_type') => $eWalletAccount->account_type,
-                    __('banks.fields.country_code') => $eWalletAccount->country_code,
-                    __('banks.fields.email') => $eWalletAccount->email,
-                    __('banks.fields.phone') => $eWalletAccount->phone,
-                    __('banks.fields.website') => $eWalletAccount->website,
-                    __('banks.fields.address') => $eWalletAccount->address,
-                    __('banks.fields.notes') => $eWalletAccount->notes,
                 ];
             @endphp
             <div class="row g-3">

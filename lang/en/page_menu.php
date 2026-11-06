@@ -32,7 +32,6 @@ return [
     'BANK JOURNALS' => 'Bank Journals',
     'CASH TRANSFERS' => 'Cash Transfers',
     'BANK TRANSFERS' => 'Bank Transfers',
-    'E-WALLET PROVIDERS' => 'E-Wallet Providers',
     'BRANDS' => 'Brands',
     'TAXES' => 'Taxes',
     'DISCOUNTS' => 'Discounts',

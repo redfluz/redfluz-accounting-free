@@ -49,12 +49,8 @@
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
-                            <th scope="col">{{ __('banks.fields.name') }}</th>
-                            <th scope="col">{{ __('banks.fields.account_name') }}</th>
-                            <th scope="col">{{ __('banks.fields.account_number') }}</th>
-                            <th scope="col">{{ __('banks.fields.e_wallet_provider') }}</th>
+                            <th scope="col">{{ __('banks.fields.ewallet_name') }}</th>
                             <th scope="col">{{ __('banks.fields.chart') }}</th>
-                            <th scope="col">{{ __('banks.fields.is_active') }}</th>
                             <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
                         </tr>
                     </thead>
@@ -62,13 +58,7 @@
                         @forelse ($eWalletAccounts as $eWalletAccount)
                             <tr>
                                 <td class="fw-bold">{{ $eWalletAccount->name }}</td>
-                                <td>{{ $eWalletAccount->account_name }}</td>
-                                <td>{{ $eWalletAccount->account_number ?? '-' }}</td>
-                                <td>{{ $eWalletAccount->eWalletProvider?->name ?? '-' }}</td>
                                 <td>{{ $eWalletAccount->chart?->code ?? '-' }} - {{ $eWalletAccount->chart?->name ?? '-' }}</td>
-                                <td>
-                                    <span class="badge {{ $eWalletAccount->is_active ? 'theme-success' : 'theme-secondary' }}">{{ $eWalletAccount->is_active ? __('banks.status.active') : __('banks.status.inactive') }}</span>
-                                </td>
                                 <td class="text-nowrap text-center">
                                     <a
                                         class="btn btn-sm btn-solid theme-info me-1"
@@ -107,7 +97,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="fg-secondary py-4 text-center" colspan="7">
+                                <td class="fg-secondary py-4 text-center" colspan="3">
                                     {{ __('common.labels.not_found_record') }}
                                 </td>
                             </tr>

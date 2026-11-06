@@ -16,7 +16,6 @@
                 </div>
                 <div>
                     <h4 class="fw-bold mb-0">{{ $cashAccount->name }}</h4>
-                    <span class="fg-secondary small">{{ $cashAccount->account_name }}</span>
                 </div>
             </div>
             <div class="d-flex gap-2">
@@ -34,16 +33,7 @@
             @php
                 $details = [
                     __('banks.fields.chart') => ($cashAccount->chart?->code ?? '-') . ' - ' . ($cashAccount->chart?->name ?? '-'),
-                    __('banks.fields.account_name') => $cashAccount->account_name,
-                    __('banks.fields.account_type') => $cashAccount->account_type,
                     __('banks.fields.asset_location') => $cashAccount->assetLocation?->name,
-                    __('banks.fields.float_amount') => $cashAccount->float_amount !== null ? number_format((float) $cashAccount->float_amount, 2) : null,
-                    __('banks.fields.country_code') => $cashAccount->country_code,
-                    __('banks.fields.email') => $cashAccount->email,
-                    __('banks.fields.phone') => $cashAccount->phone,
-                    __('banks.fields.website') => $cashAccount->website,
-                    __('banks.fields.address') => $cashAccount->address,
-                    __('banks.fields.notes') => $cashAccount->notes,
                 ];
             @endphp
             <div class="row g-3">

@@ -52,13 +52,6 @@ return new class extends Migration
             $table->string('account_name');
             $table->string('account_number')->nullable();
             $table->string('account_type', 100)->nullable();
-            // Which e-wallet provider this account is with. A record rather than
-            // an enum value because the set of providers is a fact about the
-            // world and differs by market.
-            $table->foreignUuid('e_wallet_provider_id')
-                ->nullable()
-                ->constrained('e_wallet_providers')
-                ->nullOnDelete();
             $table->char('country_code', 2)->default('MY');
             $table->string('email')->nullable();
             $table->string('phone', 100)->nullable();

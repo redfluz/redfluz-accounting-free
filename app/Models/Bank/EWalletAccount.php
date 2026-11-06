@@ -47,17 +47,6 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $chart_id
  * @property string $name
  * @property string $account_name
- * @property string|null $account_number
- * @property string|null $account_type
- * @property string|null $e_wallet_provider_id
- * @property string $country_code
- * @property string|null $email
- * @property string|null $phone
- * @property string|null $website
- * @property string|null $address
- * @property string|null $notes
- * @property bool $is_active
- * @property bool $is_default
  * @property CarbonInterface|null $deleted_at
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
@@ -65,17 +54,13 @@ use Spatie\Activitylog\Support\LogOptions;
  * @noinspection PhpUnused
  *
  * @property-read Chart $chart
- * @property-read EWalletProvider|null $eWalletProvider
  * @property-read Collection<int, Activity> $activities
  * @property-read Collection<int, Activity> $activitiesAsCauser
  * @property-read Collection<int, Activity> $activitiesAsSubject
  */
 #[Table('e_wallet_accounts', key: 'id')]
 #[Fillable([
-    'chart_id', 'name', 'account_name', 'account_number', 'account_type',
-    'e_wallet_provider_id',
-    'country_code', 'email', 'phone', 'website', 'address', 'notes',
-    'is_active', 'is_default',
+    'chart_id', 'name', 'account_name',
 ])]
 class EWalletAccount extends Model
 {
@@ -90,9 +75,6 @@ class EWalletAccount extends Model
     {
         return [
             'chart_id' => 'string',
-            'e_wallet_provider_id' => 'string',
-            'is_active' => 'boolean',
-            'is_default' => 'boolean',
         ];
     }
 
@@ -105,17 +87,6 @@ class EWalletAccount extends Model
     public function chart(): BelongsTo
     {
         return $this->belongsTo(Chart::class, 'chart_id');
-    }
-
-    /**
-     * Define an inverse one-to-one or many relationship.
-     * Get the e-wallet provider that issued this account.
-     *
-     * @return BelongsTo<EWalletProvider, $this>
-     */
-    public function eWalletProvider(): BelongsTo
-    {
-        return $this->belongsTo(EWalletProvider::class, 'e_wallet_provider_id');
     }
 
     /**

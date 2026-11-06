@@ -46,19 +46,8 @@ class StoreCashAccountRequest extends CashAccountRequest
     {
         return [
             'chart_id' => ['required', 'uuid', Rule::exists('charts', 'id')->where('isBank', true)->whereNull('deleted_at'), Rule::unique('cash_accounts', 'chart_id')],
-            'asset_location_id' => ['nullable', 'uuid', Rule::exists('stock_locations', 'id')->whereNull('deleted_at')],
-            'float_amount' => ['nullable', 'numeric', 'min:0'],
-            'is_default' => ['nullable', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
-            'account_name' => ['required', 'string', 'max:255'],
-            'account_type' => ['nullable', 'string', 'max:100'],
-            'country_code' => ['required', 'alpha', 'size:2'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:100'],
-            'website' => ['nullable', 'url', 'max:255'],
-            'address' => ['nullable', 'string', 'max:2000'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-            'is_active' => ['nullable', 'boolean'],
+            'asset_location_id' => ['nullable', 'uuid', Rule::exists('stock_locations', 'id')->whereNull('deleted_at')],
         ];
     }
 }
