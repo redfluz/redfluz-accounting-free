@@ -35,7 +35,8 @@ return [
     ],
     'attachments' => [
         'title' => 'Gambar Produk',
-        'hint' => 'Muat naik sehingga 10 gambar JPG, PNG, atau WebP. Setiap gambar boleh bersaiz sehingga 2 MB.',
+        'hint' => 'Muat naik sehingga 10 gambar JPG, PNG, atau WebP. Setiap gambar boleh bersaiz sehingga 8000 KB.',
+        'too_large' => 'Gambar berikut melebihi had 8000 KB dan tidak ditambah:',
         'existing' => 'Gambar Semasa',
         'new' => 'Tambah Gambar',
         'remove' => 'Buang',

@@ -208,6 +208,24 @@ $canReverse = $canApprove && $isPosted && ! $invoice->undone_at;
                     {{ $invoice->notes }}
                 </div>
             @endif
+            @if ($invoice->attachment_path)
+                @php($attachmentExtension = strtolower(pathinfo($invoice->attachment_path, PATHINFO_EXTENSION)))
+                <div class="mt-4 rounded border p-3">
+                    <span class="fg-secondary small d-block mb-2">{{ __('ledgers.form.current_attachment') }}</span>
+                    @if (in_array($attachmentExtension, ['jpg', 'jpeg', 'png', 'webp'], true))
+                        <a href="{{ route('purchase.invoices.attachment', $documentNumber) }}" target="_blank">
+                            <img class="img-thumbnail rounded border"
+                                src="{{ route('purchase.invoices.attachment', $documentNumber) }}"
+                                alt="{{ basename($invoice->attachment_path) }}" style="max-height: 200px" />
+                        </a>
+                    @else
+                        <a class="btn btn-sm btn-solid theme-secondary"
+                            href="{{ route('purchase.invoices.attachment', $documentNumber) }}" target="_blank">
+                            <i class="me-1" data-lucide="paperclip"></i>{{ basename($invoice->attachment_path) }}
+                        </a>
+                    @endif
+                </div>
+            @endif
             <h6 class="fw-bold">{{ __('ledgers.payments_title') }}</h6>
             @forelse ($payments as $payment)
                 <div class="align-items-center d-flex justify-content-between mb-2 rounded border p-3">

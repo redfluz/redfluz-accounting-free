@@ -1,9 +1,15 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use App\Models\Purchase\PurchaseOrderSetting;
 
     $canUpdate = auth()->user()->hasFilePermission(FileResources::PURCHASE_ORDER_SETTINGS, FileAction::UPDATE);
 @endphp
+
+@props([
+    /** @var PurchaseOrderSetting */
+    'setting',
+])
 
 @extends('layouts.app')
 
@@ -20,14 +26,9 @@
                 @method('PUT')
 
                 <ul class="nav nav-tabs mb-4" id="purchaseOrderSettingsTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link active"
-                            data-bs-toggle="tab"
-                            data-bs-target="#general-pane"
-                            type="button"
-                            role="tab"
-                        >
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general-pane" type="button"
+                            role="tab">
                             {{ __('purchase_order_settings.tabs.general') }}
                         </button>
                     </li>
@@ -37,22 +38,14 @@
                     <div class="tab-pane fade show active" id="general-pane" role="tabpanel">
                         <div class="row mb-4">
                             <div class="md:col-4">
-                                <label
-                                    class="form-label fw-bold"
-                                    for="default_credit_term_days"
-                                >{{ __('purchase_order_settings.default_credit_term_days') }}</label>
+                                <label class="form-label fw-bold"
+                                    for="default_credit_term_days">{{ __('purchase_order_settings.default_credit_term_days') }}</label>
                                 <div class="input-group">
-                                    <input
-                                        class="form-control"
-                                        id="default_credit_term_days"
-                                        name="default_credit_term_days"
-                                        type="number"
+                                    <input class="form-control" id="default_credit_term_days"
+                                        name="default_credit_term_days" type="number"
                                         value="{{ old('default_credit_term_days', $setting->default_credit_term_days) }}"
-                                        min="0"
-                                        max="365"
-                                        required
-                                        @disabled(! $canUpdate)
-                                    /><span class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
+                                        min="0" max="365" required @disabled(!$canUpdate) /><span
+                                        class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
                                 </div>
                             </div>
                             <div class="md:col-4">
@@ -60,17 +53,11 @@
                                     {{ __('purchase_order_settings.default_required_days') }}
                                 </label>
                                 <div class="input-group">
-                                    <input
-                                        class="form-control"
-                                        id="default_required_days"
-                                        name="default_required_days"
+                                    <input class="form-control" id="default_required_days" name="default_required_days"
                                         type="number"
-                                        value="{{ old('default_required_days', $setting->default_required_days) }}"
-                                        min="0"
-                                        max="365"
-                                        required
-                                        @disabled(! $canUpdate)
-                                    /><span class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
+                                        value="{{ old('default_required_days', $setting->default_required_days) }}" min="0"
+                                        max="365" required @disabled(!$canUpdate) /><span
+                                        class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
                                 </div>
                                 <div class="form-text">
                                     {{ __('purchase_order_settings.default_required_days_help') }}
@@ -81,17 +68,11 @@
                                     {{ __('purchase_order_settings.default_rfq_response_days') }}
                                 </label>
                                 <div class="input-group">
-                                    <input
-                                        class="form-control"
-                                        id="default_rfq_response_days"
-                                        name="default_rfq_response_days"
-                                        type="number"
+                                    <input class="form-control" id="default_rfq_response_days"
+                                        name="default_rfq_response_days" type="number"
                                         value="{{ old('default_rfq_response_days', $setting->default_rfq_response_days) }}"
-                                        min="1"
-                                        max="365"
-                                        required
-                                        @disabled(! $canUpdate)
-                                    /><span class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
+                                        min="1" max="365" required @disabled(!$canUpdate) /><span
+                                        class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
                                 </div>
                                 <div class="form-text">
                                     {{ __('purchase_order_settings.default_rfq_response_days_help') }}
@@ -112,4 +93,3 @@
         </div>
     </div>
 @endsection
-

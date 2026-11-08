@@ -32,12 +32,12 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
-use App\Enums\PurchaseOrderType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\Crm\Company;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductLedger;

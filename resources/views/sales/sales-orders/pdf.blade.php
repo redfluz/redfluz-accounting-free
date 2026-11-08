@@ -147,7 +147,7 @@
     <title></title>
 </head>
 <body>
-    <table class="header">
+    <table class="header" role="presentation">
         <tr>
             <td width="58%">
                 @if ($setting->logo_path && is_file(public_path('storage/'.$setting->logo_path)))
@@ -191,7 +191,7 @@
         </div>
     </div>
 
-    <table class="details section">
+    <table class="details section" role="presentation">
         <tr>
             <td>
                 <span class="label">{{ __('sales_orders.pdf.order_date') }}</span
@@ -281,7 +281,7 @@
         </div>
     @endif
 
-    <table class="signature-table">
+    <table class="signature-table" role="presentation">
         <tr>
             <td><div class="signature-line">{{ __('sales_orders.pdf.prepared_by') }}</div></td>
             <td>

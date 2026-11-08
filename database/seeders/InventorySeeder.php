@@ -32,8 +32,8 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AcquisitionType;
-use App\Enums\StockLocationType;
+use App\Enums\Inventory\AcquisitionType;
+use App\Enums\Inventory\StockLocationType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

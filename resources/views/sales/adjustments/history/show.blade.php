@@ -1,4 +1,5 @@
 @php
+    use Carbon\Carbon;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
@@ -65,7 +66,7 @@
                 <div class="md:col-3">
                     <div class="bg-2 rounded p-3">
                         <small class="fg-secondary d-block">{{ __('ledgers.table.column_date') }}</small>
-                        <strong>{{ \Carbon\Carbon::parse($adjustment->date)->format(Setting::getDefaultDate()) }}</strong>
+                        <strong>{{ Carbon::parse($adjustment->date)->format(Setting::getDefaultDate()) }}</strong>
                     </div>
                 </div>
             </div>

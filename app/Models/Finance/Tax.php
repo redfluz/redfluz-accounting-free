@@ -26,7 +26,7 @@
 
 namespace App\Models\Finance;
 
-use App\Enums\TaxMode;
+use App\Enums\Finance\TaxMode;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;

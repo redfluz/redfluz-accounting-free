@@ -2,7 +2,7 @@
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\LedgerStatus;
+    use App\Enums\Finance\LedgerStatus;
 
     $canUpdate = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::UPDATE);
     $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::REMOVE);

@@ -26,8 +26,8 @@
 
 namespace App\Models\Bank;
 
-use App\Enums\BankAccountKind;
-use App\Enums\LedgerStatus;
+use App\Enums\Bank\BankAccountKind;
+use App\Enums\Finance\LedgerStatus;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
@@ -67,7 +67,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $e_wallet_account_id
  * @property string $direction
  * @property string $document_number
- * @property CarbonInterface $document_date
+ * @property CarbonInterface $date
  * @property string $offset_chart_id
  * @property numeric-string $amount
  * @property string|null $description
@@ -108,7 +108,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable([
     'bank_account_id', 'cash_account_id', 'e_wallet_account_id',
     'direction',
-    'document_number', 'document_date',
+    'document_number', 'date',
     'offset_chart_id', 'amount',
     'description', 'notes', 'status',
     'created_by', 'created_name', 'created_at',
@@ -131,7 +131,7 @@ class BankJournal extends Model
     protected function casts(): array
     {
         return [
-            'document_date' => 'date',
+            'date' => 'date',
             'status' => LedgerStatus::class,
             'amount' => 'decimal:2',
             'approved_at' => 'datetime',

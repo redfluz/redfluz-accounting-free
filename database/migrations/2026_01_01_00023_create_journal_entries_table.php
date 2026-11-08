@@ -29,7 +29,9 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -74,28 +76,38 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // Each chart line is one single-sided entry: one account, one amount,
+        // debit or credit, never both. A journal's balance is the sum of its
+        // lines, and the posting routine copies each line straight into the
+        // ledger, so the line carries the same standard columns a ledger row
+        // carries rather than a debit side and a credit side side by side.
         Schema::create('journal_entry_charts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('journal_entry_id')->constrained('journal_entries')->onDelete('cascade');
-            $table->foreignUuid('debit_id')->nullable();
-            $table->foreignUuid('credit_id')->nullable();
-            $table->string('debit_acc')->nullable();
-            $table->string('credit_acc')->nullable();
-            $table->string('debit_acc_desc')->nullable();
-            $table->string('credit_acc_desc')->nullable();
-            $table->string('document_number')->nullable();
+            $table->foreignUuid('journal_entry_id')->constrained('journal_entries')->cascadeOnDelete();
+            $table->foreignUuid('chart_id')->nullable()->constrained('charts');
+            $table->foreignUuid('company_id')->nullable()->constrained('companies');
+            $table->foreignUuid('currency_id')->nullable()->constrained('currencies');
+            $table->enum('type', array_column(LedgerType::cases(), 'value'));
+            $table->enum('subtype', array_column(LedgerSubType::cases(), 'value'));
+            $table->string('document_number');
             $table->string('reference_number')->nullable();
             $table->date('date');
-            $table->string('description')->nullable();
+            $table->string('chart_code')->nullable();
+            $table->string('chart_name')->nullable();
+            $table->string('company_name')->nullable();
+            $table->text('description')->nullable();
+            $table->text('line_description')->nullable();
             $table->decimal('debit_amount', 15)->default(0.00);
             $table->decimal('credit_amount', 15)->default(0.00);
-            $table->decimal('total_amount', 15)->default(0.00);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('debit_id');
-            $table->index('credit_id');
-            $table->index(['document_number']);
+            $table->index('journal_entry_id');
+            $table->index('document_number');
+            $table->index('reference_number');
+            $table->index('date');
+            $table->index('chart_id');
+            $table->index('company_id');
         });
     }
 

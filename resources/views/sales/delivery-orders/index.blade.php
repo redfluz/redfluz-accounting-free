@@ -1,9 +1,25 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\Sales\DeliveryOrder;
+    use App\Models\System\Setting;
+    use Illuminate\Pagination\LengthAwarePaginator;
+@endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, DeliveryOrder> */
+    'deliveryOrders',
+    /** @var string */
+    'search' => '',
+    /** @var string|null */
+    'startDate' => null,
+    /** @var string|null */
+    'endDate' => null,
+])
+
 @extends('layouts.app')
 
 @section('content')
     @php
-        use App\Enums\DeliveryOrderStatus;
+        use App\Enums\Sales\DeliveryOrderStatus;
         use App\Enums\FileAction;
         use App\Enums\FileResources;
 

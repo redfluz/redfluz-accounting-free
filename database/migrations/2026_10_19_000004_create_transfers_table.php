@@ -60,7 +60,7 @@ return new class extends Migration
             // The account holding cash between the drawer and the bank.
             $table->foreignUuid('transit_chart_id')->constrained('charts')->restrictOnDelete();
 
-            $table->date('document_date');
+            $table->date('date');
             $table->decimal('amount', 15, 2);
             $table->string('reference_number', 100)->nullable();
             $table->text('description')->nullable();
@@ -87,7 +87,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['direction', 'status'], 'transfers_direction_status_index');
-            $table->index('document_date', 'transfers_document_date_index');
+            $table->index('date', 'transfers_date_index');
         });
     }
 

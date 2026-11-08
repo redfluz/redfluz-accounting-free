@@ -155,7 +155,7 @@
 
 <body>
     <div class="header">
-        <table>
+        <table role="presentation">
             <tr>
                 <td>
                     @if ($setting->logo_path)

@@ -1,10 +1,15 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use App\Enums\FileAction;
+    use App\Enums\FileResources;
+    use Carbon\Carbon;
+@endphp
 @props(['documentNumber', 'lines', 'invoice', 'lineReturns', 'canDeductInventory' => false])
 
 @php
     $canUpdate = auth()
         ->user()
-        ->hasFilePermission(\App\Enums\FileResources::SALES_INVOICES, \App\Enums\FileAction::UPDATE);
+        ->hasFilePermission(FileResources::SALES_INVOICES, FileAction::UPDATE);
     $subtotal = $lines->sum(
         fn($line) => (float) $line->subtotal_amount !== 0.0
             ? (float) $line->subtotal_amount
@@ -19,7 +24,7 @@
     );
     $canReverse = auth()
         ->user()
-        ->hasFilePermission(\App\Enums\FileResources::SALES_INVOICES, \App\Enums\FileAction::APPROVE)
+        ->hasFilePermission(FileResources::SALES_INVOICES, FileAction::APPROVE)
         && ! $invoice->reversal_journal_id;
     $canReturn = $canUpdate && ! $invoice->reversal_journal_id && ! $invoice->undone_at;
     $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
@@ -88,7 +93,7 @@
                 <div class="md:col-3">
                     <div class="bg-2 rounded p-3">
                         <small class="fg-secondary d-block">{{ __('ledgers.table.column_date') }}</small>
-                        <strong>{{ \Carbon\Carbon::parse($invoice->date)->format(Setting::getDefaultDate()) }}</strong>
+                        <strong>{{ Carbon::parse($invoice->date)->format(Setting::getDefaultDate()) }}</strong>
                     </div>
                 </div>
                 <div class="md:col-3">

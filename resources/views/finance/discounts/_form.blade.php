@@ -14,20 +14,20 @@
             <div class="row g-3">
                 <div class="md:col-4">
                     <label class="form-label fw-bold" for="code">{{ __('discounts.form.code') }}</label>
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <input class="form-ghost @error('code') is-invalid @enderror" id="code" name="code"
                             value="{{ old('code', $discount?->code) }}" maxlength="50" required />
-                    </label>
+                    </div>
                     @error('code')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="md:col-8">
                     <label class="form-label fw-bold" for="name">{{ __('discounts.form.name') }}</label>
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <input class="form-ghost @error('name') is-invalid @enderror" id="name" name="name"
                             value="{{ old('name', $discount?->name) }}" required />
-                    </label>
+                    </div>
                     @error('name')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -48,11 +48,11 @@
                 </div>
                 <div class="md:col-6">
                     <label class="form-label fw-bold" for="value">{{ __('discounts.form.value') }}</label>
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <input class="form-ghost @error('value') is-invalid @enderror" id="value" name="value"
                             type="number" value="{{ old('value', $discount?->value ?? '0') }}" min="0"
                             step="0.0001" required />
-                    </label>
+                    </div>
                     @error('value')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -60,14 +60,14 @@
                 <div class="md:col-6">
                     <label class="form-label fw-bold"
                         for="starts_at">{{ __('discounts.form.starts_at') }}</label>
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <div class="form-adorn-icon" aria-hidden="true">
                             <i data-lucide="calendar"></i>
                         </div>
                         <input class="form-ghost @error('starts_at') is-invalid @enderror" id="starts_at" name="starts_at"
                             type="text" data-bs-toggle="datepicker" autocomplete="off"
                             value="{{ old('starts_at', $discount?->starts_at?->format('Y-m-d')) }}" />
-                    </label>
+                    </div>
                     @error('starts_at')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -75,14 +75,14 @@
                 <div class="md:col-6">
                     <label class="form-label fw-bold"
                         for="ends_at">{{ __('discounts.form.ends_at') }}</label>
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <div class="form-adorn-icon" aria-hidden="true">
                             <i data-lucide="calendar"></i>
                         </div>
                         <input class="form-ghost @error('ends_at') is-invalid @enderror" id="ends_at" name="ends_at"
                             type="text" data-bs-toggle="datepicker" autocomplete="off"
                             value="{{ old('ends_at', $discount?->ends_at?->format('Y-m-d')) }}" />
-                    </label>
+                    </div>
                     @error('ends_at')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

@@ -1,5 +1,11 @@
 @php
+    use Illuminate\Support\Carbon;
+    use App\Models\Bank\Bank;
+    use App\Models\Bank\CashAccount;
+    use App\Models\Bank\EWalletAccount;
     use App\Models\System\Setting;
+    use Illuminate\Pagination\LengthAwarePaginator;
+    use Illuminate\Support\Collection;
 
     $titles = [
         'cash' => __('money_ledgers.cash.title'),
@@ -20,6 +26,27 @@
     $totalDebit = $rows->sum('debit_amount');
     $totalCredit = $rows->sum('credit_amount');
 @endphp
+
+@props([
+    /** @var string */
+    'ledger',
+    /** @var string */
+    'kindLabel',
+    /** @var LengthAwarePaginator<int, \stdClass> */
+    'rows',
+    /** @var Collection<int, Bank|CashAccount|EWalletAccount> */
+    'accounts',
+    /** @var Collection<int, object{account: Bank|CashAccount|EWalletAccount, money_in: string, money_out: string, balance: string, isFiltered: bool}> */
+    'balances',
+    /** @var string */
+    'search' => '',
+    /** @var string */
+    'startDate' => '',
+    /** @var string */
+    'endDate' => '',
+    /** @var string */
+    'accountId' => '',
+])
 
 @extends('layouts.app')
 
@@ -95,7 +122,7 @@
                                 </select>
                             </div>
                             <div class="md:col-2">
-                                <label class="form-control form-adorn">
+                                <div class="form-control form-adorn">
                                     <div class="form-adorn-icon" aria-hidden="true">
                                         <i data-lucide="calendar"></i>
                                     </div>
@@ -103,10 +130,10 @@
                                         data-bs-toggle="datepicker" autocomplete="off"
                                         value="{{ $startDate }}"
                                         placeholder="{{ __('financial_reports.form.start_date') }}" />
-                                </label>
+                                </div>
                             </div>
                             <div class="md:col-2">
-                                <label class="form-control form-adorn">
+                                <div class="form-control form-adorn">
                                     <div class="form-adorn-icon" aria-hidden="true">
                                         <i data-lucide="calendar"></i>
                                     </div>
@@ -114,7 +141,7 @@
                                         data-bs-toggle="datepicker" autocomplete="off"
                                         value="{{ $endDate }}"
                                         placeholder="{{ __('financial_reports.form.end_date') }}" />
-                                </label>
+                                </div>
                             </div>
                             <div class="md:col-2">
                                 <input class="form-control" name="search" type="text" value="{{ $search }}"
@@ -152,7 +179,7 @@
                             @forelse ($rows as $row)
                                 <tr>
                                     <td class="fw-bold">{{ $row->document_number }}</td>
-                                    <td class="text-nowrap">{{ \Illuminate\Support\Carbon::parse($row->document_date)->format(Setting::getDefaultDate()) }}</td>
+                                    <td class="text-nowrap">{{ Carbon::parse($row->date)->format(Setting::getDefaultDate()) }}</td>
                                     <td>{{ $row->account_name ?? '-' }}</td>
                                     <td>{{ $row->reference_number ?? '-' }}</td>
                                     <td><small>{{ $row->description ?? '-' }}</small></td>

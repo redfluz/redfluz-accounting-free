@@ -31,9 +31,9 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Bank\Concerns\HandlesTransfers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bank\Transfer\UpdateCashTransferRequest;
@@ -97,7 +97,7 @@ class CashTransferController extends Controller
                 $query->where('document_number', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             }))
-            ->latest('document_date')
+            ->latest('date')
             ->paginate(static::PER_PAGE_GRID)
             ->withQueryString();
 
@@ -187,7 +187,7 @@ class CashTransferController extends Controller
             'cash_account_id' => $account->id,
             'bank_account_id' => null,
             'transit_chart_id' => $this->transitChart()->id,
-            'document_date' => $fields['documentDate'],
+            'date' => $fields['date'],
             'amount' => $this->toAmount($fields['amount']),
             'reference_number' => $fields['referenceNumber'],
             'description' => $fields['description'],
@@ -223,7 +223,7 @@ class CashTransferController extends Controller
 
         $transfer->update([
             'cash_account_id' => $account->id,
-            'document_date' => $fields['documentDate'],
+            'date' => $fields['date'],
             'amount' => $this->toAmount($fields['amount']),
             'reference_number' => $fields['referenceNumber'],
             'description' => $fields['description'],
@@ -307,7 +307,7 @@ class CashTransferController extends Controller
             $this->poster->post(
                 $transfer,
                 $transfer->document_number,
-                $transfer->document_date,
+                $transfer->date,
                 LedgerType::PAYMENT,
                 LedgerSubType::TRANSFER,
                 $legs,
@@ -486,12 +486,12 @@ class CashTransferController extends Controller
      * each field is checked once here and read as the type it is meant to be.
      *
      * @param  array<string, mixed>  $validated  The validated request input.
-     * @return array{cashAccountId: string, documentDate: string, amount: string, referenceNumber: string|null, description: string|null, notes: string|null}
+     * @return array{cashAccountId: string, date: string, amount: string, referenceNumber: string|null, description: string|null, notes: string|null}
      */
     private function fields(array $validated): array
     {
         $cashAccountId = $validated['cash_account_id'] ?? null;
-        $documentDate = $validated['document_date'] ?? null;
+        $date = $validated['date'] ?? null;
         $rawAmount = $validated['amount'] ?? null;
         $referenceNumber = $validated['reference_number'] ?? null;
         $description = $validated['description'] ?? null;
@@ -499,7 +499,7 @@ class CashTransferController extends Controller
 
         if (
             ! is_string($cashAccountId)
-            || ! is_string($documentDate)
+            || ! is_string($date)
             || ! is_numeric($rawAmount)
         ) {
             abort(422);
@@ -507,7 +507,7 @@ class CashTransferController extends Controller
 
         return [
             'cashAccountId' => $cashAccountId,
-            'documentDate' => $documentDate,
+            'date' => $date,
             'amount' => (string) $rawAmount,
             'referenceNumber' => is_string($referenceNumber) ? $referenceNumber : null,
             'description' => is_string($description) ? $description : null,
@@ -524,7 +524,7 @@ class CashTransferController extends Controller
     {
         return [
             'cash_account_id' => ['required', 'uuid'],
-            'document_date' => ['required', 'date'],
+            'date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],

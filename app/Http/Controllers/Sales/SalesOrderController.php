@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Constants\FlashMessage;
-use App\Enums\DiscountType;
+use App\Enums\Finance\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\SalesOrderStatus;
-use App\Enums\SalesType;
-use App\Enums\TaxMode;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Sales\SalesOrderStatus;
+use App\Enums\Sales\SalesType;
+use App\Enums\Finance\TaxMode;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\SalesOrder\StoreSalesOrderRequest;
 use App\Http\Requests\Sales\SalesOrder\UpdateSalesOrderRequest;
@@ -33,6 +33,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -41,6 +42,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
+use function is_string;
+use function is_array;
 
 /**
  * Maintain customer Sales Orders before delivery fulfilment.
@@ -63,14 +66,14 @@ class SalesOrderController extends Controller
         $endDate = $request->string('end_date')->toString();
         $salesOrders = SalesOrder::query()
             ->withCount('lines')
-            ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search): void {
+            ->when($search !== '', fn($query) => $query->where(function ($subQuery) use ($search): void {
                 $subQuery->where('document_number', 'like', "%$search%")
-                    ->orWhereHas('quotation', fn ($query) => $query->where('document_number', 'like', "%$search%"))
+                    ->orWhereHas('quotation', fn($query) => $query->where('document_number', 'like', "%$search%"))
                     ->orWhere('customer_reference_number', 'like', "%$search%")
                     ->orWhere('company_name', 'like', "%$search%");
             }))
-            ->when($startDate !== '', fn ($query) => $query->whereDate('order_date', '>=', $startDate))
-            ->when($endDate !== '', fn ($query) => $query->whereDate('order_date', '<=', $endDate))
+            ->when($startDate !== '', fn($query) => $query->whereDate('order_date', '>=', $startDate))
+            ->when($endDate !== '', fn($query) => $query->whereDate('order_date', '<=', $endDate))
             ->latest('order_date')
             ->paginate(self::PER_PAGE_GRID_NORMAL)
             ->withQueryString();
@@ -129,7 +132,7 @@ class SalesOrderController extends Controller
         /** @var Collection<int, array<string, mixed>> $linesCollection */
         $linesCollection = $request->collect('lines');
         $lines = $linesCollection->filter(
-            fn (array $line): bool => filled($line['product_id'] ?? null)
+            fn(array $line): bool => filled($line['product_id'] ?? null)
         )->values();
         if ($lines->isEmpty()) {
             throw ValidationException::withMessages(['lines' => __('sales_orders.validation.lines_required')]);
@@ -173,7 +176,7 @@ class SalesOrderController extends Controller
         });
         $total = $preparedLines->reduce(
             /** @param numeric-string $sum */
-            fn (string $sum, array $line): string => bcadd(
+            fn(string $sum, array $line): string => bcadd(
                 $sum,
                 DecimalService::normalize(is_string($line['total_amount']) ? $line['total_amount'] : '0.00'),
                 2
@@ -207,7 +210,7 @@ class SalesOrderController extends Controller
                 'attachment_path' => $attachmentPath,
             ])->save();
             $now = now();
-            $rows = $preparedLines->map(fn (array $line): array => [
+            $rows = $preparedLines->map(fn(array $line): array => [
                 'id' => (string) Str::uuid7(),
                 'sales_order_id' => $salesOrder->id,
                 ...$line,
@@ -250,7 +253,7 @@ class SalesOrderController extends Controller
         return Pdf::loadView('sales.sales-orders.pdf', [
             'salesOrder' => $salesOrder,
             'setting' => Setting::query()->firstOrNew(),
-        ])->setPaper('a4')->stream($salesOrder->document_number.'.pdf');
+        ])->setPaper('a4')->stream($salesOrder->document_number . '.pdf');
     }
 
     /**
@@ -284,7 +287,7 @@ class SalesOrderController extends Controller
         /** @var Collection<int, array<string, mixed>> $linesCollection */
         $linesCollection = $request->collect('lines');
         $lines = $linesCollection->filter(
-            fn (array $line): bool => filled($line['product_id'] ?? null)
+            fn(array $line): bool => filled($line['product_id'] ?? null)
         )->values();
         if ($lines->isEmpty()) {
             throw ValidationException::withMessages(['lines' => __('sales_orders.validation.lines_required')]);
@@ -328,7 +331,7 @@ class SalesOrderController extends Controller
         });
         $total = $preparedLines->reduce(
             /** @param numeric-string $sum */
-            fn (string $sum, array $line): string => bcadd(
+            fn(string $sum, array $line): string => bcadd(
                 $sum,
                 DecimalService::normalize(is_string($line['total_amount']) ? $line['total_amount'] : '0.00'),
                 2
@@ -360,7 +363,7 @@ class SalesOrderController extends Controller
             ])->save();
             SalesOrderLine::query()->where('sales_order_id', $salesOrder->id)->delete();
             $now = now();
-            $rows = $preparedLines->map(fn (array $line): array => [
+            $rows = $preparedLines->map(fn(array $line): array => [
                 'id' => (string) Str::uuid7(),
                 'sales_order_id' => $salesOrder->id,
                 ...$line,
@@ -390,6 +393,21 @@ class SalesOrderController extends Controller
 
         return redirect()->route('sales.sales-orders.index')
             ->with('success', FlashMessage::deleted(FileResources::SALES_ORDERS));
+    }
+
+    /**
+     * Stream the file attached to the sales order.
+     *
+     * @param  SalesOrder  $salesOrder  The order whose attachment is being opened.
+     * @return StreamedResponse The stored file, or a 404 when it is gone.
+     */
+    public function downloadAttachment(SalesOrder $salesOrder): StreamedResponse
+    {
+        $this->allows(FileResources::SALES_ORDERS);
+
+        abort_unless($this->documentExists($salesOrder->attachment_path), 404);
+
+        return $this->downloadDocument($salesOrder->attachment_path);
     }
 
     /**
@@ -450,7 +468,7 @@ class SalesOrderController extends Controller
             $documentNumber = $this->generateDocumentNumber(LedgerSubType::SALES_INVOICE);
             $invoiceDate = today()->toDateString();
             $now = now();
-            $stockLines = $lockedOrder->lines->map(fn (SalesOrderLine $line): array => [
+            $stockLines = $lockedOrder->lines->map(fn(SalesOrderLine $line): array => [
                 'product_id' => $line->product_id,
                 'quantity' => $line->ordered_quantity,
             ]);
@@ -601,7 +619,7 @@ class SalesOrderController extends Controller
         /** @var EloquentCollection<int, Company> $companies */
         $companies = Company::query()->where('is_debtor', true)->orderBy('name')->get();
         /** @var EloquentCollection<int, Contact> $contacts */
-        $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get();
+        $contacts = Contact::query()->whereHas('company', fn($query) => $query->where('is_debtor', true))->orderBy('name')->get();
         /** @var EloquentCollection<int, Product> $products */
         $products = Product::query()->where('is_service', false)->orderBy('name')->get();
         /** @var EloquentCollection<int, Discount> $discounts */

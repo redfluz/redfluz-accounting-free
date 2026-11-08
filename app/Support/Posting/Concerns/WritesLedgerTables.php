@@ -26,7 +26,7 @@
 
 namespace App\Support\Posting\Concerns;
 
-use App\Enums\BankAccountKind;
+use App\Enums\Bank\BankAccountKind;
 use App\Models\Bank\Bank;
 use App\Models\Bank\CashAccount;
 use App\Models\Bank\EWalletAccount;

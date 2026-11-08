@@ -2,7 +2,7 @@
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\LedgerStatus;
+    use App\Enums\Finance\LedgerStatus;
 
     $canApprove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
     $isPosted = $journalEntry->status === LedgerStatus::POSTED;

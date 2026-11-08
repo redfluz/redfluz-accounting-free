@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Bank;
 
-use App\Enums\LedgerStatus;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -77,7 +77,7 @@ class PaymentVoucherData extends Data
         #[MapName('company_id')]
         public ?string $companyId = null,
 
-        #[MapName('document_date')]
+        #[MapName('date')]
         public ?CarbonImmutable $date = null,
 
         #[MapName('reference_number')]

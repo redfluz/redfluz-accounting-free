@@ -28,9 +28,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ChartOfAccount\ChartReportDetail;
 
-use App\Enums\ChartReportTypeEnum;
-use App\Enums\ChartTotalReportTypeEnum;
-use App\Enums\ChartTypeEnum;
+use App\Enums\ChartOfAccount\ChartReportTypeEnum;
+use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
+use App\Enums\ChartOfAccount\ChartTypeEnum;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Models\ChartOfAccount\ChartReport;

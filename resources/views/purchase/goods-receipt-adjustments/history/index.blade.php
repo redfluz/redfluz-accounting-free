@@ -1,4 +1,5 @@
 @php
+    use App\Models\Inventory\ProductLedger;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
@@ -9,7 +10,7 @@
 @endphp
 
 @props([
-    /** @var LengthAwarePaginator<int, \App\Models\Inventory\ProductLedger> */
+    /** @var LengthAwarePaginator<int, ProductLedger> */
     'entries',
     /** @var string|null */
     'search',

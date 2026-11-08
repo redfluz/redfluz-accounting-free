@@ -28,10 +28,10 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Inventory;
 
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use App\Models\Inventory\ProductLedger;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

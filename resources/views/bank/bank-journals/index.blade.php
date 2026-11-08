@@ -82,7 +82,7 @@
                         @forelse ($journals as $journal)
                             <tr>
                                 <td class="fw-bold">{{ $journal->document_number }}</td>
-                                <td>{{ $journal->document_date->format(Setting::getDefaultDate()) }}</td>
+                                <td>{{ $journal->date->format(Setting::getDefaultDate()) }}</td>
                                 <td>
                                     @if ($journal->direction === 'in')
                                         <span class="badge theme-success d-inline-flex align-items-center">

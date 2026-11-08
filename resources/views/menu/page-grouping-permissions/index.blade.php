@@ -1,4 +1,5 @@
 @php
+    use Illuminate\Support\Js;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     use App\Models\Menu\Folder;
@@ -210,7 +211,7 @@
 
                     showToast(
                         'success',
-                        {!! \Illuminate\Support\Js::from(__('page_grouping_permissions.updated')) !!}.replace(':count', String(changeCount)),
+                        {!! Js::from(__('page_grouping_permissions.updated')) !!}.replace(':count', String(changeCount)),
                     );
 
                     document.querySelectorAll('.permission-checkbox').forEach((cb) => {

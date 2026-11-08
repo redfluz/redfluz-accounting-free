@@ -122,43 +122,27 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($voucher->charts as $line)
+                        @php $displayEntries = $voucher->relationLoaded('apLedgers') ? $voucher->apLedgers : collect(); @endphp
+                        @forelse ($displayEntries as $line)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                {{-- Debit Account: Code ~ Name --}}
-                                <td>
-                                    @if ($line->debitChart)
-                                        {{ $line->debitChart->code }} ~ {{ $line->debitChart->name }}
-                                    @else
-                                        {{ $line->debit_acc ?? '-' }}
-                                    @endif
-                                </td>
-
-                                {{-- Credit Account: Code ~ Name --}}
-                                <td>
-                                    @if ($line->creditChart)
-                                        {{ $line->creditChart->code }} ~ {{ $line->creditChart->name }}
-                                    @else
-                                        {{ $line->credit_acc ?? '-' }}
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    {{ $line->debit_id !== null ? number_format((float) $line->debit_amount, 2) : '' }}
-                                </td>
-                                <td class="text-end">
-                                    {{ $line->credit_id !== null ? number_format((float) $line->credit_amount, 2) : '' }}
-                                </td>
+                                <td>{{ (float)($line->debit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
+                                <td>{{ (float)($line->credit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
+                                <td class="text-end">{{ (float)($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
+                                <td class="text-end">{{ (float)($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr><td colspan="5" class="text-center fg-secondary">{{ $voucher->status?->value === 'posted' ? '-' : __('common.messages.no_data') }}</td></tr>
+                        @endforelse
                     </tbody>
                     <tfoot class="bg-1 fw-bold border-top">
                         <tr>
                             <td colspan="3" class="text-end">{{ __('common.labels.total') }}:</td>
                             <td class="text-end">
-                                {{ number_format((float) $voucher->charts->whereNotNull('debit_id')->sum('debit_amount'), 2) }}
+                                {{ number_format((float) $voucher->total_amount, 2) }}
                             </td>
                             <td class="text-end">
-                                {{ number_format((float) $voucher->charts->whereNotNull('credit_id')->sum('credit_amount'), 2) }}
+                                {{ number_format((float) $voucher->total_amount, 2) }}
                             </td>
                         </tr>
                     </tfoot>

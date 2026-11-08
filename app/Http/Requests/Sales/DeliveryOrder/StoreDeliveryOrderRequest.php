@@ -30,7 +30,7 @@ namespace App\Http\Requests\Sales\DeliveryOrder;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\ShippingStatus;
+use App\Enums\Sales\ShippingStatus;
 use App\Enums\UploadType;
 use Illuminate\Validation\Rule;
 

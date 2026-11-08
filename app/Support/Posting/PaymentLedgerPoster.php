@@ -26,9 +26,9 @@
 
 namespace App\Support\Posting;
 
-use App\Enums\BankAccountKind;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Bank\BankAccountKind;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Models\Bank\Bank;
 use App\Models\Bank\CashAccount;
 use App\Models\Bank\EWalletAccount;
@@ -66,7 +66,7 @@ class PaymentLedgerPoster
      *
      * @param  Model  $document  The receipt, voucher or refund.
      * @param  string  $documentNumber  Its number, recorded on every row.
-     * @param  DateTimeInterface  $documentDate  Its date.
+     * @param  DateTimeInterface  $date  The document's date, booked on every row.
      * @param  LedgerType  $type  Recorded on the general ledger rows.
      * @param  LedgerSubType  $subtype  The finer kind.
      * @param  list<PostingLeg>  $legs  The double entry, one side per leg.
@@ -74,6 +74,11 @@ class PaymentLedgerPoster
      * @param  string|null  $contactId  The person at that company.
      * @param  string|null  $companyName  Snapshotted onto the rows.
      * @param  string|null  $referenceNumber  What the payment settles or corrects.
+     * @param  bool  $writeCounterparty  Whether to file the counterparty row in the
+     *                                   receivable or payable ledger. A voucher paid
+     *                                   to an employee or a statutory body has no
+     *                                   company to file under, so it writes the
+     *                                   general and money ledgers only.
      * @return PostingResult How many rows each ledger received.
      *
      * @throws PostingException
@@ -81,7 +86,7 @@ class PaymentLedgerPoster
     public function post(
         Model $document,
         string $documentNumber,
-        DateTimeInterface $documentDate,
+        DateTimeInterface $date,
         LedgerType $type,
         LedgerSubType $subtype,
         array $legs,
@@ -89,12 +94,13 @@ class PaymentLedgerPoster
         ?string $contactId = null,
         ?string $companyName = null,
         ?string $referenceNumber = null,
+        bool $writeCounterparty = true,
     ): PostingResult {
         if ($legs === []) {
             throw PostingException::postingInputInvalid($documentNumber);
         }
 
-        $date = Carbon::instance(DateTime::createFromInterface($documentDate));
+        $date = Carbon::instance(DateTime::createFromInterface($date));
         $key = $document->getKey();
         $documentKey = is_string($key) ? $key : '';
 
@@ -108,27 +114,25 @@ class PaymentLedgerPoster
         $companyName ??= is_string($documentCompanyName) ? $documentCompanyName : null;
 
         $generalRowArrays = [];
-        $sourceType = GeneralLedgerData::sourceTypeFor($subtype);
 
         foreach ($legs as $leg) {
             $chart = $charts[$leg->chartId] ?? null;
 
             $generalRowArrays[] = LedgerData::fromLeg(
                 $leg,
-                $documentKey,
                 $type,
                 $subtype,
-                $sourceType,
                 [
                     'code' => $chart['code'] ?? null,
                     'name' => $chart['name'] ?? null,
                 ],
                 $companyId,
                 $companyName,
-                $contactId,
+                $currency['id'],
                 $documentNumber,
                 $date,
                 $referenceNumber,
+                is_string($document->notes ?? null) ? $document->notes : null,
             )->toRow();
         }
 
@@ -160,7 +164,7 @@ class PaymentLedgerPoster
                     sourceId: $documentKey,
                     sourceType: $document->getMorphClass(),
                     documentNumber: $documentNumber,
-                    documentDate: $date->format('Y-m-d'),
+                    date: $date->format('Y-m-d'),
                     referenceNumber: $leg->referenceNumber,
                     debitAmount: $leg->debit,
                     creditAmount: $leg->credit,
@@ -183,7 +187,7 @@ class PaymentLedgerPoster
                     sourceId: $documentKey,
                     sourceType: $document->getMorphClass(),
                     documentNumber: $documentNumber,
-                    documentDate: $date->format('Y-m-d'),
+                    date: $date->format('Y-m-d'),
                     referenceNumber: $leg->referenceNumber,
                     debitAmount: $leg->debit,
                     creditAmount: $leg->credit,
@@ -207,7 +211,7 @@ class PaymentLedgerPoster
                     sourceId: $documentKey,
                     sourceType: $document->getMorphClass(),
                     documentNumber: $documentNumber,
-                    documentDate: $date->format('Y-m-d'),
+                    date: $date->format('Y-m-d'),
                     referenceNumber: $leg->referenceNumber,
                     debitAmount: $leg->debit,
                     creditAmount: $leg->credit,
@@ -219,7 +223,7 @@ class PaymentLedgerPoster
                 continue;
             }
 
-            if ($side === null) {
+            if ($side === null || ! $writeCounterparty) {
                 continue;
             }
 

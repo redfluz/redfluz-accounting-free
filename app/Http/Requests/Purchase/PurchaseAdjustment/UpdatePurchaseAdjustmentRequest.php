@@ -30,7 +30,7 @@ namespace App\Http\Requests\Purchase\PurchaseAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerSubType;
 use Illuminate\Validation\Rule;
 
 /**

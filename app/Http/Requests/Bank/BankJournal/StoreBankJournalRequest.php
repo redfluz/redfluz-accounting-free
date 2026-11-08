@@ -115,7 +115,7 @@ class StoreBankJournalRequest extends BaseFormRequest
                 },
             ],
             'direction' => ['required', 'string', Rule::in(['in', 'out'])],
-            'document_date' => ['required', 'date'],
+            'date' => ['required', 'date'],
             'offset_chart_id' => [
                 'required',
                 'uuid',

@@ -28,7 +28,7 @@ namespace App\Http\Controllers\Sales\SalesAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Sales\SalesAdjustment;
 use App\Models\System\Setting;
@@ -119,6 +119,7 @@ class CancelledController extends Controller
         $this->allows(FileResources::SALES_ADJUSTMENTS);
 
         $adjustment = SalesAdjustment::query()
+            ->with(['charts', 'company'])
             ->where('document_number', $documentNumber)
             ->first();
 
@@ -134,7 +135,7 @@ class CancelledController extends Controller
                 ->with('info', __('common.messages.no_longer_cancelled'));
         }
 
-        $entries = $adjustment->lines;
+        $entries = $adjustment->charts;
 
         return view('sales.adjustments.cancelled.show', compact('documentNumber', 'entries', 'adjustment'));
     }

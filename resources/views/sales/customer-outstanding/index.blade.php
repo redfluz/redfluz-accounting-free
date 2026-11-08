@@ -1,12 +1,16 @@
 @php
+    use App\Models\Sales\SalesInvoice;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     use Carbon\Carbon;
 
-    $canViewInvoices = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::READ);
+    $canViewInvoices = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES);
 @endphp
-
+@props([
+    /** @var SalesInvoice */
+    'invoice',
+])
 @extends('layouts.app')
 
 @section('content')
@@ -18,11 +22,13 @@
             </div>
             <div class="d-flex gap-2">
                 <a class="btn btn-solid theme-success"
-                    href="{{ route('sales.customer-outstanding.export-excel', request()->query()) }}"><i class="me-1"
-                        data-lucide="file-spreadsheet"></i> Excel</a>
+                   href="{{ route('sales.customer-outstanding.export-excel', request()->query()) }}"><i class="me-1"
+                                                                                                        data-lucide="file-spreadsheet"></i>
+                    Excel</a>
                 <a class="btn btn-solid theme-info"
-                    href="{{ route('sales.customer-outstanding.export-pdf', request()->query()) }}"><i class="me-1"
-                        data-lucide="file-text"></i> PDF</a>
+                   href="{{ route('sales.customer-outstanding.export-pdf', request()->query()) }}"><i class="me-1"
+                                                                                                      data-lucide="file-text"></i>
+                    PDF</a>
             </div>
         </div>
         <div class="card-body">
@@ -35,72 +41,82 @@
                         <i class="accordion-icon" data-lucide="chevron-down"></i>
                     </summary>
                     <div class="accordion-body">
-                            <form autocomplete="off" action="{{ route('sales.customer-outstanding.index') }}" method="GET">
-                                <div class="row g-2 align-items-end">
-                                    <div class="md:col-3">
-                                        <label class="form-label small mb-1" for="search">{{ __('common.actions.search') }}</label>
-                                        <input class="form-control" id="search" name="search" value="{{ $search }}"
-                                            placeholder="{{ __('customer_outstanding.search_placeholder') }}" />
-                                    </div>
-                                    <div class="md:col-2">
-                                        <label
-                                            class="form-label small mb-1" for="start_date">{{ __('customer_outstanding.invoice_date_from') }}</label>
-                                        <label class="form-control form-adorn">
-                                            <div class="form-adorn-icon" aria-hidden="true">
-                                                <i data-lucide="calendar"></i>
-                                            </div>
-                                            <input class="form-ghost" id="start_date" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
-                                                value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
-                                        </label>
-                                    </div>
-                                    <div class="md:col-2">
-                                        <label
-                                            class="form-label small mb-1" for="end_date">{{ __('customer_outstanding.invoice_date_to') }}</label>
-                                        <label class="form-control form-adorn">
-                                            <div class="form-adorn-icon" aria-hidden="true">
-                                                <i data-lucide="calendar"></i>
-                                            </div>
-                                            <input class="form-ghost" id="end_date" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
-                                                value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
-                                        </label>
-                                    </div>
-                                    <div class="md:col-2">
-                                        <label
-                                            class="form-label small mb-1" for="as_of_date">{{ __('customer_outstanding.as_of_date') }}</label>
-                                        <input class="form-control" id="as_of_date" name="as_of_date" type="text"
-                                            data-bs-toggle="datepicker" autocomplete="off" value="{{ $asOfDate->toDateString() }}" />
-                                    </div>
-                                    <div class="md:col-2">
-                                        <label
-                                            class="form-label small mb-1" for="status">{{ __('customer_outstanding.status') }}</label>
-                                        <select class="form-control" id="status" name="status">
-                                            @foreach (['outstanding', 'overdue', 'due_soon'] as $option)
-                                                <option value="{{ $option }}" @selected($status === $option)>
-                                                    {{ __('customer_outstanding.statuses.' . $option) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="md:col-1 d-flex gap-2">
-                                        <button class="btn btn-solid theme-primary" type="submit"
-                                            title="{{ __('common.actions.search') }}">
-                                            <i data-lucide="search"></i>
-                                        </button>
-                                        <a class="btn btn-outline border"
-                                            href="{{ route('sales.customer-outstanding.index') }}"
-                                            title="{{ __('common.actions.reset') }}">
-                                            <i data-lucide="rotate-ccw"></i>
-                                        </a>
+                        <form autocomplete="off" action="{{ route('sales.customer-outstanding.index') }}" method="GET">
+                            <div class="row g-2 align-items-end">
+                                <div class="md:col-3">
+                                    <label class="form-label small mb-1"
+                                           for="search">{{ __('common.actions.search') }}</label>
+                                    <input class="form-control" id="search" name="search" value="{{ $search }}"
+                                           placeholder="{{ __('customer_outstanding.search_placeholder') }}"/>
+                                </div>
+                                <div class="md:col-2">
+                                    <label
+                                        class="form-label small mb-1"
+                                        for="start_date">{{ __('customer_outstanding.invoice_date_from') }}</label>
+                                    <div class="form-control form-adorn">
+                                        <div class="form-adorn-icon" aria-hidden="true">
+                                            <i data-lucide="calendar"></i>
+                                        </div>
+                                        <input class="form-ghost" id="start_date" name="start_date" type="text"
+                                               data-bs-toggle="datepicker" autocomplete="off"
+                                               value="{{ $startDate }}"
+                                               placeholder="{{ __('financial_reports.form.start_date') }}"/>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
+                                <div class="md:col-2">
+                                    <label
+                                        class="form-label small mb-1"
+                                        for="end_date">{{ __('customer_outstanding.invoice_date_to') }}</label>
+                                    <div class="form-control form-adorn">
+                                        <div class="form-adorn-icon" aria-hidden="true">
+                                            <i data-lucide="calendar"></i>
+                                        </div>
+                                        <input class="form-ghost" id="end_date" name="end_date" type="text"
+                                               data-bs-toggle="datepicker" autocomplete="off"
+                                               value="{{ $endDate }}"
+                                               placeholder="{{ __('financial_reports.form.end_date') }}"/>
+                                    </div>
+                                </div>
+                                <div class="md:col-2">
+                                    <label
+                                        class="form-label small mb-1"
+                                        for="as_of_date">{{ __('customer_outstanding.as_of_date') }}</label>
+                                    <input class="form-control" id="as_of_date" name="as_of_date" type="text"
+                                           data-bs-toggle="datepicker" autocomplete="off"
+                                           value="{{ $asOfDate->toDateString() }}"/>
+                                </div>
+                                <div class="md:col-2">
+                                    <label
+                                        class="form-label small mb-1"
+                                        for="status">{{ __('customer_outstanding.status') }}</label>
+                                    <select class="form-control" id="status" name="status">
+                                        @foreach (['outstanding', 'overdue', 'due_soon'] as $option)
+                                            <option value="{{ $option }}" @selected($status === $option)>
+                                                {{ __('customer_outstanding.statuses.' . $option) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="md:col-1 d-flex gap-2">
+                                    <button class="btn btn-solid theme-primary" type="submit"
+                                            title="{{ __('common.actions.search') }}">
+                                        <i data-lucide="search"></i>
+                                    </button>
+                                    <a class="btn btn-outline border"
+                                       href="{{ route('sales.customer-outstanding.index') }}"
+                                       title="{{ __('common.actions.reset') }}">
+                                        <i data-lucide="rotate-ccw"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
 
-</details>
+                </details>
 
-            <div class="table-responsive rounded-5 overflow-hidden border">
-                <table class="table-hover table-striped mb-0 table align-middle">
-                    <thead class="bg-1">
+                <div class="table-responsive rounded-5 overflow-hidden border">
+                    <table class="table-hover table-striped mb-0 table align-middle">
+                        <thead class="bg-1">
                         <tr>
                             <th scope="col">{{ __('customer_outstanding.reference') }}</th>
                             <th scope="col">{{ __('customer_outstanding.customer') }}</th>
@@ -114,8 +130,8 @@
                             <th scope="col" class="text-end">{{ __('customer_outstanding.balance') }}</th>
                             <th scope="col">{{ __('customer_outstanding.status') }}</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         @forelse ($invoices as $invoice)
                             @php
                                 $dueDate = $invoice->due_date;
@@ -125,7 +141,7 @@
                                 <td>
                                     @if ($canViewInvoices)
                                         <a class="fw-bold text-decoration-none"
-                                            href="{{ route('sales.invoices.show', $invoice->document_number) }}">{{ $invoice->document_number }}</a>
+                                           href="{{ route('sales.invoices.show', $invoice->document_number) }}">{{ $invoice->document_number }}</a>
                                     @else
                                         <span class="fw-bold">{{ $invoice->document_number }}</span>
                                     @endif
@@ -156,14 +172,16 @@
                                     @endphp
                                     <div class="d-flex align-items-center gap-2 justify-content-end">
                                         <div class="progress flex-grow-1" style="height: 6px; min-width: 60px;">
-                                            <div class="progress-bar {{ $paidPercent >= 100 ? 'theme-success' : ($paidPercent > 0 ? 'theme-primary' : '') }}"
+                                            <div
+                                                class="progress-bar {{ $paidPercent >= 100 ? 'theme-success' : ($paidPercent > 0 ? 'theme-primary' : '') }}"
                                                 role="progressbar"
                                                 style="width: {{ $paidPercent }}%"
                                                 aria-valuenow="{{ $paidPercent }}"
                                                 aria-valuemin="0"
                                                 aria-valuemax="100"></div>
                                         </div>
-                                        <span class="small text-nowrap">{{ $currencySymbol }} {{ number_format((float) $invoice->paid_amount, 2) }}</span>
+                                        <span
+                                            class="small text-nowrap">{{ $currencySymbol }} {{ number_format((float) $invoice->paid_amount, 2) }}</span>
                                     </div>
                                 </td>
                                 <td class="fw-bold text-end">
@@ -187,8 +205,8 @@
                                 </td>
                             </tr>
                         @endforelse
-                    </tbody>
-                    <tfoot class="bg-1">
+                        </tbody>
+                        <tfoot class="bg-1">
                         <tr class="fw-bold">
                             <td colspan="2">{{ __('customer_outstanding.grand_total') }}</td>
                             <td class="text-end">
@@ -204,10 +222,10 @@
                             <td class="text-end">{{ $currencySymbol }} {{ number_format((float) $totals['balance_amount'], 2) }}</td>
                             <td></td>
                         </tr>
-                    </tfoot>
-                </table>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-end mt-3">{{ $invoices->links() }}</div>
             </div>
-            <div class="d-flex justify-content-end mt-3">{{ $invoices->links() }}</div>
         </div>
-    </div>
 @endsection

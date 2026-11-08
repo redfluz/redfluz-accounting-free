@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Finance;
 
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Models\Finance\JournalEntry;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

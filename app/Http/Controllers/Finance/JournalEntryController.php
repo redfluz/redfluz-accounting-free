@@ -29,13 +29,17 @@ namespace App\Http\Controllers\Finance;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Finance\JournalEntry\BatchApproveJournalEntryRequest;
+use App\Http\Requests\Finance\JournalEntry\BatchCancelJournalEntryRequest;
+use App\Http\Requests\Finance\JournalEntry\ReverseJournalEntryRequest;
 use App\Http\Requests\Finance\JournalEntry\StoreJournalEntryRequest;
 use App\Http\Requests\Finance\JournalEntry\UpdateJournalEntryRequest;
 use App\Models\ChartOfAccount\Chart;
+use App\Models\Finance\Currency;
 use App\Models\Finance\JournalEntry;
 use App\Models\Finance\JournalEntryChart;
 use App\Models\Finance\Ledger;
@@ -91,10 +95,9 @@ class JournalEntryController extends Controller
                         ->orWhere('reference_number', 'like', "%$search%")
                         ->orWhere('notes', 'like', "%$search%")
                         ->orWhereHas('charts', fn ($iq) => $iq
-                            ->where('debit_acc', 'like', "%$search%")
-                            ->orWhere('credit_acc', 'like', "%$search%")
-                            ->orWhere('debit_acc_desc', 'like', "%$search%")
-                            ->orWhere('credit_acc_desc', 'like', "%$search%")
+                            ->where('chart_code', 'like', "%$search%")
+                            ->orWhere('chart_name', 'like', "%$search%")
+                            ->orWhere('line_description', 'like', "%$search%")
                             ->orWhere('description', 'like', "%$search%"));
                 });
             })
@@ -303,12 +306,12 @@ class JournalEntryController extends Controller
      * originate from an older application version, an import, or a direct database
      * correction. The posting transaction enforces these accounting rules:
      *
-     * 1. Debit and credit cannot both be zero because a zero-value line has no
+     * 1. Every line must carry an account because a line without one has no
+     *    ledger destination.
+     * 2. Debit and credit cannot both be zero because a zero-value line has no
      *    financial effect and must not become part of the General Ledger history.
-     * 2. Debit and credit cannot both contain positive amounts because one journal
+     * 3. Debit and credit cannot both contain positive amounts because one
      *    line represents only one side of the double-entry transaction.
-     * 3. The selected account side must match the amount side: a debit account
-     *    requires a debit amount, while a credit account requires a credit amount.
      *
      * Approval is atomic: either every valid line is posted and the entry becomes
      * posted, or the complete transaction is rolled back without changing the ledger.
@@ -335,12 +338,11 @@ class JournalEntryController extends Controller
             abort_if($itemIds === [], 422, __('journal_entries.lines_required'));
 
             foreach ($lockedEntry->charts as $index => $item) {
-                $hasDebitAccount = $item->debit_id !== null;
-                $hasCreditAccount = $item->credit_id !== null;
+                $hasAccount = $item->chart_id !== null;
                 $hasDebitAmount = bccomp((string) $item->debit_amount, '0.00', 2) === 1;
                 $hasCreditAmount = bccomp((string) $item->credit_amount, '0.00', 2) === 1;
 
-                if ($hasDebitAccount === $hasCreditAccount) {
+                if (! $hasAccount) {
                     throw ValidationException::withMessages([
                         'items.'.$index.'.chart_id' => __('journal_entries.account_required'),
                     ]);
@@ -357,12 +359,6 @@ class JournalEntryController extends Controller
                         'items.'.$index.'.debit_amount' => __('journal_entries.one_side_only'),
                     ]);
                 }
-
-                if ($hasDebitAccount !== $hasDebitAmount || $hasCreditAccount !== $hasCreditAmount) {
-                    throw ValidationException::withMessages([
-                        'items.'.$index.'.chart_id' => __('journal_entries.account_amount_mismatch'),
-                    ]);
-                }
             }
 
             abort_if(
@@ -372,33 +368,27 @@ class JournalEntryController extends Controller
             );
 
             $now = now();
+            /** @var string|null $currencyId */
+            $currencyId = Currency::query()->where('is_default', true)->value('id');
             $ledgerRows = $lockedEntry->charts
                 ->values()
                 ->map(fn (JournalEntryChart $item): array => [
                     'id' => $item->id,
-                    'source_id' => $item->id,
-                    'source_type' => null,
-                    'company_id' => null,
-                    'contact_id' => null,
-                    'debit_id' => $item->debit_id,
-                    'credit_id' => $item->credit_id,
-                    'debit_acc' => $item->debit_acc,
-                    'credit_acc' => $item->credit_acc,
-                    'debit_acc_desc' => $item->debit_acc_desc,
-                    'credit_acc_desc' => $item->credit_acc_desc,
-                    'company_name' => null,
+                    'chart_id' => $item->chart_id,
+                    'company_id' => $item->company_id,
+                    'currency_id' => $item->currency_id ?? $currencyId,
+                    'type' => $item->type,
+                    'subtype' => $item->subtype,
                     'document_number' => $item->document_number,
                     'reference_number' => $item->reference_number,
-                    'type' => LedgerType::JOURNAL->value,
-                    'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => $item->date,
-                    'document_date' => $item->date,
+                    'chart_code' => $item->chart_code,
+                    'chart_name' => $item->chart_name,
+                    'company_name' => $item->company_name,
+                    'description' => $lockedEntry->notes,
+                    'line_description' => $item->line_description,
                     'debit_amount' => $item->debit_amount,
                     'credit_amount' => $item->credit_amount,
-                    'total_amount' => $item->total_amount,
-                    'status' => LedgerStatus::POSTED->value,
-                    'notes' => $item->description,
-                    'description' => $item->description,
                     'created_at' => $now,
                     'updated_at' => $now,
                     'deleted_at' => null,
@@ -427,21 +417,17 @@ class JournalEntryController extends Controller
      * The reversal date is fixed to the current application date and must belong to an
      * open posting period. A reason is mandatory to explain why the correction was made.
      *
-     * @param  Request  $request  Request containing the reversal reason.
+     * @param  ReverseJournalEntryRequest  $request  Request containing the reversal reason.
      * @param  JournalEntry  $journalEntry  Original posted journal entry to reverse.
      * @return RedirectResponse Redirect response to the original journal entry.
      *
      * @throws ValidationException
      * @throws Throwable
      */
-    public function reverse(Request $request, JournalEntry $journalEntry): RedirectResponse
+    public function reverse(ReverseJournalEntryRequest $request, JournalEntry $journalEntry): RedirectResponse
     {
-        $this->allows(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
-
         /** @var array{reason: string} $validated */
-        $validated = $request->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
         $reversalDate = now()->toDateString();
 
         DB::transaction(function () use ($journalEntry, $validated, $reversalDate): void {
@@ -473,7 +459,7 @@ class JournalEntryController extends Controller
             /** @var Collection<string, Ledger> $postedLedgers */
             $postedLedgers = Ledger::query()
                 ->whereIn('id', $itemIds)
-                ->where('status', LedgerStatus::POSTED)
+                ->whereNull('deleted_at')
                 ->lockForUpdate()
                 ->get()
                 ->keyBy('id');
@@ -526,22 +512,24 @@ class JournalEntryController extends Controller
                     return [
                         'id' => (string) Str::uuid7(),
                         'journal_entry_id' => $reversalEntry->id,
-                        'debit_id' => $postedLedger->credit_id,
-                        'credit_id' => $postedLedger->debit_id,
-                        'debit_acc' => $postedLedger->credit_acc,
-                        'credit_acc' => $postedLedger->debit_acc,
-                        'debit_acc_desc' => $postedLedger->credit_acc_desc,
-                        'credit_acc_desc' => $postedLedger->debit_acc_desc,
+                        'chart_id' => $postedLedger->chart_id,
+                        'company_id' => $postedLedger->company_id,
+                        'currency_id' => $postedLedger->currency_id,
+                        'type' => LedgerType::JOURNAL->value,
+                        'subtype' => LedgerSubType::JOURNAL->value,
                         'document_number' => $reversalEntry->document_number,
                         'reference_number' => $reversalEntry->reference_number ?: $reversalEntry->document_number,
                         'date' => $reversalEntry->date,
-                        'description' => __('journal_entries.reversal_line_description', [
+                        'chart_code' => $postedLedger->chart_code,
+                        'chart_name' => $postedLedger->chart_name,
+                        'company_name' => $postedLedger->company_name,
+                        'description' => null,
+                        'line_description' => __('journal_entries.reversal_line_description', [
                             'document_number' => $postedLedger->document_number,
-                            'description' => $postedLedger->description ?? '-',
+                            'description' => $postedLedger->line_description ?? $postedLedger->description ?? '-',
                         ]),
                         'debit_amount' => $postedLedger->credit_amount,
                         'credit_amount' => $postedLedger->debit_amount,
-                        'total_amount' => $postedLedger->total_amount,
                         'created_at' => $now,
                         'updated_at' => $now,
                         'deleted_at' => null,
@@ -550,36 +538,25 @@ class JournalEntryController extends Controller
 
             JournalEntryChart::query()->insert($itemRows->all());
 
-            $sourceLedger = $postedLedgers->first();
-            abort_if($sourceLedger === null, 422, __('journal_entries.reversal_source_missing'));
-            $sourceLedgerType = $sourceLedger->type;
             $ledgerRows = $itemRows->map(fn (array $item): array => [
                 'id' => $item['id'],
-                'source_id' => $item['id'],
-                'source_type' => null,
-                'company_id' => null,
-                'contact_id' => null,
-                'debit_id' => $item['debit_id'],
-                'credit_id' => $item['credit_id'],
-                'debit_acc' => $item['debit_acc'],
-                'credit_acc' => $item['credit_acc'],
-                'debit_acc_desc' => $item['debit_acc_desc'],
-                'credit_acc_desc' => $item['credit_acc_desc'],
-                'company_name' => null,
+                'chart_id' => $item['chart_id'],
+                'company_id' => $item['company_id'],
+                'currency_id' => $item['currency_id'],
+                'type' => $item['type'],
+                'subtype' => $item['subtype'],
                 'document_number' => $item['document_number'],
                 'reference_number' => $item['reference_number'],
-                'type' => $sourceLedgerType->value,
-                'subtype' => LedgerSubType::JOURNAL->value,
                 'date' => $item['date'],
-                'document_date' => $item['date'],
+                'chart_code' => $item['chart_code'],
+                'chart_name' => $item['chart_name'],
+                'company_name' => $item['company_name'],
+                'description' => $validated['reason'],
+                'line_description' => $item['line_description'],
                 'debit_amount' => $item['debit_amount'],
                 'credit_amount' => $item['credit_amount'],
-                'total_amount' => $item['total_amount'],
-                'status' => LedgerStatus::POSTED->value,
-                'notes' => $validated['reason'],
-                'description' => $item['description'],
-                'created_at' => $now,
-                'updated_at' => $now,
+                'created_at' => $item['created_at'],
+                'updated_at' => $item['updated_at'],
                 'deleted_at' => null,
             ])->all();
 
@@ -621,10 +598,17 @@ class JournalEntryController extends Controller
     }
 
     /**
-     * Convert validated rows into ledger-compatible journal lines.
+     * Convert validated rows into single-sided journal line rows.
+     *
+     * Every resolved line carries one account, its code and name snapshot, the
+     * settings currency, and exactly one non-zero amount side, so the row can be
+     * stored as-is and later copied into the General Ledger without reshaping.
      *
      * @param  array<string, mixed>  $validated  The validated journal-entry data.
      * @return array{0: array<int, array<string, mixed>>, 1: string, 2: string}
+     *
+     * @throws ValidationException When an account is missing, both sides are
+     *                             filled, or the entry does not balance.
      */
     private function prepareJournalLines(array $validated): array
     {
@@ -633,6 +617,16 @@ class JournalEntryController extends Controller
             ->whereNotNull('code')
             ->get(['id', 'code', 'name'])
             ->keyBy(fn (Chart $chart): string => (string) $chart->id);
+
+        /** @var string|null $settingsCurrencyId */
+        $settingsCurrencyId = Setting::query()->value('currency_id');
+
+        /** @var string|null $defaultCurrencyId */
+        $defaultCurrencyId = Currency::query()->where('is_default', true)->value('id');
+
+        /** @var string|null $currencyId */
+        $currencyId = $settingsCurrencyId ?? $defaultCurrencyId;
+
         $lines = [];
         $totalDebit = '0.00';
         $totalCredit = '0.00';
@@ -667,18 +661,19 @@ class JournalEntryController extends Controller
                 ]);
             }
 
-            $amount = $hasDebit ? $debit : $credit;
             $lines[] = [
-                'debit_id' => $hasDebit ? $chart->id : null,
-                'credit_id' => $hasDebit ? null : $chart->id,
-                'debit_acc' => $hasDebit ? $chart->code : null,
-                'credit_acc' => $hasDebit ? null : $chart->code,
-                'debit_acc_desc' => $hasDebit ? $chart->name : null,
-                'credit_acc_desc' => $hasDebit ? null : $chart->name,
-                'description' => $item['description'] ?? null,
+                'chart_id' => $chart->id,
+                'company_id' => null,
+                'currency_id' => $currencyId,
+                'type' => LedgerType::JOURNAL->value,
+                'subtype' => LedgerSubType::JOURNAL->value,
+                'chart_code' => $chart->code,
+                'chart_name' => $chart->name,
+                'company_name' => null,
+                'description' => null,
+                'line_description' => $item['description'] ?? null,
                 'debit_amount' => $debit,
                 'credit_amount' => $credit,
-                'total_amount' => $amount,
             ];
             $totalDebit = bcadd($totalDebit, $debit, 2);
             $totalCredit = bcadd($totalCredit, $credit, 2);
@@ -709,17 +704,12 @@ class JournalEntryController extends Controller
     /**
      * Approve multiple journal entries and post them to the general ledger.
      *
+     * @param  BatchApproveJournalEntryRequest  $request  The HTTP request instance containing entry IDs to approve.
+     *
      * @throws Throwable
      */
-    public function batchApprove(Request $request): RedirectResponse
+    public function batchApprove(BatchApproveJournalEntryRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
-
-        $request->validate([
-            'entry_ids' => 'required|array|min:1',
-            'entry_ids.*' => 'required|string|exists:journal_entries,id',
-        ]);
-
         $count = 0;
 
         DB::transaction(function () use ($request, &$count): void {
@@ -752,33 +742,27 @@ class JournalEntryController extends Controller
                 }
 
                 $now = now();
+                /** @var string|null $currencyId */
+                $currencyId = Currency::query()->where('is_default', true)->value('id');
                 $ledgerRows = $lockedEntry->charts
                     ->values()
                     ->map(fn (JournalEntryChart $item): array => [
                         'id' => $item->id,
-                        'source_id' => $item->id,
-                        'source_type' => null,
-                        'company_id' => null,
-                        'contact_id' => null,
-                        'debit_id' => $item->debit_id,
-                        'credit_id' => $item->credit_id,
-                        'debit_acc' => $item->debit_acc,
-                        'credit_acc' => $item->credit_acc,
-                        'debit_acc_desc' => $item->debit_acc_desc,
-                        'credit_acc_desc' => $item->credit_acc_desc,
-                        'company_name' => null,
+                        'chart_id' => $item->chart_id,
+                        'company_id' => $item->company_id,
+                        'currency_id' => $item->currency_id ?? $currencyId,
+                        'type' => $item->type,
+                        'subtype' => $item->subtype,
                         'document_number' => $item->document_number,
                         'reference_number' => $item->reference_number,
-                        'type' => LedgerType::JOURNAL->value,
-                        'subtype' => LedgerSubType::JOURNAL->value,
                         'date' => $item->date,
-                        'document_date' => $item->date,
+                        'chart_code' => $item->chart_code,
+                        'chart_name' => $item->chart_name,
+                        'company_name' => $item->company_name,
+                        'description' => $lockedEntry->notes,
+                        'line_description' => $item->line_description,
                         'debit_amount' => $item->debit_amount,
                         'credit_amount' => $item->credit_amount,
-                        'total_amount' => $item->total_amount,
-                        'status' => LedgerStatus::POSTED->value,
-                        'notes' => $item->description,
-                        'description' => $item->description,
                         'created_at' => $now,
                         'updated_at' => $now,
                         'deleted_at' => null,
@@ -801,18 +785,11 @@ class JournalEntryController extends Controller
     /**
      * Cancel multiple pending journal entries.
      *
-     * @param  Request  $request  The HTTP request instance containing entry IDs.
+     * @param  BatchCancelJournalEntryRequest  $request  The HTTP request instance containing entry IDs.
      * @return RedirectResponse Redirects to the specified route.
      */
-    public function batchCancel(Request $request): RedirectResponse
+    public function batchCancel(BatchCancelJournalEntryRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::JOURNAL_ENTRIES, FileAction::CANCEL);
-
-        $request->validate([
-            'entry_ids' => 'required|array|min:1',
-            'entry_ids.*' => 'required|string|exists:journal_entries,id',
-        ]);
-
         /** @var array<string> $entryIds */
         $entryIds = $request->input('entry_ids');
 

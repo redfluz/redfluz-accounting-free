@@ -16,48 +16,7 @@
             @include('partials.errors')
             <form autocomplete="off" action="{{ route('system.users.store') }}" method="POST">
                 @csrf
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="name"> {{ __('users.table.column_name') }} </label>
-                    <label class="form-control form-adorn">
-                        <input
-                            class="form-ghost @error('name') is-invalid @enderror"
-                            id="name"
-                            name="name"
-                            type="text"
-                            value="{{ old('name') }}"
-                            required
-                        />
-                    </label>
-                    @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="email">
-                        {{ __('users.table.column_email') }}
-                    </label>
-                    <label class="form-control form-adorn">
-                        <input
-                            class="form-ghost @error('email') is-invalid @enderror"
-                            id="email"
-                            name="email"
-                            type="email"
-                            value="{{ old('email') }}"
-                            required
-                        />
-                    </label>
-                    @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="alert alert theme-warning" data-testid="default-password-notice" role="alert">
-                    <i class="me-1" data-lucide="triangle-alert"></i>
-                    {!! __('users.default_password_notice', ['password' => '<code>' . e($defaultPassword) . '</code>']) !!}
-                </div>
-
+                @include('system.users._form', ['user' => null])
                 <div class="d-flex justify-content-between pt-2">
                     <a class="btn btn-solid theme-secondary" href="{{ route('system.users.index') }}">
                         <i class="me-1" data-lucide="arrow-left"></i>

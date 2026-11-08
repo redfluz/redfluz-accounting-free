@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Support\Posting;
 
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Sales\SalesInvoice;
-use App\Models\Sales\SalesInvoiceChart;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Support\Posting\Concerns\WritesLedgerTables;
 use Illuminate\Support\Collection;
@@ -35,24 +35,15 @@ class Receivable
             return 0;
         }
 
-        // Query the sales invoice charts configuration for default accounts
-        $chartConfig = SalesInvoiceChart::query()
-            ->where('company_id', $invoice->company_id)
-            ->first();
+        // Query the chart settings for default accounts
+        $chartConfig = ChartSetting::query()->first();
 
-        // If no company-specific config, try global default
-        if ($chartConfig === null) {
-            $chartConfig = SalesInvoiceChart::query()
-                ->whereNull('company_id')
-                ->first();
-        }
-
-        if ($chartConfig === null || $chartConfig->receivable_id === null) {
+        if ($chartConfig === null || $chartConfig->client_chart_uuid === null) {
             return 0;
         }
 
         // Get the chart account details for the receivable (AR) account
-        $chart = Chart::query()->find($chartConfig->receivable_id);
+        $chart = Chart::query()->find($chartConfig->client_chart_uuid);
 
         if ($chart === null) {
             return 0;
@@ -78,4 +69,5 @@ class Receivable
 
         return $this->writeMany('ar_ledgers', $rowArrays);
     }
+
 }

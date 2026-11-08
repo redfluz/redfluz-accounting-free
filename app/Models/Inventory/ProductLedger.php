@@ -26,10 +26,10 @@
 
 namespace App\Models\Inventory;
 
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use App\Models\Crm\Company;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

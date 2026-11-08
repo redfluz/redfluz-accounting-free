@@ -29,8 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\LedgerStatus;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\PaymentTransferType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -107,14 +107,6 @@ return new class extends Migration
             $table->index('date');
         });
 
-        Schema::create('payment_voucher_lines', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('payment_voucher_id')->constrained('payment_vouchers')->cascadeOnDelete();
-            $table->decimal('amount', 15)->default(0);
-            $table->text('description')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
 
         Schema::create('payment_voucher_charts', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -140,7 +132,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('payment_voucher_charts');
-        Schema::dropIfExists('payment_voucher_lines');
         Schema::dropIfExists('payment_vouchers');
     }
 };

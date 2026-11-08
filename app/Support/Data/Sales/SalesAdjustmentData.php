@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use App\Models\Sales\SalesAdjustment;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

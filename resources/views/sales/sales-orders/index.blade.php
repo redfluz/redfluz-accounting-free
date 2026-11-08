@@ -1,4 +1,11 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use App\Models\Sales\SalesOrder;
+    @endphp
+@props([
+    /** @var SalesOrder */
+    'order',
+])
 @extends('layouts.app')
 
 @section('content')

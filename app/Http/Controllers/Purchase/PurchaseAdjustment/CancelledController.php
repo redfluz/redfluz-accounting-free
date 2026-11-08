@@ -28,7 +28,7 @@ namespace App\Http\Controllers\Purchase\PurchaseAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseAdjustment;
 use App\Models\System\Setting;
@@ -117,11 +117,11 @@ class CancelledController extends Controller
         $this->allows(FileResources::PURCHASE_ADJUSTMENTS);
 
         $adjustment = PurchaseAdjustment::query()
-            ->with(['company', 'lines'])
+            ->with(['company', 'lines', 'charts'])
             ->where('document_number', $documentNumber)
             ->firstOrFail();
 
-        $entries = $adjustment->lines;
+        $entries = $adjustment->charts;
 
         // This page explains a cancelled document. Once restored it no longer
         // belongs here, and its header badge is hardcoded to say Cancelled.

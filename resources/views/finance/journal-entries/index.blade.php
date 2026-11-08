@@ -2,7 +2,7 @@
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\LedgerStatus;
+    use App\Enums\Finance\LedgerStatus;
     use App\Models\Finance\JournalEntry;
     use Carbon\Carbon;
 
@@ -95,22 +95,22 @@
                                             value="{{ $search }}" placeholder="{{ __('common.actions.search') }}" />
                                     </div>
                                     <div class="md:col-3">
-                                        <label class="form-control form-adorn">
+                                        <div class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
                                             <input class="form-ghost" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                                 value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
-                                        </label>
+                                        </div>
                                     </div>
                                     <div class="md:col-3">
-                                        <label class="form-control form-adorn">
+                                        <div class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
                                             <input class="form-ghost" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                                 value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
-                                        </label>
+                                        </div>
                                     </div>
                                     <div class="md:col-3 d-flex gap-2">
                                         <button class="btn btn-solid theme-primary flex-fill" type="submit">

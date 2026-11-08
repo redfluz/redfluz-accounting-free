@@ -24,8 +24,8 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

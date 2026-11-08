@@ -1,5 +1,8 @@
-@php use App\Models\System\Setting; @endphp
-@inject('menuService', 'App\Services\MenuServices')
+@php
+    use App\Models\System\Setting;
+    use App\Services\MenuServices;
+@endphp
+@inject('menuService', MenuServices::class)
 
 {{--
     Top navigation, built on the Bootstrap 6 Menu component.

@@ -103,6 +103,12 @@ return [
     'export_pdf' => 'Export PDF',
     'export_excel' => 'Export Excel',
     'all_types' => 'All Types',
+    'form' => [
+        'current_attachment' => 'Current Attachment',
+        'attachment_size_hint' => 'Maximum file size: 5120 KB.',
+        'attachment_too_large' => 'The selected file exceeds the 5120 KB limit. Choose a smaller file.',
+        'new_attachment_preview' => 'New Attachment Preview',
+    ],
     'fixed_assets' => [
         'title' => 'Fixed Asset Purchases',
         'subtitle' => 'View fixed assets recognised from approved purchase invoices.',

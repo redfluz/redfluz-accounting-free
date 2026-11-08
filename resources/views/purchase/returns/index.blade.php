@@ -1,12 +1,25 @@
 @php
     use App\Models\System\Setting;
+    use App\Models\Inventory\ProductLedger;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\ProductMovementStatus;
+    use App\Enums\Inventory\ProductMovementStatus;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canApprove = auth()->user()->hasFilePermission(FileResources::PURCHASE_RETURNS, FileAction::APPROVE);
     $canCancel = auth()->user()->hasFilePermission(FileResources::PURCHASE_RETURNS, FileAction::CANCEL);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, ProductLedger> */
+    'returns',
+    /** @var string */
+    'search' => '',
+    /** @var string|null */
+    'startDate' => null,
+    /** @var string|null */
+    'endDate' => null,
+])
 
 @extends('layouts.app')
 @section('content')

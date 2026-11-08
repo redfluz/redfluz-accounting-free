@@ -1,3 +1,4 @@
+@php use App\Enums\UploadType; @endphp
 <div class="mb-4">
     <h6 class="fw-bold mb-1">{{ __('products.attachments.title') }}</h6>
     <p class="fg-secondary small mb-0">{{ __('products.attachments.hint') }}</p>
@@ -29,7 +30,7 @@
                                 @checked(in_array($attachment->id, old('removed_attachment_ids', []), true))
                             />
                             <label class="fg-danger small"
-                                for="remove-attachment-{{ $attachment->id }}"
+                                   for="remove-attachment-{{ $attachment->id }}"
                             >{{ __('products.attachments.remove') }}</label>
                         </div>
                     </div>
@@ -46,23 +47,25 @@
         id="images"
         name="images[]"
         type="file"
-        accept="{{ \App\Enums\UploadType::IMAGES->accept() }}"
+        accept="{{ UploadType::IMAGES->accept() }}"
         multiple
         onchange="previewProductImages(event)"
     />
     @error('images')
-        <div class="invalid-feedback">{{ $message }}</div>
+    <div class="invalid-feedback">{{ $message }}</div>
     @enderror
     @error('images.*')
-        <div class="invalid-feedback">{{ $message }}</div>
+    <div class="invalid-feedback">{{ $message }}</div>
     @enderror
+    <div class="invalid-feedback d-none" id="images-size-error"
+         data-too-large="{{ __('products.attachments.too_large') }}"></div>
 </div>
 
 @error('removed_attachment_ids')
-    <div class="alert alert theme-danger py-2">{{ $message }}</div>
+<div class="alert alert theme-danger py-2">{{ $message }}</div>
 @enderror
 @error('removed_attachment_ids.*')
-    <div class="alert alert theme-danger py-2">{{ $message }}</div>
+<div class="alert alert theme-danger py-2">{{ $message }}</div>
 @enderror
 
 <div class="row g-3" id="attachment-preview"></div>

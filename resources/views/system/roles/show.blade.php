@@ -55,26 +55,26 @@
             <div class="table-responsive rounded-5 overflow-hidden border">
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
-                        <tr>
-                            <th scope="col">{{ __('roles.table.column_user_name') }}</th>
-                            <th scope="col">{{ __('roles.table.column_email') }}</th>
-                            <th scope="col">{{ __('roles.table.column_department') }}</th>
-                        </tr>
+                    <tr>
+                        <th scope="col">{{ __('roles.table.column_user_name') }}</th>
+                        <th scope="col">{{ __('roles.table.column_email') }}</th>
+                        <th scope="col">{{ __('roles.table.column_department') }}</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @forelse ($role->users as $user)
-                            <tr>
-                                <td class="fw-bold">{{ $user->name }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->department->name ?? '-' }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td class="fg-secondary py-4 text-center" colspan="3">
-                                    {{ __('roles.show.empty_users') }}
-                                </td>
-                            </tr>
-                        @endforelse
+                    @forelse ($role->users as $user)
+                        <tr>
+                            <td class="fw-bold">{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->department->name ?? '-' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td class="fg-secondary py-4 text-center" colspan="3">
+                                {{ __('roles.show.empty_users') }}
+                            </td>
+                        </tr>
+                    @endforelse
                     </tbody>
                 </table>
             </div>

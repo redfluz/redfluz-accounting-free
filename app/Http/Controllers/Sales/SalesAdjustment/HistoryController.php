@@ -27,7 +27,7 @@
 namespace App\Http\Controllers\Sales\SalesAdjustment;
 
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Sales\SalesAdjustment;
 use App\Models\System\Setting;

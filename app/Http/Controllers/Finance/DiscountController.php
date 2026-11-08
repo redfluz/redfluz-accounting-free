@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Finance;
 
-use App\Enums\DiscountType;
+use App\Enums\Finance\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;

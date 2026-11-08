@@ -29,9 +29,9 @@ namespace App\Http\Controllers\Sales;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\Adjustment\StoreAdjustmentRequest;
 use App\Http\Requests\Sales\Adjustment\UpdateAdjustmentRequest;
@@ -731,7 +731,6 @@ class SalesAdjustmentController extends Controller
                     'type' => $sourceType,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => $item['date'],
-                    'document_date' => $item['date'],
                     'debit_amount' => $item['debit_amount'],
                     'credit_amount' => $item['credit_amount'],
                     'total_amount' => $item['total_amount'],

@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Purchase;
 
-use App\Enums\PurchaseOrderType;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\Purchase\PurchaseOrder;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

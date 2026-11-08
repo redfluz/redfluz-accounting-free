@@ -67,3 +67,720 @@
         color: var(--fg-body) !important;
     }
 }
+
+@include palette('cyberpunk', #23f6ff, #23f6ff, #ff4fcb, #070711, #0d0b18, #171225, #493666, #f2efff, #b8afcf, dark, #090b14);
+
+[data-palette='cyberpunk'] {
+    // Keep every semantic family complete: solid controls use dark ink, while
+    // subtle controls, alerts and badges use neon text on a dark tinted surface.
+    @each $name, $color in (
+        primary: #23f6ff,
+        accent: #ff4fcb,
+        secondary: #b794ff,
+        success: #86ff6b,
+        danger: #ff5c87,
+        warning: #f5f749,
+        info: #62b6ff,
+        inverse: #f2efff
+    ) {
+        --#{$name}-base: #{$color};
+        --#{$name}-bg: #{$color};
+        --#{$name}-fg: #{$color};
+        --#{$name}-fg-emphasis: color-mix(in srgb, #{$color} 75%, #fff);
+        --#{$name}-contrast: #090b14;
+        --#{$name}-bg-subtle: color-mix(in srgb, #{$color} 10%, #0d0b18);
+        --#{$name}-bg-muted: color-mix(in srgb, #{$color} 18%, #0d0b18);
+        --#{$name}-border: color-mix(in srgb, #{$color} 48%, #171225);
+        --#{$name}-focus-ring: color-mix(in srgb, #{$color} 65%, transparent);
+    }
+
+    --bg-2: #100d1e;
+    --bg-3: #241b36;
+    --bg-4: #342646;
+    --bs-bg-1: var(--bg-1);
+    --fg-3: #a69cbe;
+    --fg-4: #9386af;
+    --border-color-translucent: rgb(183 148 255 / 25%);
+    --border-body: #493666;
+    --border-muted: #382a50;
+    --border-subtle: #2b213d;
+    --border-emphasized: #b794ff;
+    --btn-input-bg: #100d1e;
+    --btn-input-fg: #f2efff;
+    --control-checked-bg: var(--primary-base);
+    --link-color: #23f6ff;
+    --link-hover-color: #ff92df;
+    --fin-gain-bg: color-mix(in srgb, var(--success-base) 12%, var(--bg-1));
+    --fin-loss-bg: color-mix(in srgb, var(--danger-base) 12%, var(--bg-1));
+    --app-glass-card-bg: rgb(23 18 37 / 94%);
+    --app-glass-card-header-bg: rgb(30 20 47 / 96%);
+    --app-glass-chrome-bg: rgb(13 11 24 / 94%);
+    --app-glass-menu-bg: rgb(23 18 37 / 98%);
+    --app-glass-border: rgb(183 148 255 / 35%);
+    --cyberpunk-panel-shadow: 0 12px 32px rgb(0 0 0 / 35%), 0 0 18px rgb(255 79 203 / 9%);
+
+    // The default wallpaper becomes a quiet neon grid. Personal backgrounds
+    // still use the existing image layer, without being replaced by the theme.
+    body.app-background:not(.has-custom-background)::before {
+        background-image:
+            radial-gradient(ellipse at 8% 0%, rgb(255 79 203 / 16%), transparent 48%),
+            radial-gradient(ellipse at 95% 85%, rgb(35 246 255 / 12%), transparent 45%),
+            linear-gradient(rgb(183 148 255 / 5%) 1px, transparent 1px),
+            linear-gradient(90deg, rgb(183 148 255 / 5%) 1px, transparent 1px);
+        background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+        background-position: center;
+        background-repeat: no-repeat, no-repeat, repeat, repeat;
+        opacity: 1;
+    }
+
+    .bg-white,
+    .bg-light {
+        background-color: var(--bg-1) !important;
+        color: var(--fg-body) !important;
+    }
+
+    .text-dark {
+        color: var(--fg-body) !important;
+    }
+
+    .topbar-wrapper {
+        border-bottom-color: color-mix(in srgb, var(--primary-base) 55%, transparent) !important;
+        box-shadow: 0 1px 0 rgb(35 246 255 / 25%), 0 4px 24px rgb(35 246 255 / 12%);
+    }
+
+    .topnav-brand-icon {
+        box-shadow: 0 0 16px rgb(35 246 255 / 25%);
+    }
+
+    .topnav-toggle {
+        &:hover,
+        &:focus-visible,
+        &.active {
+            color: var(--primary-base);
+            background-color: var(--primary-bg-subtle);
+            box-shadow: inset 0 -2px var(--primary-base), 0 0 12px rgb(35 246 255 / 10%);
+        }
+    }
+
+    .card,
+    .dashboard-page .card,
+    .dashboard-page .dashboard-card,
+    .dashboard-page .summary-card,
+    .dashboard-page .inventory-panel {
+        box-shadow: var(--cyberpunk-panel-shadow) !important;
+    }
+
+    .card-header,
+    .dashboard-page .panel-heading {
+        border-bottom-color: color-mix(in srgb, var(--accent-base) 35%, transparent);
+    }
+
+    .menu {
+        --menu-item-hover-color: var(--primary-base);
+        --menu-item-hover-bg: var(--primary-bg-subtle);
+        border: 1px solid var(--accent-border);
+        box-shadow: var(--cyberpunk-panel-shadow);
+    }
+
+    .dialog,
+    .datepicker {
+        --dialog-bg: var(--bg-1);
+        --dialog-border-color: var(--accent-border);
+        --dialog-box-shadow: var(--cyberpunk-panel-shadow);
+        --datepicker-bg: var(--bg-1);
+        --datepicker-border-color: var(--primary-border);
+        --datepicker-box-shadow: var(--cyberpunk-panel-shadow);
+    }
+
+    .form-control {
+        --control-border-color: #78628f;
+        --control-placeholder-color: var(--fg-3);
+        --control-select-bg: var(--control-select-bg-dark);
+        --control-action-bg: var(--bg-3);
+        --control-action-hover-bg: var(--bg-4);
+
+        &:focus-within {
+            border-color: var(--primary-base);
+            box-shadow: 0 0 0 2px rgb(35 246 255 / 16%), 0 0 16px rgb(35 246 255 / 12%);
+        }
+
+        &.is-invalid {
+            --control-border-color: var(--danger-base);
+
+            &:focus-within {
+                border-color: var(--danger-base);
+                box-shadow: 0 0 0 2px rgb(255 92 135 / 20%);
+            }
+        }
+    }
+
+    .btn-solid[class*='theme-'] {
+        // Preserve semantic fills even inside the dense table action controls.
+        --btn-bg: var(--theme-bg);
+        --btn-border-color: var(--theme-bg);
+        font-weight: 650;
+        box-shadow: 0 0 14px color-mix(in srgb, var(--theme-base) 22%, transparent);
+
+        &:hover,
+        &:focus-visible {
+            --btn-bg: var(--theme-bg);
+            --btn-border-color: var(--theme-bg);
+            box-shadow: 0 0 22px color-mix(in srgb, var(--theme-base) 40%, transparent);
+        }
+
+        &:disabled,
+        &.disabled {
+            box-shadow: none;
+        }
+    }
+
+    .nav-tabs {
+        --nav-tabs-link-active-color: var(--primary-base);
+        --nav-tabs-link-active-bg: var(--primary-bg-subtle);
+        --nav-tabs-link-active-border-color: var(--primary-border) var(--primary-border) var(--primary-bg-subtle);
+
+        .nav-link.active {
+            box-shadow: inset 0 2px var(--primary-base);
+        }
+    }
+
+    .table thead th {
+        color: var(--primary-base);
+    }
+
+    ::selection {
+        background: var(--accent-base);
+        color: var(--accent-contrast);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .btn,
+        .form-control,
+        .nav-link,
+        .menu {
+            transition: none;
+        }
+    }
+}
+
+@include palette('zelda', #1d5c43, #1d5c43, #dfb65a, #e5ddc4, #f3eedc, #fffcef, #c7bd97, #283b2c, #5e6b53, light, #fffbea);
+
+[data-palette='zelda'] {
+    // Forest ink and parchment keep dense records readable. Gold fills use
+    // dark text; emerald, ruby and lake-blue fills use light text.
+    @each $name, $fill, $ink, $contrast in (
+        (primary, #1d5c43, #1d5c43, #fffbea),
+        (accent, #dfb65a, #70501b, #302710),
+        (secondary, #dce4ca, #425235, #304128),
+        (success, #387044, #285b34, #fffbea),
+        (danger, #a63f36, #92352e, #fffbea),
+        (warning, #efd17a, #73521c, #382a0e),
+        (info, #326d83, #275b70, #fffbea),
+        (inverse, #293c2d, #293c2d, #fffbea)
+    ) {
+        --#{$name}-base: #{$fill};
+        --#{$name}-bg: #{$fill};
+        --#{$name}-fg: #{$ink};
+        --#{$name}-fg-emphasis: color-mix(in srgb, #{$ink} 80%, #182c20);
+        --#{$name}-contrast: #{$contrast};
+        --#{$name}-bg-subtle: color-mix(in srgb, #{$fill} 9%, #fffcef);
+        --#{$name}-bg-muted: color-mix(in srgb, #{$fill} 18%, #fffcef);
+        --#{$name}-border: color-mix(in srgb, #{$fill} 50%, #c7bd97);
+        --#{$name}-focus-ring: color-mix(in srgb, #{$ink} 70%, transparent);
+    }
+
+    --bg-2: #eae8d4;
+    --bg-3: #dde2c9;
+    --bg-4: #cbd6b8;
+    --bs-bg-1: var(--bg-1);
+    --fg-3: #667257;
+    --fg-4: #707b61;
+    --border-color-translucent: rgb(103 112 72 / 25%);
+    --border-body: #c7bd97;
+    --border-muted: #d9d0b1;
+    --border-subtle: #e5ddc4;
+    --border-emphasized: #8b7943;
+    --btn-input-bg: #fffdf5;
+    --btn-input-fg: #283b2c;
+    --control-checked-bg: var(--primary-base);
+    --link-color: #1d5c43;
+    --link-hover-color: #70501b;
+    --fin-gain-bg: color-mix(in srgb, var(--success-base) 12%, var(--bg-1));
+    --fin-loss-bg: color-mix(in srgb, var(--danger-base) 12%, var(--bg-1));
+    --app-glass-card-bg: rgb(255 252 239 / 96%);
+    --app-glass-card-header-bg: rgb(240 234 211 / 97%);
+    --app-glass-chrome-bg: rgb(23 60 43 / 97%);
+    --app-glass-menu-bg: rgb(255 252 239 / 99%);
+    --app-glass-border: rgb(139 121 67 / 48%);
+    --zelda-panel-shadow: 0 10px 28px rgb(32 65 45 / 12%), inset 0 0 0 3px rgb(223 182 90 / 12%);
+
+    // A decorative three-triangle crest, soft woodland light and parchment
+    // texture. The existing personal wallpaper always takes precedence.
+    body.app-background:not(.has-custom-background)::before {
+        background-image:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'%3E%3Cpath fill='%23b08c35' fill-opacity='.12' d='M60 0 90 52H30ZM30 52 60 104H0ZM90 52 120 104H60Z'/%3E%3C/svg%3E"),
+            radial-gradient(ellipse at 0% 0%, rgb(72 117 67 / 20%), transparent 55%),
+            radial-gradient(ellipse at 100% 100%, rgb(223 182 90 / 24%), transparent 55%),
+            repeating-linear-gradient(0deg, rgb(106 88 46 / 3%) 0 1px, transparent 1px 5px),
+            linear-gradient(135deg, #edf0dc, #f3ead0);
+        background-size: 180px 156px, 100% 100%, 100% 100%, auto, 100% 100%;
+        background-position: center 5rem, center, center, center, center;
+        background-repeat: no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+        opacity: 1;
+    }
+
+    .bg-white,
+    .bg-light {
+        background-color: var(--bg-1) !important;
+        color: var(--fg-body) !important;
+    }
+
+    .topbar-wrapper {
+        position: relative;
+        border-bottom: 3px solid var(--accent-base) !important;
+        box-shadow: 0 4px 18px rgb(23 60 43 / 20%);
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset-inline-start: 50%;
+            bottom: -9px;
+            width: 24px;
+            height: 21px;
+            transform: translateX(-50%);
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 104'%3E%3Cpath fill='%23dfb65a' d='M60 0 90 52H30ZM30 52 60 104H0ZM90 52 120 104H60Z'/%3E%3C/svg%3E") center / contain no-repeat;
+            pointer-events: none;
+        }
+    }
+
+    .topnav-brand,
+    .brand-name {
+        color: #fff8df;
+    }
+
+    .brand-subtitle,
+    .topbar-container .vr {
+        color: #ead697;
+    }
+
+    .topnav-brand-icon {
+        color: #f2d17e;
+        background: #29563c;
+        border: 1px solid #bb9950;
+        border-radius: 5px 5px 14px 14px;
+        box-shadow: inset 0 0 0 2px rgb(223 182 90 / 12%);
+    }
+
+    .topnav-toggle {
+        --focus-ring-color: #dfb65a;
+        color: #e9e9d0;
+        background-color: transparent;
+
+        &:hover,
+        &:focus-visible,
+        &.active {
+            color: #ffe7a0;
+            background-color: #315b40;
+            box-shadow: inset 0 -2px #dfb65a;
+        }
+    }
+
+    .topbar-container .btn-ghost-secondary {
+        --focus-ring-color: #dfb65a;
+        --btn-color: #fff8df;
+        --btn-bg: transparent;
+        --btn-hover-color: #ffe7a0;
+        --btn-hover-bg: #315b40;
+        --btn-active-color: #ffe7a0;
+        --btn-active-bg: #315b40;
+        --fg-body: #fff8df;
+        --secondary-fg: #ead697;
+    }
+
+    .avatar-circle {
+        background: linear-gradient(135deg, #efd17a, #b8cc8b) !important;
+        color: #293c2d;
+        box-shadow: 0 0 0 2px rgb(223 182 90 / 28%);
+    }
+
+    .card,
+    .dashboard-page .card,
+    .dashboard-page .dashboard-card,
+    .dashboard-page .summary-card,
+    .dashboard-page .inventory-panel {
+        box-shadow: var(--zelda-panel-shadow) !important;
+    }
+
+    .card-header,
+    .dashboard-page .panel-heading {
+        border-bottom-color: var(--accent-border);
+    }
+
+    .card-header :is(h1, h2, h3, h4, h5, h6, .card-title),
+    .dialog-title {
+        font-family: Georgia, 'Times New Roman', serif;
+        letter-spacing: 0.02em;
+        color: var(--primary-fg);
+    }
+
+    .menu {
+        --menu-item-hover-color: var(--primary-fg);
+        --menu-item-hover-bg: var(--primary-bg-subtle);
+        border: 1px solid var(--accent-border);
+        box-shadow: var(--zelda-panel-shadow);
+    }
+
+    .dialog,
+    .datepicker {
+        --dialog-bg: var(--bg-1);
+        --dialog-border-color: var(--accent-border);
+        --dialog-box-shadow: var(--zelda-panel-shadow);
+        --datepicker-bg: var(--bg-1);
+        --datepicker-border-color: var(--accent-border);
+        --datepicker-box-shadow: var(--zelda-panel-shadow);
+    }
+
+    .form-control {
+        --control-border-color: #8c906d;
+        --control-placeholder-color: var(--fg-3);
+        --control-action-bg: var(--bg-2);
+        --control-action-hover-bg: var(--bg-3);
+
+        &:focus-within {
+            border-color: var(--primary-base);
+            box-shadow: 0 0 0 3px rgb(29 92 67 / 12%);
+        }
+
+        &.is-invalid {
+            --control-border-color: var(--danger-base);
+            --focus-ring-color: var(--danger-focus-ring);
+
+            &:focus-within {
+                border-color: var(--danger-base);
+                box-shadow: 0 0 0 3px rgb(166 63 54 / 14%);
+            }
+        }
+    }
+
+    .btn-solid[class*='theme-'] {
+        --btn-bg: var(--theme-bg);
+        --btn-border-color: var(--theme-bg);
+        font-weight: 600;
+        box-shadow: inset 0 1px rgb(255 252 239 / 25%), 0 2px 4px rgb(32 65 45 / 12%);
+
+        &:hover,
+        &:focus-visible {
+            --btn-bg: var(--theme-bg);
+            --btn-border-color: var(--theme-bg);
+            box-shadow: inset 0 1px rgb(255 252 239 / 25%), 0 3px 8px rgb(32 65 45 / 20%);
+        }
+
+        &:disabled,
+        &.disabled {
+            box-shadow: none;
+        }
+    }
+
+    .nav-tabs {
+        --nav-tabs-link-active-color: var(--primary-fg);
+        --nav-tabs-link-active-bg: var(--bg-1);
+        --nav-tabs-link-active-border-color: var(--accent-border) var(--accent-border) var(--bg-1);
+
+        .nav-link.active {
+            box-shadow: inset 0 3px var(--accent-base);
+        }
+    }
+
+    .table thead th {
+        color: var(--primary-fg);
+    }
+
+    ::selection {
+        background: var(--accent-base);
+        color: var(--accent-contrast);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .btn,
+        .form-control,
+        .nav-link,
+        .menu {
+            transition: none;
+        }
+    }
+}
+
+@include palette('red_alert', #d32f2f, #ffffff, #ffeb3b, #1a1a1a, #0d0d0d, #1f1f1f, #4a4a4a, #ffffff, #b0b0b0, dark, #ffffff);
+
+[data-palette='red_alert'] {
+    // Soviet command interface: red primary with white text, warning yellow
+    // accents with dark text, and a black industrial background.
+    @each $name, $fill, $ink, $contrast in (
+        (primary, #d32f2f, #ffffff, #ffffff),
+        (accent, #ffeb3b, #1a1a1a, #1a1a1a),
+        (secondary, #4a4a4a, #ffffff, #ffffff),
+        (success, #4caf50, #ffffff, #ffffff),
+        (danger, #f44336, #ffffff, #ffffff),
+        (warning, #ffeb3b, #1a1a1a, #1a1a1a),
+        (info, #2196f3, #ffffff, #ffffff),
+        (inverse, #ffffff, #0d0d0d, #0d0d0d)
+    ) {
+        --#{$name}-base: #{$fill};
+        --#{$name}-bg: #{$fill};
+        --#{$name}-fg: #{$ink};
+        --#{$name}-fg-emphasis: color-mix(in srgb, #{$ink} 80%, #000);
+        --#{$name}-contrast: #{$contrast};
+        --#{$name}-bg-subtle: color-mix(in srgb, #{$fill} 10%, #0d0d0d);
+        --#{$name}-bg-muted: color-mix(in srgb, #{$fill} 18%, #0d0d0d);
+        --#{$name}-border: color-mix(in srgb, #{$fill} 50%, #4a4a4a);
+        --#{$name}-focus-ring: color-mix(in srgb, #{$fill} 65%, transparent);
+    }
+
+    // Override semantic fills for subtle/alert families to use neon text on
+    // dark tinted surfaces instead of dark text on bright fills.
+    @each $name, $color in (
+        success: #4caf50,
+        danger: #f44336,
+        info: #2196f3
+    ) {
+        --#{$name}-fg: #{$color};
+        --#{$name}-fg-emphasis: color-mix(in srgb, #{$color} 75%, #fff);
+        --#{$name}-contrast: #0d0d0d;
+        --#{$name}-bg-subtle: color-mix(in srgb, #{$color} 10%, #0d0d0d);
+        --#{$name}-bg-muted: color-mix(in srgb, #{$color} 18%, #0d0d0d);
+        --#{$name}-border: color-mix(in srgb, #{$color} 48%, #4a4a4a);
+    }
+
+    --bg-2: #141414;
+    --bg-3: #1f1f1f;
+    --bg-4: #2a2a2a;
+    --bs-bg-1: var(--bg-1);
+    --fg-3: #8a8a8a;
+    --fg-4: #6a6a6a;
+    --border-color-translucent: rgb(211 47 47 / 25%);
+    --border-body: #4a4a4a;
+    --border-muted: #3a3a3a;
+    --border-subtle: #2a2a2a;
+    --border-emphasized: #d32f2f;
+    --btn-input-bg: #1a1a1a;
+    --btn-input-fg: #ffffff;
+    --control-checked-bg: var(--primary-base);
+    --link-color: #ff5252;
+    --link-hover-color: #ffeb3b;
+    --fin-gain-bg: color-mix(in srgb, var(--success-base) 12%, var(--bg-1));
+    --fin-loss-bg: color-mix(in srgb, var(--danger-base) 12%, var(--bg-1));
+    --app-glass-card-bg: rgb(31 31 31 / 96%);
+    --app-glass-card-header-bg: rgb(42 42 42 / 97%);
+    --app-glass-chrome-bg: rgb(13 13 13 / 98%);
+    --app-glass-menu-bg: rgb(31 31 31 / 99%);
+    --app-glass-border: rgb(211 47 47 / 40%);
+    --red-alert-panel-shadow: 0 8px 24px rgb(0 0 0 / 50%), inset 0 0 0 2px rgb(211 47 47 / 15%);
+
+    // Industrial warning stripes with a red star emblem. Personal backgrounds
+    // always take precedence over the default pattern.
+    body.app-background:not(.has-custom-background)::before {
+        background-image:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23d32f2f' fill-opacity='.15' d='M50 0 61 35H98L68 57 79 91 50 70 21 91 32 57 2 35H39Z'/%3E%3C/svg%3E"),
+            repeating-linear-gradient(45deg, rgb(211 47 47 / 8%) 0 10px, transparent 10px 20px),
+            radial-gradient(ellipse at 50% 0%, rgb(211 47 47 / 20%), transparent 60%),
+            linear-gradient(180deg, #0d0d0d, #1a1a1a);
+        background-size: 200px 200px, 100% 100%, 100% 100%, 100% 100%;
+        background-position: center 6rem, center, center, center;
+        background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+        opacity: 1;
+    }
+
+    .bg-white,
+    .bg-light {
+        background-color: var(--bg-1) !important;
+        color: var(--fg-body) !important;
+    }
+
+    .topbar-wrapper {
+        position: relative;
+        border-bottom: 3px solid var(--primary-base) !important;
+        box-shadow: 0 4px 20px rgb(211 47 47 / 30%);
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset-inline-start: 50%;
+            bottom: -10px;
+            width: 20px;
+            height: 20px;
+            transform: translateX(-50%);
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23d32f2f' d='M50 0 61 35H98L68 57 79 91 50 70 21 91 32 57 2 35H39Z'/%3E%3C/svg%3E") center / contain no-repeat;
+            pointer-events: none;
+        }
+    }
+
+    .topnav-brand,
+    .brand-name {
+        color: #ffffff;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .brand-subtitle,
+    .topbar-container .vr {
+        color: #ff5252;
+    }
+
+    .topnav-brand-icon {
+        color: #ffffff;
+        background: #d32f2f;
+        border: 2px solid #ff5252;
+        border-radius: 4px;
+        box-shadow: 0 0 12px rgb(211 47 47 / 40%);
+    }
+
+    .topnav-toggle {
+        --focus-ring-color: #d32f2f;
+        color: #b0b0b0;
+        background-color: transparent;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+
+        &:hover,
+        &:focus-visible,
+        &.active {
+            color: #ffffff;
+            background-color: #d32f2f;
+            box-shadow: inset 0 0 0 2px #ff5252, 0 0 12px rgb(211 47 47 / 40%);
+        }
+    }
+
+    .topbar-container .btn-ghost-secondary {
+        --focus-ring-color: #d32f2f;
+        --btn-color: #ffffff;
+        --btn-bg: transparent;
+        --btn-hover-color: #ffffff;
+        --btn-hover-bg: #d32f2f;
+        --btn-active-color: #ffffff;
+        --btn-active-bg: #d32f2f;
+        --fg-body: #ffffff;
+        --secondary-fg: #ff5252;
+    }
+
+    .avatar-circle {
+        background: linear-gradient(135deg, #d32f2f, #ff5252) !important;
+        color: #ffffff;
+        border: 2px solid #ffeb3b;
+        box-shadow: 0 0 12px rgb(211 47 47 / 40%);
+    }
+
+    .card,
+    .dashboard-page .card,
+    .dashboard-page .dashboard-card,
+    .dashboard-page .summary-card,
+    .dashboard-page .inventory-panel {
+        box-shadow: var(--red-alert-panel-shadow) !important;
+        border: 1px solid var(--primary-border) !important;
+    }
+
+    .card-header,
+    .dashboard-page .panel-heading {
+        border-bottom-color: var(--primary-border);
+        background-color: var(--bg-3) !important;
+    }
+
+    .card-header :is(h1, h2, h3, h4, h5, h6, .card-title),
+    .dialog-title {
+        font-family: 'Arial Black', 'Impact', sans-serif;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--primary-base);
+    }
+
+    .menu {
+        --menu-item-hover-color: #ffffff;
+        --menu-item-hover-bg: var(--primary-bg-subtle);
+        border: 1px solid var(--primary-border);
+        box-shadow: var(--red-alert-panel-shadow);
+    }
+
+    .dialog,
+    .datepicker {
+        --dialog-bg: var(--bg-1);
+        --dialog-border-color: var(--primary-border);
+        --dialog-box-shadow: var(--red-alert-panel-shadow);
+        --datepicker-bg: var(--bg-1);
+        --datepicker-border-color: var(--primary-border);
+        --datepicker-box-shadow: var(--red-alert-panel-shadow);
+    }
+
+    .form-control {
+        --control-border-color: #4a4a4a;
+        --control-placeholder-color: var(--fg-3);
+        --control-action-bg: var(--bg-3);
+        --control-action-hover-bg: var(--bg-4);
+
+        &:focus-within {
+            border-color: var(--primary-base);
+            box-shadow: 0 0 0 3px rgb(211 47 47 / 20%);
+        }
+
+        &.is-invalid {
+            --control-border-color: var(--danger-base);
+            --focus-ring-color: var(--danger-focus-ring);
+
+            &:focus-within {
+                border-color: var(--danger-base);
+                box-shadow: 0 0 0 3px rgb(244 67 54 / 25%);
+            }
+        }
+    }
+
+    .btn-solid[class*='theme-'] {
+        --btn-bg: var(--theme-bg);
+        --btn-border-color: var(--theme-bg);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: inset 0 1px rgb(255 255 255 / 20%), 0 2px 8px rgb(0 0 0 / 40%);
+
+        &:hover,
+        &:focus-visible {
+            --btn-bg: var(--theme-bg);
+            --btn-border-color: var(--theme-bg);
+            box-shadow: inset 0 1px rgb(255 255 255 / 20%), 0 4px 12px rgb(0 0 0 / 50%);
+        }
+
+        &:disabled,
+        &.disabled {
+            box-shadow: none;
+        }
+    }
+
+    .nav-tabs {
+        --nav-tabs-link-active-color: #ffffff;
+        --nav-tabs-link-active-bg: var(--bg-1);
+        --nav-tabs-link-active-border-color: var(--primary-border) var(--primary-border) var(--bg-1);
+
+        .nav-link.active {
+            box-shadow: inset 0 3px var(--primary-base);
+        }
+    }
+
+    .table thead th {
+        color: var(--primary-base);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    ::selection {
+        background: var(--primary-base);
+        color: #ffffff;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .btn,
+        .form-control,
+        .nav-link,
+        .menu {
+            transition: none;
+        }
+    }
+}

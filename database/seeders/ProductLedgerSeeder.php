@@ -32,13 +32,12 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use Database\Seeders\Concerns\SeedsDocumentSequences;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -304,6 +303,7 @@ class ProductLedgerSeeder extends Seeder
         $inventoryLedgerId = $existing->inventory_ledger_id ?? (string) Str::uuid7();
         $totalCost = bcmul($movement['quantity'], $movement['unit_cost'], 2);
         $now = now();
+        $currencyId = DB::table('currencies')->where('is_default', true)->value('id');
 
         DB::table('product_ledgers')->updateOrInsert(
             ['id' => $movementId],
@@ -346,20 +346,15 @@ class ProductLedgerSeeder extends Seeder
         }
 
         $common = [
-            'source_id' => $movementId,
-            'source_type' => null,
+            'type' => LedgerType::JOURNAL->value,
+            'subtype' => LedgerSubType::JOURNAL->value,
             'company_id' => $invoice->company_id,
-            'contact_id' => $invoice->contact_id,
             'company_name' => $invoice->company_name,
             'document_number' => $movement['document_number'],
             'reference_number' => $movement['reference_number'],
-            'type' => LedgerType::JOURNAL->value,
-            'subtype' => LedgerSubType::JOURNAL->value,
             'date' => $movement['date'],
-            'document_date' => $movement['date'],
-            'total_amount' => $totalCost,
-            'status' => LedgerStatus::POSTED->value,
-            'description' => $movement['notes'],
+            'description' => 'Cost of goods sold for '.$movement['document_number'],
+            'line_description' => $movement['notes'],
             'deleted_at' => null,
             'created_at' => $now,
             'updated_at' => $now,
@@ -368,12 +363,10 @@ class ProductLedgerSeeder extends Seeder
         DB::table('ledgers')->updateOrInsert(
             ['id' => $cogsLedgerId],
             $common + [
-                'debit_id' => $cogsChart->id,
-                'credit_id' => null,
-                'debit_acc' => $cogsChart->code,
-                'credit_acc' => null,
-                'debit_acc_desc' => $cogsChart->name,
-                'credit_acc_desc' => null,
+                'chart_id' => $cogsChart->id,
+                'currency_id' => $currencyId,
+                'chart_code' => $cogsChart->code,
+                'chart_name' => $cogsChart->name,
                 'debit_amount' => $totalCost,
                 'credit_amount' => '0.00',
             ]
@@ -381,12 +374,10 @@ class ProductLedgerSeeder extends Seeder
         DB::table('ledgers')->updateOrInsert(
             ['id' => $inventoryLedgerId],
             $common + [
-                'debit_id' => null,
-                'credit_id' => $inventoryChart->id,
-                'debit_acc' => null,
-                'credit_acc' => $inventoryChart->code,
-                'debit_acc_desc' => null,
-                'credit_acc_desc' => $inventoryChart->name,
+                'chart_id' => $inventoryChart->id,
+                'currency_id' => $currencyId,
+                'chart_code' => $inventoryChart->code,
+                'chart_name' => $inventoryChart->name,
                 'debit_amount' => '0.00',
                 'credit_amount' => $totalCost,
             ]
@@ -394,53 +385,26 @@ class ProductLedgerSeeder extends Seeder
     }
 
     /**
-     * Return the debit-side ledger row for one sales invoice.
-     *
-     * Pending documents are intentionally kept out of ar_ledgers, so a
-     * pending demo invoice has no row to read back. Fall back to the
-     * document the SubLedgerSeeder defines, so the movement still seeds.
+     * Return the debit-side client-ledger row for one invoice.
      */
     private function invoiceLine(string $documentNumber): ?stdClass
     {
-        $row = DB::table('ar_ledgers')
-            ->where('document_number', $documentNumber)
+        return DB::table('sales_invoices')
+            ->join('sales_invoice_lines', 'sales_invoice_lines.sales_invoice_id', '=', 'sales_invoices.id')
+            ->leftJoin('ar_ledgers', function ($join): void {
+                $join->on('ar_ledgers.document_number', '=', 'sales_invoices.document_number')
+                    ->where('ar_ledgers.subtype', LedgerSubType::SALES_INVOICE->value);
+            })
+            ->where('sales_invoices.document_number', $documentNumber)
+            ->select([
+                'sales_invoices.date',
+                'sales_invoices.company_id',
+                'sales_invoices.company_name',
+                'sales_invoices.contact_id',
+                'sales_invoice_lines.quantity',
+            ])
+            ->selectRaw('COALESCE(ar_ledgers.id, sales_invoices.id) as id')
             ->first();
-
-        if ($row !== null) {
-            $row->quantity = 1;
-            $row->contact_id = null;
-
-            return $row;
-        }
-
-        $fallbackDates = [
-            'IV-DEMO-0001' => '2026-08-01',
-            'IV-DEMO-0002' => '2026-08-25',
-        ];
-
-        if (! isset($fallbackDates[$documentNumber])) {
-            return null;
-        }
-
-        $company = DB::table('companies')
-            ->where('is_debtor', true)
-            ->orderBy('created_at')
-            ->first(['id', 'name']);
-
-        if ($company === null) {
-            return null;
-        }
-
-        $fallback = new stdClass;
-        $fallback->id = (string) Str::uuid7();
-        $fallback->company_id = $company->id;
-        $fallback->company_name = $company->name;
-        $fallback->contact_id = null;
-        $fallback->document_number = $documentNumber;
-        $fallback->date = $fallbackDates[$documentNumber];
-        $fallback->quantity = 1;
-
-        return $fallback;
     }
 
     /**

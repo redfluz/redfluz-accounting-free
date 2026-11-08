@@ -1,6 +1,6 @@
 @php use App\Models\System\Setting; @endphp
 @php
-    use App\Enums\LedgerStatus;
+    use App\Enums\Finance\LedgerStatus;
 
     $isPosted = $journalEntry->status === LedgerStatus::POSTED;
     $statusLabel =

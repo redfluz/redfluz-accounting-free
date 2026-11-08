@@ -1,5 +1,9 @@
-@php use App\Models\System\Setting; @endphp
-@inject('dash', App\Services\DashboardFinanceService::class)
+@php
+    use App\Models\System\Setting;
+    use App\Services\DashboardFinanceService;
+@endphp
+@props([])
+@inject('dash', DashboardFinanceService::class)
 @extends('layouts.app')
 
 @section('content')

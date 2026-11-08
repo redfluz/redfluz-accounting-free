@@ -26,7 +26,7 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\SalesOrderStatus;
+use App\Enums\Sales\SalesOrderStatus;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Support\Traits\AttributesDocuments;

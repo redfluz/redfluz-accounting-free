@@ -24,8 +24,8 @@
 --}}
 
 @php
-    use App\Enums\ChartReportGroupEnum;
-    use App\Enums\ChartTypeEnum;
+    use App\Enums\ChartOfAccount\ChartReportGroupEnum;
+    use App\Enums\ChartOfAccount\ChartTypeEnum;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     use App\Models\ChartOfAccount\Chart;

@@ -101,6 +101,7 @@ Route::post('purchase-invoices/batch-approve', [PurchaseInvoiceController::class
 Route::post('purchase-invoices/batch-cancel', [PurchaseInvoiceController::class, 'batchCancel'])->name('purchase.invoices.batch-cancel');
 Route::get('purchase-invoices/payments/{paymentDocumentNumber}/pdf', [PurchaseInvoiceController::class, 'paymentPdf'])->name('purchase.invoices.payments.pdf');
 Route::get('purchase-invoices/{documentNumber}/pdf', [PurchaseInvoiceController::class, 'pdf'])->name('purchase.invoices.pdf');
+Route::get('purchase-invoices/{documentNumber}/attachment', [PurchaseInvoiceController::class, 'downloadAttachment'])->name('purchase.invoices.attachment');
 Route::get('purchase-invoices/{documentNumber}', [PurchaseInvoiceController::class, 'show'])->name('purchase.invoices.show');
 
 Route::get('purchase-adjustments', [PurchaseAdjustmentController::class, 'index'])->name('purchase.adjustments.index');
@@ -115,6 +116,7 @@ Route::patch('purchase-adjustments/cancelled/{documentNumber}/uncancel', [Purcha
 Route::get('purchase-adjustments/cancelled/{documentNumber}', [PurchaseAdjustmentCancelledController::class, 'show'])->name('purchase.adjustments.cancelled.show');
 Route::get('purchase-adjustments/create', [PurchaseAdjustmentController::class, 'create'])->name('purchase.adjustments.create');
 Route::get('purchase-adjustments/invoices', [PurchaseAdjustmentController::class, 'invoiceOptions'])->name('purchase.adjustments.invoices');
+Route::get('purchase-adjustments/{documentNumber}/edit', [PurchaseAdjustmentController::class, 'edit'])->name('purchase.adjustments.edit');
 Route::post('purchase-adjustments', [PurchaseAdjustmentController::class, 'store'])->name('purchase.adjustments.store');
 Route::put('purchase-adjustments/{documentNumber}', [PurchaseAdjustmentController::class, 'update'])->name('purchase.adjustments.update');
 Route::patch('purchase-adjustments/{documentNumber}/approve', [PurchaseAdjustmentController::class, 'approve'])->name('purchase.adjustments.approve');

@@ -32,18 +32,16 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
-use App\Enums\SalesOrderStatus;
-use App\Enums\ShippingStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
+use App\Enums\Sales\SalesOrderStatus;
+use App\Enums\Sales\ShippingStatus;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
-use App\Models\Finance\Ledger;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Inventory\StockLocation;
 use App\Models\Sales\DeliveryOrder;
@@ -52,6 +50,7 @@ use App\Models\Sales\SalesOrder;
 use App\Models\Sales\SalesOrderLine;
 use Database\Seeders\Concerns\SeedsDocumentSequences;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -335,21 +334,20 @@ class DeliveryOrderSeeder extends Seeder
             ]
         );
 
+        $currencyId = DB::table('settings')->value('currency_id')
+            ?? DB::table('currencies')->where('is_default', true)->value('id');
+
         $common = [
-            'source_id' => $movementId,
-            'source_type' => null,
             'company_id' => $salesOrder->company_id,
-            'contact_id' => null,
+            'currency_id' => $currencyId,
             'company_name' => $salesOrder->company_name,
-            'document_number' => $delivery['number'],
-            'reference_number' => $salesOrder->document_number,
             'type' => LedgerType::JOURNAL->value,
             'subtype' => LedgerSubType::JOURNAL->value,
+            'document_number' => $delivery['number'],
+            'reference_number' => $salesOrder->document_number,
             'date' => $delivery['delivery_date'],
-            'document_date' => $delivery['delivery_date'],
-            'total_amount' => $totalCost,
-            'status' => LedgerStatus::POSTED->value,
-            'description' => $orderLine->description,
+            'description' => __('product_ledgers.entries.cogs_posting', ['document' => $delivery['number']]),
+            'line_description' => $orderLine->description,
             'created_at' => $now,
             'updated_at' => $now,
             'deleted_at' => null,
@@ -359,17 +357,14 @@ class DeliveryOrderSeeder extends Seeder
             [$cogsLedgerId, $cogsChart, true],
             [$inventoryLedgerId, $inventoryChart, false],
         ] as [$ledgerId, $chart, $isDebit]) {
-            $existingLedger = Ledger::query()->whereKey($ledgerId)->first(['id', 'created_at']);
+            $existingLedger = DB::table('ledgers')->where('id', $ledgerId)->first(['id', 'created_at']);
 
-            Ledger::query()->updateOrInsert(
-                ['id' => $existingLedger->id ?? $ledgerId],
+            DB::table('ledgers')->updateOrInsert(
+                ['id' => $ledgerId],
                 $common + [
-                    'debit_id' => $isDebit ? $chart->id : null,
-                    'credit_id' => $isDebit ? null : $chart->id,
-                    'debit_acc' => $isDebit ? $chart->code : null,
-                    'credit_acc' => $isDebit ? null : $chart->code,
-                    'debit_acc_desc' => $isDebit ? $chart->name : null,
-                    'credit_acc_desc' => $isDebit ? null : $chart->name,
+                    'chart_id' => $chart->id,
+                    'chart_code' => $chart->code,
+                    'chart_name' => $chart->name,
                     'debit_amount' => $isDebit ? $totalCost : '0.00',
                     'credit_amount' => $isDebit ? '0.00' : $totalCost,
                     'created_at' => $existingLedger->created_at ?? $now,

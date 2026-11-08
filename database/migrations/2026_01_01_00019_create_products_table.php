@@ -29,7 +29,7 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\AcquisitionType;
+use App\Enums\Inventory\AcquisitionType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

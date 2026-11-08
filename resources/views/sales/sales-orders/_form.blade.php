@@ -1,4 +1,5 @@
 @php
+    use App\Enums\UploadType;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
 
@@ -6,7 +7,7 @@
     $canQuickCreateCompany = auth()->user()->hasFilePermission(FileResources::SALES_ORDERS, FileAction::ADD);
 @endphp
 
-<ul class="sales-document-tabs nav nav-tabs" id="sales-order-tabs" role="tablist">
+<ul class="sales-document-tabs nav nav-tabs" id="sales-order-tabs">
     <li class="nav-item">
         <button class="nav-link active" data-sales-order-tab="general" type="button">
             {{ __('sales_orders.tabs.general') }}
@@ -50,10 +51,10 @@
                 @if ($canQuickCreateCompany)
                     <div class="d-none mt-2" id="quick-company-panel">
                         <div class="input-group">
-                            <label class="form-control form-adorn">
+                            <div class="form-control form-adorn">
                                 <input class="form-ghost" id="quick-company-name" maxlength="255"
                                     placeholder="{{ __('sales_orders.form.quick_company_name') }}" type="text" />
-                            </label>
+                            </div>
                             <button class="btn btn-solid theme-success" id="save-quick-company" type="button">
                                 <i class="me-1" data-lucide="plus"></i>{{ __('sales_orders.actions.add_company') }}
                             </button>
@@ -76,15 +77,17 @@
             </div>
             <div class="md:col-4">
                 <label class="form-label"
-                    for="customer_reference_number">{{ __('sales_orders.form.customer_reference') }}</label><label
+                    for="customer_reference_number">{{ __('sales_orders.form.customer_reference') }}</label>
+                <div
                     class="form-control form-adorn">
                     <input
                         class="form-ghost" id="customer_reference_number" name="customer_reference_number"
                         value="{{ old('customer_reference_number', $salesOrder?->customer_reference_number) }}" />
-                </label>
+                </div>
             </div>
             <div class="md:col-4">
-                <label class="form-label" for="order_date">{{ __('sales_orders.form.order_date') }}</label><label
+                <label class="form-label" for="order_date">{{ __('sales_orders.form.order_date') }}</label>
+                <div
                     class="form-control form-adorn">
                     <div class="form-adorn-icon" aria-hidden="true">
                         <i data-lucide="calendar"></i>
@@ -93,11 +96,12 @@
                         class="form-ghost" id="order_date" name="order_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                         value="{{ old('order_date', $salesOrder?->order_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                         required />
-                </label>
+                </div>
             </div>
             <div class="md:col-4">
                 <label class="form-label"
-                    for="expected_delivery_date">{{ __('sales_orders.form.expected_delivery_date') }}</label><label
+                    for="expected_delivery_date">{{ __('sales_orders.form.expected_delivery_date') }}</label>
+                <div
                     class="form-control form-adorn">
                     <div class="form-adorn-icon" aria-hidden="true">
                         <i data-lucide="calendar"></i>
@@ -106,7 +110,7 @@
                         class="form-ghost" id="expected_delivery_date" name="expected_delivery_date" type="text"
                         data-bs-toggle="datepicker" autocomplete="off"
                         value="{{ old('expected_delivery_date', $salesOrder?->expected_delivery_date?->format('Y-m-d')) }}" />
-                </label>
+                </div>
             </div>
             <div class="col-12">
                 <label class="form-label" for="notes">{{ __('sales_orders.form.notes') }}</label>
@@ -117,12 +121,35 @@
 
     <section class="sales-tab-panel" data-sales-order-section="attachment">
         <div class="mb-4">
-            <label class="form-label" for="attachment">{{ __('sales_orders.form.attachment') }}</label><input
-                class="form-control" id="attachment" name="attachment" type="file"
-                accept="{{ \App\Enums\UploadType::DOCUMENT_AND_IMAGES->accept() }}" />
+            <label class="form-label" for="attachment">{{ __('sales_orders.form.attachment') }}</label>
             @if ($salesOrder?->attachment_path)
-                <div class="form-text">{{ basename($salesOrder->attachment_path) }}</div>
+                @php($attachmentExtension = strtolower(pathinfo($salesOrder->attachment_path, PATHINFO_EXTENSION)))
+                <div class="mb-2">
+                    <div class="form-text mb-1">{{ __('sales_orders.form.current_attachment') }}</div>
+                    @if (in_array($attachmentExtension, ['jpg', 'jpeg', 'png', 'webp'], true))
+                        <a href="{{ route('sales.sales-orders.attachment', $salesOrder) }}" target="_blank">
+                            <img class="img-thumbnail rounded-3 border"
+                                src="{{ route('sales.sales-orders.attachment', $salesOrder) }}"
+                                alt="{{ basename($salesOrder->attachment_path) }}" style="max-height: 140px" />
+                        </a>
+                    @else
+                        <a class="btn btn-sm btn-solid theme-secondary"
+                            href="{{ route('sales.sales-orders.attachment', $salesOrder) }}" target="_blank">
+                            <i class="me-1" data-lucide="paperclip"></i>{{ basename($salesOrder->attachment_path) }}
+                        </a>
+                    @endif
+                </div>
             @endif
+            <input class="form-control" id="attachment" name="attachment" type="file"
+                accept="{{ UploadType::DOCUMENT_AND_IMAGES->accept() }}"
+                onchange="previewSalesOrderAttachment(event)" />
+            <div class="form-text">{{ __('sales_orders.form.attachment_size_hint') }}</div>
+            <div class="invalid-feedback d-none" id="attachment-size-error"
+                data-too-large="{{ __('sales_orders.form.attachment_too_large') }}"></div>
+            <div class="d-none mt-2" id="attachment-preview-container">
+                <div class="form-text mb-1">{{ __('sales_orders.form.new_attachment_preview') }}</div>
+                <div id="attachment-preview-box"></div>
+            </div>
         </div>
     </section>
 </div>
@@ -148,7 +175,7 @@
                     <tr>
                         <td style="min-width: 220px">
                             <select class="form-control so-product" name="lines[{{ $index }}][product_id]"
-                                aria-label="{{ __('sales_orders.form.product') }}">
+                                >
                                 <option value="">{{ __('common.actions.select_option') }}</option>
                                 @foreach ($products as $product)
                                     <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}"
@@ -163,29 +190,29 @@
                             </select>
                         </td>
                         <td style="min-width: 180px">
-                            <label class="form-control form-adorn">
+                            <div class="form-control form-adorn">
                                 <input class="form-ghost so-description" name="lines[{{ $index }}][description]"
                                     value="{{ old("lines.$index.description", $line?->description) }}" />
-                            </label>
+                            </div>
                         </td>
                         <td style="min-width: 115px">
-                            <label class="form-control form-adorn">
+                            <div class="form-control form-adorn">
                                 <input class="form-ghost so-quantity" name="lines[{{ $index }}][quantity]"
                                     type="number" min="0.0001" step="0.0001"
                                     value="{{ old("lines.$index.quantity", $line?->ordered_quantity) }}" />
-                            </label>
+                            </div>
                         </td>
                         <td style="min-width: 125px">
-                            <label class="form-control form-adorn">
+                            <div class="form-control form-adorn">
                                 <input class="form-ghost so-price" name="lines[{{ $index }}][unit_price]"
                                     type="number" min="0" step="0.01"
                                     value="{{ old("lines.$index.unit_price", $line?->unit_price) }}" />
-                            </label>
+                            </div>
                         </td>
                         <td style="min-width: 150px">
                             <select class="form-control so-warranty"
                                 name="lines[{{ $index }}][warranty_months]"
-                                aria-label="{{ __('sales_orders.form.warranty') }}">
+                                >
                                 @foreach ([-1, 0, 3, 6, 12, 24, 36] as $months)
                                     <option value="{{ $months }}" @selected((int) old("lines.$index.warranty_months", $line?->warranty_months ?? -1) === $months)>
                                         {{ $months === -1 ? __('products.warranty.unlimited') : ($months === 0 ? __('products.warranty.none') : __('products.warranty.months', ['count' => $months])) }}
@@ -216,12 +243,13 @@
                                     aria-label="{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}">
                                     <option value="percent">%</option>
                                     <option value="amount">RM</option>
-                                </select><label class="form-control form-adorn">
+                                </select>
+                                <div class="form-control form-adorn">
                                     <input class="form-ghost so-discount-value"
                                         name="lines[{{ $index }}][discount_value]" type="number" min="0"
                                         step="0.0001"
                                         value="{{ old("lines.$index.discount_value", $line?->discount_value ?? 0) }}" />
-                                </label>
+                                </div>
                             </div>
                         </td>
                         <td style="min-width: 210px">
@@ -241,10 +269,12 @@
                                 @endforeach
                             </select>
                             <div class="input-group input-group-sm mt-1">
-                                <label class="form-control form-adorn">
+                                <div class="form-control form-adorn">
                                     <input class="form-ghost so-tax-rate" name="lines[{{ $index }}][tax_rate]"
                                         type="number" min="0" max="100" step="0.0001"
-                                        value="{{ old("lines.$index.tax_rate", $line?->tax_rate ?? 0) }}" /></label><select
+                                        value="{{ old("lines.$index.tax_rate", $line?->tax_rate ?? 0) }}" />
+                                </div>
+                                <select
                                     class="form-control so-tax-mode" name="lines[{{ $index }}][tax_mode]"
                                     aria-label="{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}">
                                     <option value="exclusive">{{ __('ledgers.tax_mode.exclusive') }}</option>
@@ -274,6 +304,52 @@
 
 @push('scripts')
     <script>
+        function previewSalesOrderAttachment(event) {
+            const input = event.target;
+            const errorBox = document.getElementById('attachment-size-error');
+            const container = document.getElementById('attachment-preview-container');
+            const previewBox = document.getElementById('attachment-preview-box');
+            errorBox.classList.add('d-none');
+            errorBox.textContent = '';
+
+            if (!input.files || !input.files[0]) {
+                container.classList.add('d-none');
+                previewBox.replaceChildren();
+                return;
+            }
+
+            const file = input.files[0];
+
+            if (file.size > 5120 * 1024) {
+                errorBox.textContent = errorBox.dataset.tooLarge;
+                errorBox.classList.remove('d-none');
+                input.value = '';
+                container.classList.add('d-none');
+                previewBox.replaceChildren();
+                return;
+            }
+
+            container.classList.remove('d-none');
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.addEventListener('load', (loadEvent) => {
+                    const image = document.createElement('img');
+                    image.src = loadEvent.target.result;
+                    image.className = 'img-thumbnail rounded-3 border';
+                    image.style.maxHeight = '140px';
+                    image.alt = file.name;
+                    previewBox.replaceChildren(image);
+                });
+                reader.readAsDataURL(file);
+            } else {
+                const caption = document.createElement('div');
+                caption.className = 'small';
+                caption.textContent = file.name;
+                previewBox.replaceChildren(caption);
+            }
+        }
+
         let salesOrderInvalidTabActivated = false;
         const salesOrderForm = document.querySelector('[data-sales-order-section]')?.closest('form');
         const companySelect = document.getElementById('company_id');
@@ -467,5 +543,3 @@
         }
     </script>
 @endpush
-
-```

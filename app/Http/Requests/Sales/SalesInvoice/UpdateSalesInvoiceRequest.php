@@ -28,10 +28,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Sales\SalesInvoice;
 
-use App\Enums\DiscountType;
+use App\Enums\Finance\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\TaxMode;
+use App\Enums\Finance\TaxMode;
 use App\Models\ChartOfAccount\Chart;
 use Closure;
 use Illuminate\Validation\Rule;

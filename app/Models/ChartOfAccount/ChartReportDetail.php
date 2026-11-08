@@ -26,10 +26,10 @@
 
 namespace App\Models\ChartOfAccount;
 
-use App\Enums\ChartReportGroupEnum;
-use App\Enums\ChartReportTypeEnum;
-use App\Enums\ChartTotalReportTypeEnum;
-use App\Enums\ChartTypeEnum;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
+use App\Enums\ChartOfAccount\ChartReportTypeEnum;
+use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
+use App\Enums\ChartOfAccount\ChartTypeEnum;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;

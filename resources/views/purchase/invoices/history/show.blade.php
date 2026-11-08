@@ -1,4 +1,9 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use App\Enums\FileAction;
+    use App\Enums\FileResources;
+    use Carbon\Carbon;
+@endphp
 @props(['documentNumber', 'lines', 'invoice'])
 
 @php
@@ -17,7 +22,7 @@
     );
     $canReverse = auth()
         ->user()
-        ->hasFilePermission(\App\Enums\FileResources::PURCHASE_INVOICES, \App\Enums\FileAction::APPROVE)
+        ->hasFilePermission(FileResources::PURCHASE_INVOICES, FileAction::APPROVE)
         && ! $invoice->undone_at;
 @endphp
 
@@ -74,7 +79,7 @@
                 <div class="md:col-3">
                     <div class="bg-2 rounded p-3">
                         <small class="fg-secondary d-block">{{ __('ledgers.table.column_date') }}</small>
-                        <strong>{{ \Carbon\Carbon::parse($invoice->date)->format(Setting::getDefaultDate()) }}</strong>
+                        <strong>{{ Carbon::parse($invoice->date)->format(Setting::getDefaultDate()) }}</strong>
                     </div>
                 </div>
                 <div class="md:col-3">

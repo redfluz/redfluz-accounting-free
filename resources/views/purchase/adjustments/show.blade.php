@@ -28,6 +28,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 
 $canApprove = auth()->user()->hasFilePermission(FileResources::PURCHASE_ADJUSTMENTS, FileAction::APPROVE);
+$canUpdate = auth()->user()->hasFilePermission(FileResources::PURCHASE_ADJUSTMENTS, FileAction::UPDATE);
 $canReverse = $canApprove && $isPosted && ! $adjustment->undone_at;
 ?>
 @php use App\Models\System\Setting; @endphp
@@ -67,6 +68,14 @@ $canReverse = $canApprove && $isPosted && ! $adjustment->undone_at;
                             {{ __('common.actions.post') }}
                         </button>
                     </form>
+                @endif
+
+                @if (!$isPosted && $canUpdate)
+                    <a class="btn btn-solid theme-warning btn-sm text-nowrap"
+                        href="{{ route('purchase.adjustments.edit', $documentNumber) }}">
+                        <i data-lucide="square-pen"></i>
+                        {{ __('common.actions.edit') }}
+                    </a>
                 @endif
 
                 <a class="btn btn-solid theme-primary btn-sm text-nowrap"

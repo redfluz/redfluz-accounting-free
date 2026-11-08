@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Traits;
 
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 
 /**
  * The questions every refund document is asked about its own status.

@@ -1,12 +1,19 @@
 @php
     use App\Models\System\Setting;
+    use App\Models\Finance\Discount;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canAdd = auth()->user()->hasFilePermission(FileResources::DISCOUNTS, FileAction::ADD);
     $canRemove = auth()->user()->hasFilePermission(FileResources::DISCOUNTS, FileAction::REMOVE);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::DISCOUNTS, FileAction::UPDATE);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, Discount> */
+    'discounts',
+])
 
 @extends('layouts.app')
 

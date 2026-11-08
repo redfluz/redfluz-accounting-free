@@ -68,7 +68,7 @@ class UpdateCashTransferRequest extends BaseFormRequest
                 'uuid',
                 Rule::exists((new CashAccount)->getTable(), 'id')->where('is_active', true),
             ],
-            'document_date' => ['required', 'date'],
+            'date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],

@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Enums\QuotationStatus;
+use App\Enums\Sales\QuotationStatus;
 use Carbon\Carbon;
 
 ?>

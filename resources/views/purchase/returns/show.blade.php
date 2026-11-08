@@ -1,4 +1,7 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use App\Enums\Inventory\ProductMovementStatus;
+@endphp
 @extends('layouts.app')
 @section('content')
     <div class="card shadow-sm">
@@ -30,7 +33,7 @@
                 </tbody>
             </table>
             <p>{{ $return->notes }}</p>
-            @if ($return->status === \App\Enums\ProductMovementStatus::PENDING)
+            @if ($return->status === ProductMovementStatus::PENDING)
                 <div class="d-flex gap-2">
                     <form autocomplete="off" method="POST" action="{{ route('purchase.returns.approve', $return->document_number) }}">
                         @csrf

@@ -32,9 +32,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Purchase\PurchaseOrder;

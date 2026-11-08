@@ -17,48 +17,8 @@
             <form autocomplete="off" action="{{ route('system.roles.update', $role) }}" method="POST">
                 @csrf
                 @method('PUT')
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="name"> {{ __('roles.table.column_name') }} </label>
-                    <label class="form-control form-adorn">
-                        <input
-                            class="form-ghost @error('name') is-invalid @enderror"
-                            id="name"
-                            name="name"
-                            type="text"
-                            value="{{ old('name', $role->name) }}"
-                            required
-                        />
-                    </label>
-                    @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="dashboard">
-                        {{ __('roles.table.column_dashboard') }}
-                    </label>
-                    <select
-                        class="form-control @error('dashboard') is-invalid @enderror"
-                        id="dashboard"
-                        name="dashboard"
-                        required
-                    >
-                        @foreach ($dashboards as $dashboard)
-                            <option
-                                value="{{ $dashboard->value }}"
-                                {{ old('dashboard', $role->dashboard->value) === $dashboard->value ? 'selected' : '' }}
-                            >
-                                {{ $dashboard->label() }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('dashboard')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
+                <input name="id" type="hidden" value="{{ $role->id }}"/>
+                @include('system.roles._form')
                 <div class="d-flex justify-content-between pt-2">
                     <a class="btn btn-solid theme-secondary" href="{{ route('system.roles.index') }}">
                         <i class="me-1" data-lucide="arrow-left"></i>

@@ -35,7 +35,8 @@ return [
     ],
     'attachments' => [
         'title' => 'Product Images',
-        'hint' => 'Upload up to 10 JPG, PNG, or WebP images. Each image may be up to 2 MB.',
+        'hint' => 'Upload up to 10 JPG, PNG, or WebP images. Each image may be up to 8000 KB.',
+        'too_large' => 'The following images exceed the 8000 KB limit and were not added:',
         'existing' => 'Current Images',
         'new' => 'Add Images',
         'remove' => 'Remove',

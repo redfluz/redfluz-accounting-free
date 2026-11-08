@@ -1,4 +1,7 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use Carbon\Carbon;
+@endphp
 @props([
     'entries',
     /** @var string|null */
@@ -46,22 +49,22 @@
                         placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
                 </div>
                 <div class="md:col-2">
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <div class="form-adorn-icon" aria-hidden="true">
                             <i data-lucide="calendar"></i>
                         </div>
                         <input class="form-ghost" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                             value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
-                    </label>
+                    </div>
                 </div>
                 <div class="md:col-2">
-                    <label class="form-control form-adorn">
+                    <div class="form-control form-adorn">
                         <div class="form-adorn-icon" aria-hidden="true">
                             <i data-lucide="calendar"></i>
                         </div>
                         <input class="form-ghost" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                             value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
-                    </label>
+                    </div>
                 </div>
                 <div class="md:col-3 d-flex gap-1">
                     <button class="btn btn-solid theme-secondary flex-fill" type="submit">
@@ -93,7 +96,7 @@
                             <tr>
                                 <td class="fw-bold">{{ $entry->document_number }}</td>
                                 <td>{{ $entry->reference_number ?? '-' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($entry->date)->format(Setting::getDefaultDate()) }}</td>
+                                <td>{{ Carbon::parse($entry->date)->format(Setting::getDefaultDate()) }}</td>
                                 <td>{{ __('ledgers.sub_type.' . ($entry->subtype->value ?? $entry->subtype)) }}</td>
                                 <td>{{ $entry->company_name ?? '-' }}</td>
                                 <td class="fw-bold fg-primary text-end">

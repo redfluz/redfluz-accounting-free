@@ -25,7 +25,8 @@
 --}}
 
 @php
-    use App\Enums\ChartTotalReportTypeEnum;
+    use Carbon\Carbon;
+    use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
 
     $totalIncome = (float) $summary['income'];
     $totalExpenses = (float) $summary['expenses'];
@@ -35,6 +36,41 @@
     $hasComparison = !$hasPeriodColumns && filled($comparisonLabel);
     $columnCount = $hasPeriodColumns ? 2 + count($periodColumns) : ($hasComparison ? 4 : 3);
 @endphp
+
+@props([
+    /** @var array<int, array<string, mixed>> */
+    'rows',
+    /** @var array<string, float> */
+    'summary',
+    /** @var string */
+    'reportName',
+    /** @var array<int, string> */
+    'unknownLedgerAccounts' => [],
+    /** @var array<int, string> */
+    'periodColumns' => [],
+    /** @var string|null */
+    'comparisonLabel' => null,
+    /** @var string */
+    'reportView' => 'normal',
+    /** @var string */
+    'periodType' => 'month',
+    /** @var int */
+    'year' => 0,
+    /** @var int */
+    'month' => 1,
+    /** @var int */
+    'quarter' => 1,
+    /** @var string|null */
+    'startDate' => null,
+    /** @var string|null */
+    'endDate' => null,
+    /** @var string */
+    'periodLabel' => '',
+    /** @var string */
+    'ledgerStartDate' => '',
+    /** @var string */
+    'ledgerEndDate' => '',
+])
 
 @extends('layouts.app')
 
@@ -148,7 +184,7 @@
                                 <select class="form-control" id="month" name="month">
                                     @foreach (range(1, 12) as $reportMonth)
                                         <option value="{{ $reportMonth }}" @selected($month === $reportMonth)>
-                                            {{ \Carbon\Carbon::create(null, $reportMonth, 1)->translatedFormat('F') }}
+                                            {{ Carbon::create(null, $reportMonth, 1)->translatedFormat('F') }}
                                         </option>
                                     @endforeach
                                 </select>

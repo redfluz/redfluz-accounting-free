@@ -2,7 +2,7 @@
     <label class="form-label fw-bold" for="name">
         {{ __('brands.form.name') }} <span class="fg-danger">*</span>
     </label>
-    <label class="form-control form-adorn">
+    <div class="form-control form-adorn">
         <input
             class="form-ghost @error('name') is-invalid @enderror"
             id="name"
@@ -11,7 +11,7 @@
             value="{{ old('name', isset($brand) ? $brand->name : '') }}"
             required
         />
-    </label>
+    </div>
     @error('name')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
@@ -39,7 +39,7 @@
         type="checkbox"
         value="1"
         @checked(old('is_active', isset($brand) ? $brand->is_active : true))
-        role="switch" switch />
+        role="switch" />
     </div>
     <label class="fw-bold" for="is_active">{{ __('brands.form.is_active') }}</label>
 </div>

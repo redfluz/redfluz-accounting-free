@@ -1,4 +1,7 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use App\Enums\Finance\LedgerSubType;
+@endphp
 <?php
 
 /**
@@ -141,7 +144,7 @@
 <body>
     @php
         $subtype = $adjustment->subtype->value ?? $adjustment->subtype;
-        $isDebitNote = $subtype === \App\Enums\LedgerSubType::INCREASE_ADJUSTMENT->value;
+        $isDebitNote = $subtype === LedgerSubType::INCREASE_ADJUSTMENT->value;
     @endphp
 
     <div class="header">

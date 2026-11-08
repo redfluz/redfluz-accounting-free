@@ -1,6 +1,6 @@
 @php
     use App\Models\System\Setting;
-    use App\Enums\LedgerType;
+    use App\Enums\Finance\LedgerType;
     use App\Models\Finance\Ledger;
 
     $totalDebit = $ledgers->sum('debit_amount');
@@ -73,24 +73,24 @@
                                 </select>
                             </div>
                             <div class="md:col-2">
-                                <label class="form-control form-adorn">
+                                <div class="form-control form-adorn">
                                     <div class="form-adorn-icon" aria-hidden="true">
                                         <i data-lucide="calendar"></i>
                                     </div>
                                     <input class="form-ghost" name="start_date" type="text" data-bs-toggle="datepicker"
                                         autocomplete="off" value="{{ $startDate }}"
                                         placeholder="{{ __('financial_reports.form.start_date') }}" />
-                                </label>
+                                </div>
                             </div>
                             <div class="md:col-2">
-                                <label class="form-control form-adorn">
+                                <div class="form-control form-adorn">
                                     <div class="form-adorn-icon" aria-hidden="true">
                                         <i data-lucide="calendar"></i>
                                     </div>
                                     <input class="form-ghost" name="end_date" type="text" data-bs-toggle="datepicker"
                                         autocomplete="off" value="{{ $endDate }}"
                                         placeholder="{{ __('financial_reports.form.end_date') }}" />
-                                </label>
+                                </div>
                             </div>
                             <div class="md:col-3 d-flex gap-1">
                                 <button class="btn btn-solid theme-secondary flex-grow-1" type="submit">

@@ -29,8 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

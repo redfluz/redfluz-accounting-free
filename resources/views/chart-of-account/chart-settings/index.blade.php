@@ -1,9 +1,16 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use App\Models\ChartOfAccount\ChartSetting;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canUpdate = auth()->user()->hasFilePermission(FileResources::CHART_SETTINGS, FileAction::UPDATE);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, ChartSetting> */
+    'chartSettings',
+])
 
 @extends('layouts.app')
 

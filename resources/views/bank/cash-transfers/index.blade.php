@@ -81,7 +81,7 @@
                         @forelse ($transfers as $transfer)
                             <tr>
                                 <td class="fw-bold">{{ $transfer->document_number }}</td>
-                                <td>{{ $transfer->document_date->format(Setting::getDefaultDate()) }}</td>
+                                <td>{{ $transfer->date->format(Setting::getDefaultDate()) }}</td>
                                 <td>{{ $transfer->cashAccount?->name ?? '-' }}</td>
                                 <td>
                                     @if ($transfer->transitChart)

@@ -116,6 +116,7 @@ return [
     ],
     'messages' => [
         'batch_approved' => ':count rekod telah diluluskan dan dipos.',
+        'batch_approve_failed' => 'Gagal meluluskan: :numbers.',
         'batch_cancelled' => ':count rekod telah dibatalkan.',
         'uncancelled' => 'Rekod telah dipulihkan.',
         'nothing_to_uncancel' => 'Rekod itu tidak lagi dibatalkan, jadi tiada apa-apa untuk dipulihkan.',

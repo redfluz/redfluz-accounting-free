@@ -23,17 +23,11 @@
 --}}
 
 @php
-    use App\Enums\ChartReportGroupEnum;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Models\ChartOfAccount\ChartType;
 
     $canCreate = auth()->user()->hasFilePermission(FileResources::CHARTS, FileAction::ADD);
 @endphp
-@props([
-    /** @var ChartType */
-    'type',
-])
 @extends('layouts.app')
 
 @section('content')
@@ -46,104 +40,7 @@
             @include('partials.errors')
             <form autocomplete="off" action="{{ route('chart-of-account.charts.store') }}" method="POST">
                 @csrf
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="chart_type_id">
-                        {{ __('charts.table.column_type') }}
-                    </label>
-                    <select
-                        class="form-control @error('chart_type_id') is-invalid @enderror"
-                        id="chart_type_id"
-                        name="chart_type_id"
-                        required
-                    >
-                        <option value="">{{ __('charts.form.report_group_select_type') }}</option>
-                        @foreach ($chartTypes as $type)
-                            <option value="{{ $type->id }}" {{ old('chart_type_id') == $type->id ? 'selected' : '' }}>
-                                {{ $type->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('chart_type_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="report_group">
-                        {{ __('charts.form.report_group') }}
-                    </label>
-                    <select
-                        class="form-control @error('report_group') is-invalid @enderror"
-                        id="report_group"
-                        name="report_group"
-                    >
-                        <option value="">{{ __('common.actions.select_option') }}</option>
-                        @foreach (ChartReportGroupEnum::cases() as $reportGroup)
-                            <option
-                                value="{{ $reportGroup->value }}"
-                                @selected(old('report_group') === $reportGroup->value)
-                            >
-                                {{ __('charts.report_group.' . $reportGroup->value) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="form-text">{{ __('charts.form.report_group_help') }}</div>
-                    @error('report_group')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="code"> {{ __('charts.table.column_code') }} </label>
-                    <label class="form-control form-adorn">
-                        <input
-                            class="form-ghost @error('code') is-invalid @enderror"
-                            id="code"
-                            name="code"
-                            type="text"
-                            value="{{ old('code') }}"
-                            required
-                        />
-                    </label>
-                    @error('code')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold" for="name"> {{ __('charts.table.column_name') }} </label>
-                    <label class="form-control form-adorn">
-                        <input
-                            class="form-ghost @error('name') is-invalid @enderror"
-                            id="name"
-                            name="name"
-                            type="text"
-                            value="{{ old('name') }}"
-                            required
-                        />
-                    </label>
-                    @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="d-flex mb-3 flex-wrap gap-4">
-                    @foreach (['isBank' => 'column_bank', 'isDebtor' => 'column_debtor', 'isCreditor' => 'column_creditor'] as $field => $label)
-                        <div class="switch">
-                        <input
-                            id="{{ $field }}"
-                            name="{{ $field }}"
-                            type="checkbox"
-                            value="1"
-                            @checked(old($field))
-                            role="switch" switch />
-                        </div>
-                        <label
-                            for="{{ $field }}"
-                        >{{ __('charts.table.' . $label) }}</label>
-                    @endforeach
-                </div>
+                @include('chart-of-account.charts._form', ['chart' => null])
 
                 <div class="d-flex justify-content-between pt-2">
                     <a class="btn btn-solid theme-secondary" href="{{ route('chart-of-account.charts.index') }}">
@@ -160,45 +57,4 @@
             </form>
         </div>
     </div>
-@endsection
-
-@section('script')
-    <script type="module">
-        const chartTypeSelect = document.getElementById('chart_type_id');
-        const reportGroupSelect = document.getElementById('report_group');
-        const reportGroupsByChartType = @json($reportGroupsByChartType);
-        const selectOptionText = @json(__('common.actions.select_option'));
-        const selectTypeText = @json(__('charts.form.report_group_select_type'));
-        const emptyGroupText = @json(__('charts.form.report_group_empty'));
-
-        function updateReportGroupOptions() {
-            const chartTypeId = chartTypeSelect.value;
-            const allowedGroups = reportGroupsByChartType[chartTypeId] ?? [];
-            const currentGroup = reportGroupSelect.value;
-
-            for (const option of reportGroupSelect.options) {
-                if (option.value === '') {
-                    continue;
-                }
-
-                const isAllowed = allowedGroups.includes(option.value);
-                option.disabled = !isAllowed;
-                option.hidden = !isAllowed;
-            }
-
-            if (currentGroup !== '' && !allowedGroups.includes(currentGroup)) {
-                reportGroupSelect.value = '';
-            }
-
-            reportGroupSelect.options[0].textContent = !chartTypeId
-                ? selectTypeText
-                : allowedGroups.length === 0
-                  ? emptyGroupText
-                  : selectOptionText;
-            reportGroupSelect.disabled = !chartTypeId || allowedGroups.length === 0;
-        }
-
-        chartTypeSelect.addEventListener('change', updateReportGroupOptions);
-        updateReportGroupOptions();
-    </script>
 @endsection

@@ -1,7 +1,7 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\SalesOrderStatus;
+    use App\Enums\Sales\SalesOrderStatus;
 
     $canApprove = auth()->user()->hasFilePermission(FileResources::SALES_ORDERS, FileAction::APPROVE);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::SALES_ORDERS, FileAction::UPDATE);

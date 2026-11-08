@@ -1,4 +1,5 @@
 @php
+    use Illuminate\Support\Js;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     use App\Models\Menu\Folder;
@@ -224,7 +225,7 @@
 
                     showToast(
                         'success',
-                        {!! \Illuminate\Support\Js::from(__('folder_permissions.updated')) !!}.replace(':count', String(changeCount)),
+                        {!! Js::from(__('folder_permissions.updated')) !!}.replace(':count', String(changeCount)),
                     );
 
                     // Reset initial state markers to current values

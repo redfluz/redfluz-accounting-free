@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
-use App\Enums\DiscountType;
-use App\Enums\TaxMode;
+use App\Enums\Finance\DiscountType;
+use App\Enums\Finance\TaxMode;
 use App\Models\Sales\SalesOrderLine;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

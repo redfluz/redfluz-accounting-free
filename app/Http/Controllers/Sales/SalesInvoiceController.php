@@ -30,14 +30,14 @@ use App\Constants\FlashMessage;
 use App\Enums\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\SalesType;
-use App\Enums\TaxMode;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Sales\SalesType;
+use App\Enums\Finance\TaxMode;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\SalesInvoice\StoreSalesInvoiceRequest;
 use App\Http\Requests\Sales\SalesInvoice\UpdateSalesInvoiceRequest;
@@ -56,7 +56,6 @@ use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\DeliveryOrder;
 use App\Models\Sales\SalesAdjustment;
 use App\Models\Sales\SalesInvoice;
-use App\Models\Sales\SalesInvoiceChart;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
 use App\Services\DecimalService;
@@ -453,20 +452,16 @@ class SalesInvoiceController extends Controller
             $totalCredit = bcadd($totalCredit, $credit, 2);
         }
 
-        $chartConfig = SalesInvoiceChart::query()
-            ->where('company_id', $invoice->company_id)
-            ->first()
-            ?? SalesInvoiceChart::query()->whereNull('company_id')->first();
-        abort_if($chartConfig === null || $chartConfig->receivable_id === null || $chartConfig->revenue_id === null, 422);
-        $receivableChart = Chart::query()->find($chartConfig->receivable_id);
-        $revenueChart = Chart::query()->find($chartConfig->revenue_id);
+        $chartSetting = ChartSetting::query()->first();
+        abort_if($chartSetting === null || $chartSetting->client_chart_uuid === null || $chartSetting->income_chart_uuid === null, 422);
+        $receivableChart = Chart::query()->find($chartSetting->client_chart_uuid);
+        $revenueChart = Chart::query()->find($chartSetting->income_chart_uuid);
         abort_if($receivableChart === null || $revenueChart === null, 422);
 
-        $chartSetting = ChartSetting::query()->first();
-        $cogsChart = filled($chartSetting?->cogs_chart_uuid)
+        $cogsChart = filled($chartSetting->cogs_chart_uuid)
             ? Chart::query()->whereKey($chartSetting->cogs_chart_uuid)->first()
             : null;
-        $inventoryChart = filled($chartSetting?->inventory_chart_uuid)
+        $inventoryChart = filled($chartSetting->inventory_chart_uuid)
             ? Chart::query()->whereKey($chartSetting->inventory_chart_uuid)->first()
             : null;
         abort_if($cogsChart === null || $inventoryChart === null, 422);
@@ -541,7 +536,6 @@ class SalesInvoiceController extends Controller
                     'type' => LedgerType::JOURNAL->value,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => today()->toDateString(),
-                    'document_date' => today()->toDateString(),
                     'debit_id' => $inventoryChart->id,
                     'credit_id' => null,
                     'debit_acc' => $inventoryChart->code,
@@ -571,7 +565,6 @@ class SalesInvoiceController extends Controller
                     'type' => LedgerType::JOURNAL->value,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => today()->toDateString(),
-                    'document_date' => today()->toDateString(),
                     'debit_id' => null,
                     'credit_id' => $cogsChart->id,
                     'debit_acc' => null,
@@ -1553,7 +1546,6 @@ class SalesInvoiceController extends Controller
                     'type' => $sourceType,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => $item['date'],
-                    'document_date' => $item['date'],
                     'debit_amount' => $item['debit_amount'],
                     'credit_amount' => $item['credit_amount'],
                     'total_amount' => $item['total_amount'],
@@ -1580,22 +1572,21 @@ class SalesInvoiceController extends Controller
             // This ensures full undo behaves like a full return.
             $lines = $invoice->lines()->whereNotNull('product_id')->get();
             $location = $this->resolveStockLocation(null);
-            $chartConfig = SalesInvoiceChart::query()
-                ->where('company_id', $invoice->company_id)
-                ->first()
-                ?? SalesInvoiceChart::query()->whereNull('company_id')->first();
+            $chartSetting = ChartSetting::query()->first();
+            $receivableChart = filled($chartSetting?->client_chart_uuid)
+                ? Chart::query()->whereKey($chartSetting->client_chart_uuid)->first()
+                : null;
+            $revenueChart = filled($chartSetting?->income_chart_uuid)
+                ? Chart::query()->whereKey($chartSetting->income_chart_uuid)->first()
+                : null;
+            $cogsChart = filled($chartSetting?->cogs_chart_uuid)
+                ? Chart::query()->whereKey($chartSetting->cogs_chart_uuid)->first()
+                : null;
+            $inventoryChart = filled($chartSetting?->inventory_chart_uuid)
+                ? Chart::query()->whereKey($chartSetting->inventory_chart_uuid)->first()
+                : null;
 
-            if ($chartConfig && $chartConfig->receivable_id && $chartConfig->revenue_id) {
-                $receivableChart = Chart::query()->find($chartConfig->receivable_id);
-                $revenueChart = Chart::query()->find($chartConfig->revenue_id);
-                $chartSetting = ChartSetting::query()->first();
-                $cogsChart = filled($chartSetting?->cogs_chart_uuid)
-                    ? Chart::query()->whereKey($chartSetting->cogs_chart_uuid)->first()
-                    : null;
-                $inventoryChart = filled($chartSetting?->inventory_chart_uuid)
-                    ? Chart::query()->whereKey($chartSetting->inventory_chart_uuid)->first()
-                    : null;
-
+            if ($receivableChart !== null && $revenueChart !== null) {
                 foreach ($lines as $line) {
                     /** @var SalesInvoiceLine $line */
                     $remaining = bcsub(

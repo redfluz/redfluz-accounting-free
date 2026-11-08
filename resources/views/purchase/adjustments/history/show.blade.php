@@ -1,11 +1,16 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use App\Enums\FileAction;
+    use App\Enums\FileResources;
+    use Carbon\Carbon;
+@endphp
 @props(['documentNumber', 'lines', 'adjustment'])
 
 @php
     $grandTotal = $lines->sum('total_amount');
     $canReverse = auth()
         ->user()
-        ->hasFilePermission(\App\Enums\FileResources::PURCHASE_ADJUSTMENTS, \App\Enums\FileAction::APPROVE)
+        ->hasFilePermission(FileResources::PURCHASE_ADJUSTMENTS, FileAction::APPROVE)
         && ! $adjustment->undone_at;
 @endphp
 
@@ -64,7 +69,7 @@
                 <div class="md:col-3">
                     <div class="bg-2 rounded p-3">
                         <small class="fg-secondary d-block">{{ __('ledgers.table.column_date') }}</small>
-                        <strong>{{ \Carbon\Carbon::parse($adjustment->date)->format(Setting::getDefaultDate()) }}</strong>
+                        <strong>{{ Carbon::parse($adjustment->date)->format(Setting::getDefaultDate()) }}</strong>
                     </div>
                 </div>
             </div>

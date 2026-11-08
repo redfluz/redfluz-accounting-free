@@ -1,7 +1,8 @@
 @php
+    use App\Enums\Inventory\ProductMovementDirection;
     use App\Models\System\Setting;
-    use App\Enums\GoodsReceiptCompletion;
-    use App\Enums\ProductMovementStatus;
+    use App\Enums\Purchase\GoodsReceiptCompletion;
+    use App\Enums\Inventory\ProductMovementStatus;
 @endphp
 
 @props(['documentNumber', 'lines', 'adjusted'])
@@ -127,7 +128,7 @@
                         <span class="fg-secondary small ms-2">
                             {{ $correction->date?->format(Setting::getDefaultDate()) }}
                         </span>
-                        @if ($correction->status === \App\Enums\ProductMovementStatus::ACTIVE)
+                        @if ($correction->status === ProductMovementStatus::ACTIVE)
                             <span class="badge theme-success ms-2">{{ __('product_ledgers.status.active') }}</span>
                         @else
                             <span class="badge theme-warning fg-black ms-2">{{ __('product_ledgers.status.pending') }}</span>
@@ -135,10 +136,10 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-end">
-                            {{ $correction->direction === \App\Enums\ProductMovementDirection::IN ? '+' : '-' }}
+                            {{ $correction->direction === ProductMovementDirection::IN ? '+' : '-' }}
                             {{ number_format((float) $correction->quantity, 4) }}
                         </span>
-                        @if ($correction->status === \App\Enums\ProductMovementStatus::PENDING)
+                        @if ($correction->status === ProductMovementStatus::PENDING)
                             <form autocomplete="off"
                                 action="{{ route('purchase.goods-receipts.adjust.destroy', [$documentNumber, $correction->id]) }}"
                                 method="POST">
@@ -156,7 +157,7 @@
                 <p class="fg-secondary small">{{ __('goods_receipts.adjustment.no_corrections') }}</p>
             @endforelse
 
-            @if ($adjusted->contains(fn($correction): bool => $correction->status === \App\Enums\ProductMovementStatus::PENDING))
+            @if ($adjusted->contains(fn($correction): bool => $correction->status === ProductMovementStatus::PENDING))
                 <form autocomplete="off" action="{{ route('purchase.goods-receipts.adjust.approve', $documentNumber) }}" method="POST"
                     class="mt-3">
                     @csrf

@@ -26,7 +26,7 @@
 --}}
 
 @php
-    use App\Enums\ChartTotalReportTypeEnum;
+    use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
 
     $periodColumns = $periodColumns ?? [];
     $hasPeriodColumns = $periodColumns !== [];

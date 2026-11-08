@@ -30,7 +30,7 @@ namespace App\Http\Requests\Sales\Quotation;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\QuotationStatus;
+use App\Enums\Sales\QuotationStatus;
 use App\Enums\UploadType;
 use Illuminate\Validation\Rule;
 

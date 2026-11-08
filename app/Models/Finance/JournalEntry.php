@@ -26,7 +26,7 @@
 
 namespace App\Models\Finance;
 
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;

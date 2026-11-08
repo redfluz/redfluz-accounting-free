@@ -85,9 +85,9 @@ abstract class ReceiptRequest extends BaseFormRequest
         return $this->stringOrNull('credit_id');
     }
 
-    public function documentDate(): string
+    public function date(): string
     {
-        return $this->stringOrEmpty('document_date');
+        return $this->stringOrEmpty('date');
     }
 
     /**

@@ -26,8 +26,8 @@
 
 namespace App\Models\Purchase;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use App\Models\Crm\Company;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
@@ -104,7 +104,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'approved_by', 'approved_name', 'approved_at',
     'cancelled_by', 'cancelled_name', 'cancelled_at',
     'undone_by', 'undone_name', 'undone_at',
-    'description',
 ])]
 class PurchaseAdjustment extends Model
 {

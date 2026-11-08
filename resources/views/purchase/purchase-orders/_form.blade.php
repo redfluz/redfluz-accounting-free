@@ -1,4 +1,5 @@
 @php
+    use App\Enums\UploadType;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
 
@@ -69,15 +70,15 @@
     <div class="row g-3 mb-4">
         <div class="md:col-3">
             <label class="form-label fw-bold" for="purchase_type">{{ __('purchase_orders.form.type') }}</label>
-            <label class="form-control form-adorn">
+            <div class="form-control form-adorn">
                 <input class="form-ghost" id="purchase_type_display" type="text"
                     value="{{ __('purchase_orders.type.purchase') }}" readonly />
-            </label>
+            </div>
             <input type="hidden" name="purchase_type" value="purchase" />
         </div>
         <div class="md:col-3">
             <label class="form-label fw-bold" for="date">{{ __('purchase_orders.form.date') }}</label>
-            <label class="form-control form-adorn">
+            <div class="form-control form-adorn">
                 <div class="form-adorn-icon" aria-hidden="true">
                     <i data-lucide="calendar"></i>
                 </div>
@@ -85,37 +86,37 @@
                     type="text" data-bs-toggle="datepicker" autocomplete="off"
                     value="{{ old('date', $purchaseOrder?->date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                     required />
-            </label>
+            </div>
         </div>
         <div class="md:col-3">
             <label class="form-label fw-bold"
                 for="expected_date">{{ __('purchase_orders.form.expected_date') }}</label>
-            <label class="form-control form-adorn">
+            <div class="form-control form-adorn">
                 <div class="form-adorn-icon" aria-hidden="true">
                     <i data-lucide="calendar"></i>
                 </div>
                 <input class="form-ghost @error('expected_date') is-invalid @enderror" id="expected_date"
                     name="expected_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                     value="{{ old('expected_date', $purchaseOrder?->expected_date?->format('Y-m-d')) }}" />
-            </label>
+            </div>
         </div>
         <div class="md:col-3">
             <label class="form-label fw-bold"
                 for="supplier_reference_number">{{ __('purchase_orders.form.supplier_reference') }}</label>
-            <label class="form-control form-adorn">
+            <div class="form-control form-adorn">
                 <input class="form-ghost" id="supplier_reference_number" name="supplier_reference_number"
                     value="{{ old('supplier_reference_number', $purchaseOrder?->supplier_reference_number) }}" />
-            </label>
+            </div>
         </div>
         <div class="md:col-3">
             <label class="form-label fw-bold"
                 for="credit_term_days">{{ __('purchase_orders.form.credit_term_days') }}</label>
             <div class="input-group">
-                <label class="form-control form-adorn">
+                <div class="form-control form-adorn">
                     <input class="form-ghost" id="credit_term_days" name="credit_term_days" type="number"
                         value="{{ old('credit_term_days', $purchaseOrder?->credit_term_days ?? $defaultCreditTermDays) }}"
                         min="0" max="365" required />
-                </label><span class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
+                </div><span class="input-group-text">{{ __('purchase_order_settings.days') }}</span>
             </div>
         </div>
     </div>
@@ -124,10 +125,10 @@
         <div class="md:col-6">
             <label class="form-label fw-bold"
                 for="supplier_sales_order_number">{{ __('purchase_orders.form.supplier_sales_order_number') }}</label>
-            <label class="form-control form-adorn">
+            <div class="form-control form-adorn">
                 <input class="form-ghost" id="supplier_sales_order_number" name="supplier_sales_order_number"
                     value="{{ old('supplier_sales_order_number', $purchaseOrder?->supplier_sales_order_number) }}" />
-            </label>
+            </div>
         </div>
     </div>
 </div>
@@ -160,35 +161,35 @@
                 @php($existingLine = $existingLines->get($lineIndex))
                 <tr>
                     <td>
-                        <label class="form-control form-control-sm form-adorn">
+                        <div class="form-control form-control-sm form-adorn">
                             <input class="form-ghost @error("lines.$lineIndex.description") is-invalid @enderror"
                                 name="lines[{{ $lineIndex }}][description]"
                                 value="{{ old("lines.$lineIndex.description", $existingLine?->description) }}" />
-                        </label>
+                        </div>
                         @error("lines.$lineIndex.description")
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </td>
                     <td>
-                        <label class="form-control form-control-sm form-adorn">
+                        <div class="form-control form-control-sm form-adorn">
                             <input
                                 class="form-ghost line-quantity @error("lines.$lineIndex.quantity") is-invalid @enderror"
                                 name="lines[{{ $lineIndex }}][quantity]" type="number"
                                 value="{{ old("lines.$lineIndex.quantity", $existingLine?->quantity) }}"
                                 min="1" />
-                        </label>
+                        </div>
                         @error("lines.$lineIndex.quantity")
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </td>
                     <td>
-                        <label class="form-control form-control-sm form-adorn">
+                        <div class="form-control form-control-sm form-adorn">
                             <input
                                 class="form-ghost line-unit-price @error("lines.$lineIndex.unit_price") is-invalid @enderror"
                                 name="lines[{{ $lineIndex }}][unit_price]" type="number"
                                 value="{{ old("lines.$lineIndex.unit_price", $existingLine?->unit_price) }}"
                                 min="0" step="0.01" />
-                        </label>
+                        </div>
                         @error("lines.$lineIndex.unit_price")
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -216,7 +217,7 @@
     <label class="form-label fw-bold" for="purchase-order-attachments">
         {{ __('purchase_orders.form.attachments') }}
     </label>
-    <input accept="{{ \App\Enums\UploadType::DOCUMENT_AND_IMAGES->accept() }}"
+    <input accept="{{ UploadType::DOCUMENT_AND_IMAGES->accept() }}"
         class="form-control @error('attachments') is-invalid @enderror @error('attachments.*') is-invalid @enderror"
         id="purchase-order-attachments" name="attachments[]" type="file" multiple />
     <div class="form-text">{{ __('purchase_orders.form.attachments_hint') }}</div>

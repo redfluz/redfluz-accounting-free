@@ -2,9 +2,9 @@
     <div class="mb-3">
         <label class="form-label fw-bold" for="company_id">{{ __('companies.addresses.fields.company') }}</label>
         @if ($company !== null)
-            <label class="form-control form-adorn">
+            <div class="form-control form-adorn">
                 <input class="form-ghost" value="{{ $company->name }}" readonly />
-            </label>
+            </div>
             <input name="company_id" type="hidden" value="{{ $company->id }}" />
         @else
             <select
@@ -28,7 +28,7 @@
 @endif
 <div class="mb-3">
     <label class="form-label fw-bold" for="name">{{ __('companies.addresses.fields.name') }}</label>
-    <label class="form-control form-adorn">
+    <div class="form-control form-adorn">
         <input
             class="form-ghost @error('name') is-invalid @enderror"
             id="name"
@@ -36,21 +36,21 @@
             value="{{ old('name', $companyAddress?->name) }}"
             required
         />
-    </label>
+    </div>
     @error('name')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>
 <div class="mb-3">
     <label class="form-label fw-bold" for="phone">{{ __('companies.addresses.fields.phone') }}</label>
-    <label class="form-control form-adorn">
+    <div class="form-control form-adorn">
         <input
             class="form-ghost @error('phone') is-invalid @enderror"
             id="phone"
             name="phone"
             value="{{ old('phone', $companyAddress?->phone) }}"
         />
-    </label>
+    </div>
     @error('phone')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
@@ -69,16 +69,19 @@
     @enderror
 </div>
 <div class="mb-4">
-<input name="is_default" type="hidden" value="0" />
-    <input
-        class="check"
-        id="is_default"
-        name="is_default"
-        type="checkbox"
-        value="1"
-        @checked((bool) old('is_default', $companyAddress?->is_default ?? false))
-    />
-    <label for="is_default">{{ __('companies.addresses.fields.is_default') }}</label>
+    <input name="is_default" type="hidden" value="0" />
+    <div class="d-flex align-items-center gap-2 mt-2">
+        <div class="switch">
+            <input
+                id="is_default"
+                name="is_default"
+                type="checkbox"
+                value="1"
+                @checked((bool) old('is_default', $companyAddress?->is_default ?? false))
+                role="switch" switch />
+        </div>
+        <label class="fw-bold mb-0" for="is_default">{{ __('companies.addresses.fields.is_default') }}</label>
+    </div>
 </div>
 <div class="d-flex justify-content-between">
     <a

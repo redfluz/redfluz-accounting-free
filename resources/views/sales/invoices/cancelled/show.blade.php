@@ -1,9 +1,10 @@
 @php
+    use App\Models\Sales\SalesInvoiceLine;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     $canApprove = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::APPROVE);
-    use App\Enums\LedgerSubType;
+    use App\Enums\Finance\LedgerSubType;
     use Carbon\Carbon;
 @endphp
 
@@ -71,7 +72,7 @@
                     </thead>
                     <tbody>
                         @php
-                            /** @var \App\Models\Sales\SalesInvoiceLine $line */
+                            /** @var SalesInvoiceLine $line */
                         @endphp
                         @forelse ($lines as $line)
                             <tr>

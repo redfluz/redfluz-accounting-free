@@ -29,9 +29,9 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

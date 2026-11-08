@@ -26,8 +26,8 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use App\Models\Crm\Company;
 use App\Models\Finance\JournalEntry;
 use App\Support\Traits\AttributesDocuments;
@@ -106,7 +106,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'cancelled_by', 'cancelled_name', 'cancelled_at',
     'undone_by', 'undone_name', 'undone_at',
     'reversal_journal_id',
-    'description',
     'debit_id',
     'debit_acc',
     'debit_acc_desc',
@@ -158,16 +157,6 @@ class SalesAdjustment extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(SalesAdjustmentLine::class)->orderBy('created_at');
-    }
-
-    /**
-     * The chart of accounts this note posts to.
-     *
-     * @return HasMany<SalesAdjustmentChart, $this>
-     */
-    public function charts(): HasMany
-    {
-        return $this->hasMany(SalesAdjustmentChart::class)->orderBy('created_at');
     }
 
     /**

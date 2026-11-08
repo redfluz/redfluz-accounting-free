@@ -103,6 +103,12 @@ return [
     'export_pdf' => 'Eksport PDF',
     'export_excel' => 'Eksport Excel',
     'all_types' => 'Jenis',
+    'form' => [
+        'current_attachment' => 'Lampiran Semasa',
+        'attachment_size_hint' => 'Saiz fail maksimum: 5120 KB.',
+        'attachment_too_large' => 'Fail yang dipilih melebihi had 5120 KB. Pilih fail yang lebih kecil.',
+        'new_attachment_preview' => 'Pratonton Lampiran Baharu',
+    ],
     'fixed_assets' => [
         'title' => 'Pembelian Aset Tetap',
         'subtitle' => 'Lihat aset tetap yang diiktiraf daripada invois belian yang diluluskan.',

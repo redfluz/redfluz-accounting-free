@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Finance\Discount;
 
-use App\Enums\DiscountType;
+use App\Enums\Finance\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Models\Finance\Discount;

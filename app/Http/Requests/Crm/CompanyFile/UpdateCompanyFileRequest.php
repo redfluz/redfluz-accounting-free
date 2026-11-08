@@ -68,7 +68,7 @@ class UpdateCompanyFileRequest extends CompanyFileRequest
             'title' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'remove_attachment' => ['nullable', 'boolean'],
-            'attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:1024'],
+            'attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:8000'],
         ];
     }
 }

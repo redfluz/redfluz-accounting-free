@@ -13,11 +13,11 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Enums\FileResources;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Crm\ArLedger;
 use App\Models\Inventory\ProductLedger;
@@ -46,7 +46,7 @@ class CustomerOutstandingController extends Controller
      */
     public function index(Request $request): View|Response|StreamedResponse
     {
-        $this->allows(FileResources::SALES_CUSTOMER_OUTSTANDING);
+        $this->allows(FileResources::CUSTOMER_OUTSTANDING);
         /** @var array<string, mixed> $validated */
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],

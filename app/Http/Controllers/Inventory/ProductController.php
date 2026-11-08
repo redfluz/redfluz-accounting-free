@@ -27,13 +27,13 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Constants\FlashMessage;
-use App\Enums\AcquisitionType;
+use App\Enums\Inventory\AcquisitionType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\Product\StoreProductRequest;
 use App\Http\Requests\Inventory\Product\UpdateProductRequest;

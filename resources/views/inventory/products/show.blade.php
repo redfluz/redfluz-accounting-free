@@ -26,8 +26,8 @@
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementStatus;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementStatus;
 
 $canUpdate = auth()->user()->hasFilePermission(FileResources::PRODUCTS, FileAction::UPDATE);
 $primaryImagePath = $product->attachments->first()?->file_path ?? $product->image_path;

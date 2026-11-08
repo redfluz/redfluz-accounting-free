@@ -26,9 +26,9 @@
 
 namespace App\Support\Posting;
 
-use App\Enums\BankAccountKind;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Bank\BankAccountKind;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Models\Bank\Bank;
 use App\Models\Bank\CashAccount;
 use App\Models\Bank\EWalletAccount;
@@ -74,7 +74,7 @@ class InvoiceLedgerPoster
      * @param  Model  $document  The invoice being posted. Its key is what the
      *                           rows drill back to.
      * @param  string  $documentNumber  Its number, recorded on every row.
-     * @param  DateTimeInterface  $documentDate  Its date.
+     * @param  DateTimeInterface  $date  The document's date, booked on every row.
      * @param  LedgerType  $type  Recorded on the general ledger rows, so a
      *                            payment and an invoice stay distinguishable
      *                            even when they post to the same account.
@@ -99,7 +99,7 @@ class InvoiceLedgerPoster
     public function post(
         Model $document,
         string $documentNumber,
-        DateTimeInterface $documentDate,
+        DateTimeInterface $date,
         LedgerType $type,
         LedgerSubType $subtype,
         array $generalRows,
@@ -113,7 +113,7 @@ class InvoiceLedgerPoster
         }
 
         $sourceType = GeneralLedgerData::sourceTypeFor($subtype);
-        $date = Carbon::instance(DateTime::createFromInterface($documentDate));
+        $date = Carbon::instance(DateTime::createFromInterface($date));
         $key = $document->getKey();
         $documentKey = is_string($key) ? $key : '';
 
@@ -129,7 +129,10 @@ class InvoiceLedgerPoster
         $generalRowArrays = [];
 
         foreach ($generalRows as $row) {
-            $generalRowArrays[] = $row->toRow();
+            // The currency is the posting's, not the document's: the row
+            // builders have no settings access, so the poster stamps it on
+            // every row it writes.
+            $generalRowArrays[] = ['currency_id' => $currency['id']] + $row->toRow();
         }
 
         /** @var list<PostingLeg> $legs */
@@ -163,8 +166,6 @@ class InvoiceLedgerPoster
                     2
                 );
 
-                $documentDate = $date->format('Y-m-d');
-
                 $cashRows[] = CashLedgerData::build(
                     cashAccountId: $accountId,
                     locationName: null,
@@ -173,7 +174,7 @@ class InvoiceLedgerPoster
                     sourceId: $documentKey,
                     sourceType: $document->getMorphClass(),
                     documentNumber: $documentNumber,
-                    documentDate: $documentDate,
+                    date: $date->format('Y-m-d'),
                     referenceNumber: $leg->referenceNumber,
                     debitAmount: $leg->debit,
                     creditAmount: $leg->credit,
@@ -193,15 +194,13 @@ class InvoiceLedgerPoster
                     2
                 );
 
-                $documentDate = $date->format('Y-m-d');
-
                 $bankRows[] = BankLedgerData::build(
                     bankAccountId: $accountId,
                     currencyId: $currency['id'],
                     sourceId: $documentKey,
                     sourceType: $document->getMorphClass(),
                     documentNumber: $documentNumber,
-                    documentDate: $documentDate,
+                    date: $date->format('Y-m-d'),
                     referenceNumber: $leg->referenceNumber,
                     debitAmount: $leg->debit,
                     creditAmount: $leg->credit,
@@ -222,15 +221,13 @@ class InvoiceLedgerPoster
                     2
                 );
 
-                $documentDate = $date->format('Y-m-d');
-
                 $eWalletRows[] = EWalletLedgerData::build(
                     eWalletAccountId: $accountId,
                     currencyId: $currency['id'],
                     sourceId: $documentKey,
                     sourceType: $document->getMorphClass(),
                     documentNumber: $documentNumber,
-                    documentDate: $documentDate,
+                    date: $date->format('Y-m-d'),
                     referenceNumber: $leg->referenceNumber,
                     debitAmount: $leg->debit,
                     creditAmount: $leg->credit,

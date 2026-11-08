@@ -1,11 +1,27 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use App\Models\Crm\Company;
+    use App\Models\Crm\CompanyAddress;
+    use Illuminate\Pagination\LengthAwarePaginator;
+    use Illuminate\Support\Collection;
 
     $canCreate = auth()->user()->hasFilePermission(FileResources::COMPANIES, FileAction::ADD);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::COMPANIES, FileAction::UPDATE);
     $canRemove = auth()->user()->hasFilePermission(FileResources::COMPANIES, FileAction::REMOVE);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, CompanyAddress> */
+    'addresses',
+    /** @var Collection<int, Company> */
+    'companies',
+    /** @var string */
+    'companyId' => '',
+    /** @var string */
+    'search' => '',
+])
+
 @extends('layouts.app')
 
 @section('content')

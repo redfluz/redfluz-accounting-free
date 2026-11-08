@@ -55,6 +55,7 @@ Route::put('sales-orders/{salesOrder}', [SalesOrderController::class, 'update'])
 Route::delete('sales-orders/{salesOrder}', [SalesOrderController::class, 'destroy'])->name('sales.sales-orders.destroy');
 Route::patch('sales-orders/{salesOrder}/approve', [SalesOrderController::class, 'approve'])->name('sales.sales-orders.approve');
 Route::post('sales-orders/{salesOrder}/sales-invoice', [SalesOrderController::class, 'createSalesInvoice'])->name('sales.sales-orders.sales-invoice');
+Route::get('sales-orders/{salesOrder}/attachment', [SalesOrderController::class, 'downloadAttachment'])->name('sales.sales-orders.attachment');
 Route::get('sales-orders/{salesOrder}/pdf', [SalesOrderController::class, 'pdf'])->name('sales.sales-orders.pdf');
 Route::get('sales-orders/{salesOrder}', [SalesOrderController::class, 'show'])->name('sales.sales-orders.show');
 
@@ -112,6 +113,7 @@ Route::patch('sales-adjustments/cancelled/{documentNumber}/uncancel', [SalesAdju
 Route::get('sales-adjustments/cancelled/{documentNumber}', [SalesAdjustmentCancelledController::class, 'show'])->name('sales.adjustments.cancelled.show');
 Route::get('sales-adjustments/create', [SalesAdjustmentController::class, 'create'])->name('sales.adjustments.create');
 Route::get('sales-adjustments/invoices', [SalesAdjustmentController::class, 'invoiceOptions'])->name('sales.adjustments.invoices');
+Route::get('sales-adjustments/{documentNumber}/edit', [SalesAdjustmentController::class, 'edit'])->name('sales.adjustments.edit');
 Route::post('sales-adjustments', [SalesAdjustmentController::class, 'store'])->name('sales.adjustments.store');
 Route::put('sales-adjustments/{documentNumber}', [SalesAdjustmentController::class, 'update'])->name('sales.adjustments.update');
 Route::patch('sales-adjustments/{documentNumber}/approve', [SalesAdjustmentController::class, 'approve'])->name('sales.adjustments.approve');

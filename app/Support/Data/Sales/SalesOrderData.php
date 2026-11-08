@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
-use App\Enums\SalesOrderStatus;
+use App\Enums\Sales\SalesOrderStatus;
 use App\Models\Sales\SalesOrder;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

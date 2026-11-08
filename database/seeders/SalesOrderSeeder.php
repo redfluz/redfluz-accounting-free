@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\SalesOrderStatus;
+use App\Enums\Sales\SalesOrderStatus;
 use App\Models\Crm\Company;
 use App\Models\Inventory\Product;
 use App\Models\Sales\Quotation;

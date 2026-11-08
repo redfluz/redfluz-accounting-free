@@ -26,9 +26,9 @@
 
 namespace App\Services;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Models\Crm\ArLedger;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;

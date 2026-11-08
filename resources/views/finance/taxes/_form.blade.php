@@ -1,7 +1,7 @@
 <div class="row g-3">
     <div class="md:col-4">
         <label class="form-label" for="code">{{ __('taxes.form.code') }}</label>
-        <label class="form-control form-adorn">
+        <div class="form-control form-adorn">
             <input
                 class="form-ghost @error('code') is-invalid @enderror"
                 id="code"
@@ -10,14 +10,14 @@
                 maxlength="50"
                 required
             />
-        </label>
+        </div>
         @error('code')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
     <div class="md:col-8">
         <label class="form-label" for="name">{{ __('taxes.form.name') }}</label>
-        <label class="form-control form-adorn">
+        <div class="form-control form-adorn">
             <input
                 class="form-ghost @error('name') is-invalid @enderror"
                 id="name"
@@ -25,14 +25,14 @@
                 value="{{ old('name', $tax?->name) }}"
                 required
             />
-        </label>
+        </div>
         @error('name')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
     <div class="md:col-6">
         <label class="form-label" for="rate">{{ __('taxes.form.rate') }}</label>
-        <label class="form-control form-adorn">
+        <div class="form-control form-adorn">
             <div class="input-group">
                 <input
                     class="form-ghost @error('rate') is-invalid @enderror"
@@ -47,7 +47,7 @@
                 />
                 <span class="input-group-text">%</span>
             </div>
-        </label>
+        </div>
         @error('rate')
             <div class="fg-danger small">{{ $message }}</div>
         @enderror

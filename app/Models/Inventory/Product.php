@@ -26,7 +26,7 @@
 
 namespace App\Models\Inventory;
 
-use App\Enums\AcquisitionType;
+use App\Enums\Inventory\AcquisitionType;
 use App\Models\Crm\Company;
 use App\Models\Finance\Discount;
 use App\Models\Finance\Tax;

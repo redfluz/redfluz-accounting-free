@@ -116,6 +116,7 @@ return [
     ],
     'messages' => [
         'batch_approved' => ':count record(s) approved and posted.',
+        'batch_approve_failed' => 'Failed to approve: :numbers.',
         'batch_cancelled' => ':count record(s) cancelled.',
         'uncancelled' => 'Record has been restored.',
         'nothing_to_uncancel' => 'That record is no longer cancelled, so there is nothing to restore.',

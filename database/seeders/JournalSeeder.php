@@ -32,9 +32,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -130,7 +130,8 @@ class JournalSeeder extends Seeder
                     'document_number' => $entry['document_number'],
                     'reference_number' => $entry['reference_number'] ?: $entry['document_number'],
                     'date' => $entry['date'],
-                    'description' => $item['description'],
+                    'description' => null,
+                    'line_description' => $item['description'],
                     'debit_amount' => $item['debit_amount'],
                     'credit_amount' => $item['credit_amount'],
                     'deleted_at' => null,
@@ -165,19 +166,18 @@ class JournalSeeder extends Seeder
             throw new LogicException('Journal account not found in charts: '.$item['coa']);
         }
 
-        $isDebit = (float) $item['debit_amount'] > 0;
+        $currencyId = DB::table('settings')->value('currency_id')
+            ?? DB::table('currencies')->where('is_default', true)->value('id');
 
         return [
-            'debit_id' => $isDebit ? $chart->id : null,
-            'credit_id' => $isDebit ? null : $chart->id,
-            'debit_acc' => $isDebit ? $chart->code : null,
-            'credit_acc' => $isDebit ? null : $chart->code,
-            'debit_acc_desc' => $isDebit ? $chart->name : null,
-            'credit_acc_desc' => $isDebit ? null : $chart->name,
-            'total_amount' => round(max(
-                (float) $item['debit_amount'],
-                (float) $item['credit_amount']
-            ), 2),
+            'chart_id' => $chart->id,
+            'company_id' => null,
+            'currency_id' => $currencyId,
+            'type' => LedgerType::JOURNAL->value,
+            'subtype' => LedgerSubType::JOURNAL->value,
+            'chart_code' => $chart->code,
+            'chart_name' => $chart->name,
+            'company_name' => null,
         ];
     }
 
@@ -208,41 +208,31 @@ class JournalSeeder extends Seeder
             throw new LogicException('Journal account not found in charts: '.$item['coa']);
         }
 
-        $isDebit = (float) $item['debit_amount'] > 0;
-        $amount = round(max(
-            (float) $item['debit_amount'],
-            (float) $item['credit_amount']
-        ), 2);
         $referenceNumber = $entry['reference_number'] ?: $entry['document_number'];
+        $currencyId = DB::table('settings')->value('currency_id')
+            ?? DB::table('currencies')->where('is_default', true)->value('id');
 
         DB::table('ledgers')->updateOrInsert(
             ['id' => $journalItemId],
             [
-                'source_id' => $journalItemId,
-                'source_type' => null,
+                'chart_id' => $chart->id,
                 'company_id' => null,
-                'contact_id' => null,
-                'debit_id' => $isDebit ? $chart->id : null,
-                'credit_id' => $isDebit ? null : $chart->id,
-                'debit_acc' => $isDebit ? $chart->code : null,
-                'credit_acc' => $isDebit ? null : $chart->code,
-                'debit_acc_desc' => $isDebit ? $chart->name : null,
-                'credit_acc_desc' => $isDebit ? null : $chart->name,
-                'company_name' => null,
-                'document_number' => $entry['document_number'],
-                'reference_number' => $referenceNumber,
+                'currency_id' => $currencyId,
                 'type' => LedgerType::JOURNAL->value,
                 'subtype' => LedgerSubType::JOURNAL->value,
+                'document_number' => $entry['document_number'],
+                'reference_number' => $referenceNumber,
                 'date' => $entry['date'],
-                'document_date' => $entry['date'],
+                'chart_code' => $chart->code,
+                'chart_name' => $chart->name,
+                'company_name' => null,
+                'description' => $entry['notes'],
+                'line_description' => $item['description'] ?: $fallbackDescription,
                 'debit_amount' => $item['debit_amount'],
                 'credit_amount' => $item['credit_amount'],
-                'total_amount' => $amount,
-                'status' => LedgerStatus::POSTED->value,
-                'description' => $item['description'] ?: $fallbackDescription,
-                'deleted_at' => null,
                 'created_at' => $now,
                 'updated_at' => $now,
+                'deleted_at' => null,
             ]
         );
     }
@@ -311,25 +301,20 @@ class JournalSeeder extends Seeder
     {
         $balances = [];
         $ledgerRows = DB::table('ledgers')
-            ->where('status', LedgerStatus::POSTED->value)
+            ->whereNull('deleted_at')
             ->whereYear('date', $year)
             ->where('document_number', 'not like', 'YEC%')
-            ->get(['debit_acc', 'credit_acc', 'debit_amount', 'credit_amount']);
+            ->get(['chart_code', 'debit_amount', 'credit_amount']);
 
         foreach ($ledgerRows as $row) {
-            if ($this->isProfitAndLossAccount($row->debit_acc)) {
-                $balances[$row->debit_acc]['debit'] =
-                    ($balances[$row->debit_acc]['debit'] ?? 0) + (float) $row->debit_amount;
-                $balances[$row->debit_acc]['credit'] =
-                    $balances[$row->debit_acc]['credit'] ?? 0;
+            if (! $this->isProfitAndLossAccount($row->chart_code)) {
+                continue;
             }
 
-            if ($this->isProfitAndLossAccount($row->credit_acc)) {
-                $balances[$row->credit_acc]['credit'] =
-                    ($balances[$row->credit_acc]['credit'] ?? 0) + (float) $row->credit_amount;
-                $balances[$row->credit_acc]['debit'] =
-                    $balances[$row->credit_acc]['debit'] ?? 0;
-            }
+            $balances[$row->chart_code]['debit'] =
+                ($balances[$row->chart_code]['debit'] ?? 0) + (float) $row->debit_amount;
+            $balances[$row->chart_code]['credit'] =
+                ($balances[$row->chart_code]['credit'] ?? 0) + (float) $row->credit_amount;
         }
 
         return $balances;
@@ -797,7 +782,8 @@ class JournalSeeder extends Seeder
                     'document_number' => $entry['document_number'],
                     'reference_number' => $entry['reference_number'] ?: $entry['document_number'],
                     'date' => $entry['date'],
-                    'description' => $item['description'],
+                    'description' => null,
+                    'line_description' => $item['description'],
                     'debit_amount' => $item['debit_amount'],
                     'credit_amount' => $item['credit_amount'],
                     'deleted_at' => null,

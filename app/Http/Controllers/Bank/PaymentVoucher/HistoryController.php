@@ -27,7 +27,7 @@
 namespace App\Http\Controllers\Bank\PaymentVoucher;
 
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\System\Setting;
@@ -90,7 +90,7 @@ class HistoryController extends Controller
         $voucher = PaymentVoucher::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('apLedgers.chart')
             ->firstOrFail();
 
         return view('bank.voucher.history.show', compact('voucher', 'documentNumber'));
@@ -109,7 +109,7 @@ class HistoryController extends Controller
         $voucher = PaymentVoucher::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('apLedgers.chart')
             ->firstOrFail();
 
         return Pdf::loadView('bank.voucher.pdf', [

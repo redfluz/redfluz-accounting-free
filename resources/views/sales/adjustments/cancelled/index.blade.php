@@ -1,4 +1,5 @@
 @php
+    use App\Models\Sales\SalesAdjustment;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
@@ -8,7 +9,7 @@
 @endphp
 
 @props([
-    /** @var LengthAwarePaginator<int, \App\Models\Sales\SalesAdjustment> */
+    /** @var LengthAwarePaginator<int, SalesAdjustment> */
     'entries',
     /** @var string|null */
     'search',

@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -62,7 +62,7 @@ return new class extends Migration
             $table->foreignUuid('e_wallet_account_id')->nullable()->constrained('e_wallet_accounts')->restrictOnDelete()->index();
             $table->string('direction', 3);
             $table->string('document_number')->unique();
-            $table->date('document_date');
+            $table->date('date');
             $table->foreignUuid('offset_chart_id')->constrained('charts')->restrictOnDelete()->index();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('description')->nullable();
@@ -94,7 +94,7 @@ return new class extends Migration
             $table->timestamp('undone_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->index('document_date');
+            $table->index('date');
         });
     }
 

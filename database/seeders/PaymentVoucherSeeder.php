@@ -32,12 +32,13 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Posting\PaymentLedgerPoster;
+use App\Support\Posting\PostingLeg;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -110,7 +111,6 @@ class PaymentVoucherSeeder extends Seeder
                     $this->purgePostedRows($voucher['number']);
 
                     $existing->lines()->delete();
-                    $existing->charts()->delete();
                     $existing->forceDelete();
                 }
 
@@ -145,37 +145,17 @@ class PaymentVoucherSeeder extends Seeder
                     'description' => $voucher['notes'],
                 ]);
 
-                $model->charts()->create([
-                    'debit_id' => $debitId,
-                    'debit_acc' => $voucher['debit_code'],
-                    'debit_acc_desc' => $debitChart,
-                    'document_number' => $voucher['number'],
-                    'reference_number' => $voucher['reference_number'],
-                    'date' => $voucher['date'],
-                    'description' => $voucher['notes'],
-                    'debit_amount' => $voucher['amount'],
-                    'credit_amount' => '0.00',
-                    'total_amount' => $voucher['amount'],
-                ]);
-
-                $model->charts()->create([
-                    'credit_id' => $creditId,
-                    'credit_acc' => $voucher['credit_code'],
-                    'credit_acc_desc' => $creditChart,
-                    'document_number' => $voucher['number'],
-                    'reference_number' => $voucher['reference_number'],
-                    'date' => $voucher['date'],
-                    'description' => $voucher['notes'],
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $voucher['amount'],
-                    'total_amount' => $voucher['amount'],
-                ]);
+                $legs = [
+                    PostingLeg::debit($debitId, (string) $voucher['amount'], $voucher['notes']),
+                    PostingLeg::credit($creditId, (string) $voucher['amount'], $voucher['notes']),
+                ];
 
                 $this->postSeededDocument(
                     $model,
                     LedgerSubType::PAYMENT_VOUCHER,
                     'document_number',
                     $this->poster,
+                    $legs,
                 );
             });
         }

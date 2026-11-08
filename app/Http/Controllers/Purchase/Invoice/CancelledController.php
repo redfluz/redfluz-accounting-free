@@ -28,7 +28,7 @@ namespace App\Http\Controllers\Purchase\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseInvoice;
 use App\Models\System\Setting;

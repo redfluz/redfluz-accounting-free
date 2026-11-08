@@ -21,7 +21,7 @@
             @include('partials.errors')
             <form autocomplete="off" action="{{ route('bank.cash-accounts.store') }}" method="POST">
                 @csrf
-                @include('bank.cash-accounts._fields', ['cashAccount' => null, 'charts' => $charts, 'stockLocations' => $stockLocations])
+                @include('bank.cash-accounts._form', ['cashAccount' => null, 'charts' => $charts, 'stockLocations' => $stockLocations])
                 <div class="d-flex justify-content-between pt-4 border-top mt-4">
                     <a class="btn btn-solid theme-secondary" href="{{ route('bank.cash-accounts.index') }}"
                         ><i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}</a>

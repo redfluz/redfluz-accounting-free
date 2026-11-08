@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
-use App\Enums\QuotationStatus;
+use App\Enums\Sales\QuotationStatus;
 use App\Models\Sales\Quotation;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

@@ -32,10 +32,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerSourceType;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use Database\Seeders\Concerns\SeedsDocumentSequences;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -87,12 +86,6 @@ class SubLedgerSeeder extends Seeder
             ->where('company_id', $company->id)
             ->orderBy('created_at')
             ->value('id');
-        $creditorContactIds = DB::table('contacts')
-            ->whereIn('company_id', $creditorCompanies->pluck('id'))
-            ->orderBy('created_at')
-            ->get(['company_id', 'id'])
-            ->groupBy('company_id')
-            ->map(fn (Collection $contacts): ?string => $contacts->first()?->id);
         $charts = DB::table('charts')
             ->whereIn('code', ['1100', '1110', '1120', '1200', '2000', '4100', '5000'])
             ->get(['id', 'code', 'name'])
@@ -106,23 +99,20 @@ class SubLedgerSeeder extends Seeder
 
         $currencyId = DB::table('currencies')->orderBy('created_at')->value('id');
 
-        DB::transaction(function () use ($charts, $company, $contactId, $product, $creditorCompanies, $creditorContactIds, $currencyId): void {
+        DB::transaction(function () use ($charts, $company, $product, $creditorCompanies, $currencyId): void {
             foreach ($this->documents() as $document) {
                 $party = $company;
-                $partyContactId = $contactId;
                 if (isset($document['party_name'])) {
                     $party = $creditorCompanies->get($document['party_name']);
                     if ($party === null) {
                         throw new LogicException("Creditor {$document['party_name']} is required for client ledger flow seeding.");
                     }
-                    $partyContactId = $creditorContactIds->get($party->id);
                 }
 
                 $this->seedDocument(
                     $document,
                     $charts,
                     $party,
-                    $partyContactId,
                     $product,
                     $currencyId
                 );
@@ -202,6 +192,10 @@ class SubLedgerSeeder extends Seeder
     private function seedDemoSalesInvoiceHeaders(stdClass $company, ?string $contactId): void
     {
         $now = now();
+        $product = DB::table('products')->where('sku', 'HP-PAV-15')->first(['id', 'name', 'warranty_months']);
+        if ($product === null) {
+            throw new LogicException('Demo sales invoices require a seeded product.');
+        }
 
         foreach ([
             [
@@ -219,6 +213,14 @@ class SubLedgerSeeder extends Seeder
                 'subtotal' => '3200.00',
                 'total_amount' => '3200.00',
                 'notes' => 'Demo pending sales invoice — awaiting approval.',
+            ],
+            [
+                'document_number' => 'IV-RMA-DEMO-0001',
+                'date' => now()->subDays(45)->toDateString(),
+                'status' => 'posted',
+                'subtotal' => '4500.00',
+                'total_amount' => '4500.00',
+                'notes' => 'Posted hardware invoice reserved for the repeatable RMA inspection and repair demo.',
             ],
         ] as $invoice) {
             $existingId = DB::table('sales_invoices')
@@ -246,6 +248,33 @@ class SubLedgerSeeder extends Seeder
                     'updated_at' => $now,
                     'deleted_at' => null,
                 ]
+            );
+
+            $invoiceId = DB::table('sales_invoices')
+                ->where('document_number', $invoice['document_number'])
+                ->value('id');
+            $lineId = DB::table('sales_invoice_lines')
+                ->where('sales_invoice_id', $invoiceId)
+                ->where('product_id', $product->id)
+                ->value('id') ?? (string) Str::uuid7();
+            $quantity = 1;
+
+            DB::table('sales_invoice_lines')->updateOrInsert(
+                ['id' => $lineId],
+                [
+                    'sales_invoice_id' => $invoiceId,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $quantity,
+                    'unit_price' => $invoice['total_amount'],
+                    'subtotal_amount' => $invoice['total_amount'],
+                    'line_total_amount' => $invoice['total_amount'],
+                    'total_amount' => $invoice['total_amount'],
+                    'warranty_months' => $product->warranty_months,
+                    'deduct_inventory' => true,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
             );
         }
     }
@@ -749,7 +778,6 @@ class SubLedgerSeeder extends Seeder
      * @param  array<string, mixed>  $document
      * @param  Collection<string, stdClass>  $charts
      * @param  stdClass  $company  The company record for the document.
-     * @param  ?string  $contactId  The contact UUID, if any.
      * @param  stdClass  $product  The product record for the document.
      * @param  ?string  $currencyId  The default currency UUID.
      */
@@ -757,7 +785,6 @@ class SubLedgerSeeder extends Seeder
         array $document,
         Collection $charts,
         stdClass $company,
-        ?string $contactId,
         stdClass $product,
         ?string $currencyId
     ): void {
@@ -770,46 +797,23 @@ class SubLedgerSeeder extends Seeder
         $now = now();
         $subtype = $document['subtype'];
 
-        $sourceType = match (true) {
-            $subtype === LedgerSubType::SALES_INVOICE => LedgerSourceType::SALES_INVOICE->value,
-            $subtype === LedgerSubType::PURCHASE_INVOICE => LedgerSourceType::PURCHASE_INVOICE->value,
-            $subtype === LedgerSubType::INCREASE_ADJUSTMENT,
-            $subtype === LedgerSubType::DECREASE_ADJUSTMENT => LedgerSourceType::SALES_ADJUSTMENT->value,
-            $subtype === LedgerSubType::PURCHASE_DEBIT_NOTE,
-            $subtype === LedgerSubType::PURCHASE_CREDIT_NOTE => LedgerSourceType::PURCHASE_ADJUSTMENT->value,
-            default => null,
-        };
-
         $isSales = in_array($subtype, [
             LedgerSubType::SALES_INVOICE,
             LedgerSubType::INCREASE_ADJUSTMENT,
             LedgerSubType::DECREASE_ADJUSTMENT,
         ], true);
 
-        $debitId = $this->existingLineId(
-            $document['document_number'],
-            'debit_id',
-            $debitChart->id
-        );
-        $creditId = $this->existingLineId(
-            $document['document_number'],
-            'credit_id',
-            $creditChart->id
-        );
+        $debitId = $this->existingLineId($document['document_number'], $debitChart->id);
+        $creditId = $this->existingLineId($document['document_number'], $creditChart->id);
 
         $common = [
-            'source_type' => $sourceType,
             'company_id' => $company->id,
-            'contact_id' => $contactId,
             'company_name' => $company->name,
             'document_number' => $document['document_number'],
             'reference_number' => $document['reference_number'],
             'type' => $document['type']->value,
             'subtype' => $subtype->value,
             'date' => $document['date'],
-            'document_date' => $document['date'],
-            'total_amount' => $document['amount'],
-            'status' => $document['status']->value,
             'description' => $document['notes'],
             'deleted_at' => null,
             'created_at' => $now,
@@ -819,25 +823,21 @@ class SubLedgerSeeder extends Seeder
         if ($document['status'] === LedgerStatus::POSTED) {
             $debitRow = $common + [
                 'id' => $debitId,
-                'source_id' => $debitId,
-                'debit_id' => $debitChart->id,
-                'credit_id' => null,
-                'debit_acc' => $debitChart->code,
-                'credit_acc' => null,
-                'debit_acc_desc' => $debitChart->name,
-                'credit_acc_desc' => null,
+                'chart_id' => $debitChart->id,
+                'currency_id' => $currencyId,
+                'chart_code' => $debitChart->code,
+                'chart_name' => $debitChart->name,
+                'line_description' => null,
                 'debit_amount' => $document['amount'],
                 'credit_amount' => '0.00',
             ];
             $creditRow = $common + [
                 'id' => $creditId,
-                'source_id' => $creditId,
-                'debit_id' => null,
-                'credit_id' => $creditChart->id,
-                'debit_acc' => null,
-                'credit_acc' => $creditChart->code,
-                'debit_acc_desc' => null,
-                'credit_acc_desc' => $creditChart->name,
+                'chart_id' => $creditChart->id,
+                'currency_id' => $currencyId,
+                'chart_code' => $creditChart->code,
+                'chart_name' => $creditChart->name,
+                'line_description' => null,
                 'debit_amount' => '0.00',
                 'credit_amount' => $document['amount'],
             ];
@@ -916,12 +916,11 @@ class SubLedgerSeeder extends Seeder
      */
     private function existingLineId(
         string $documentNumber,
-        string $accountColumn,
         string $chartId
     ): string {
         return DB::table('ledgers')
             ->where('document_number', $documentNumber)
-            ->where($accountColumn, $chartId)
+            ->where('chart_id', $chartId)
             ->value('id') ?? (string) Str::uuid7();
     }
 }

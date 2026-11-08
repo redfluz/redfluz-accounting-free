@@ -26,7 +26,7 @@
 
 namespace App\Services;
 
-use App\Enums\ChartTotalReportTypeEnum;
+use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;

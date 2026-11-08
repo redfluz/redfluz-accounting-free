@@ -66,7 +66,7 @@ class UpdateBankTransferRequest extends BaseFormRequest
                 'uuid',
                 Rule::exists((new Bank)->getTable(), 'id')->where('is_active', true),
             ],
-            'document_date' => ['required', 'date'],
+            'date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_number' => ['nullable', 'string', 'max:100'],
             // The deposit slip. Optional, because a bank that credits without

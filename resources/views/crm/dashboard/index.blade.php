@@ -1,3 +1,41 @@
+@php
+    use Illuminate\Support\Carbon;
+    use Illuminate\Support\Collection;
+@endphp
+
+@props([
+    /** @var int */
+    'companyCount',
+    /** @var int */
+    'lastMonthCompanyCount',
+    /** @var int */
+    'contactCount',
+    /** @var int */
+    'lastMonthContactCount',
+    /** @var int */
+    'supplierCount',
+    /** @var int */
+    'lastMonthSupplierCount',
+    /** @var int */
+    'customerCount',
+    /** @var int */
+    'lastMonthCustomerCount',
+    /** @var int */
+    'invoiceCount',
+    /** @var int */
+    'lastMonthInvoiceCount',
+    /** @var float */
+    'payableTotal',
+    /** @var float */
+    'receivableTotal',
+    /** @var Collection<int, array{month: string, label: string, inflow: float, outflow: float}> */
+    'cashFlow',
+    /** @var Carbon */
+    'selectedMonth',
+    /** @var string|null */
+    'userName',
+])
+
 @extends('layouts.app')
 
 @section('content')

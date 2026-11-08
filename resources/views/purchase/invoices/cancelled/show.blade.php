@@ -3,7 +3,7 @@
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     $canApprove = auth()->user()->hasFilePermission(FileResources::PURCHASE_INVOICES, FileAction::APPROVE);
-    use App\Enums\LedgerSubType;
+    use App\Enums\Finance\LedgerSubType;
     use Carbon\Carbon;
 @endphp
 

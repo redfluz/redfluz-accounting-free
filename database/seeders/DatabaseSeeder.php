@@ -90,8 +90,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             FinanceChartSeeder::class,
             FinanceConfigurationSeeder::class,
-            SalesInvoiceChartSeeder::class,
-            PurchaseInvoiceChartSeeder::class,
             FinancialReportTemplateSeeder::class,
         ]);
 
@@ -128,6 +126,8 @@ class DatabaseSeeder extends Seeder
             // Last: needs the purchase orders, receipts and products to exist.
             AttachmentSeeder::class,
             PurchaseDocumentSeeder::class,
+            PurchaseAdjustmentSeeder::class,
+            SalesAdjustmentSeeder::class,
         ]);
     }
 }

@@ -413,7 +413,7 @@ class MenuSeeder extends Seeder
                     ],
                     [
                         'name' => 'CUSTOMER OUTSTANDING',
-                        'route_name' => FileResources::SALES_CUSTOMER_OUTSTANDING->value,
+                        'route_name' => FileResources::CUSTOMER_OUTSTANDING->value,
                         'icon' => 'wallet-cards',
                         'access' => $this->allAccess($roles, ['read']),
                     ],

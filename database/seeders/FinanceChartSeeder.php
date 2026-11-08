@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\ChartReportGroupEnum;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

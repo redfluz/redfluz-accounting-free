@@ -29,7 +29,7 @@
     <label class="form-label fw-bold" for="code">
         {{ __('product_types.form.code') }} <span class="fg-danger">*</span>
     </label>
-    <label class="form-control form-adorn">
+    <div class="form-control form-adorn">
         <input
             class="form-ghost @error('code') is-invalid @enderror"
             id="code"
@@ -38,7 +38,7 @@
             value="{{ old('code', $productType?->code) }}"
             required
         />
-    </label>
+    </div>
     @error('code')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
@@ -48,7 +48,7 @@
     <label class="form-label fw-bold" for="name">
         {{ __('product_types.form.name') }} <span class="fg-danger">*</span>
     </label>
-    <label class="form-control form-adorn">
+    <div class="form-control form-adorn">
         <input
             class="form-ghost @error('name') is-invalid @enderror"
             id="name"
@@ -57,7 +57,7 @@
             value="{{ old('name', $productType?->name) }}"
             required
         />
-    </label>
+    </div>
     @error('name')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
@@ -72,7 +72,7 @@
         type="checkbox"
         value="1"
         @checked(old('is_active', $productType?->is_active ?? true))
-        role="switch" switch />
+        role="switch" switch  />
     </div>
     <label class="fw-bold" for="is_active">{{ __('product_types.form.is_active') }}</label>
 </div>

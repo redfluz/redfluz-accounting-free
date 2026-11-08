@@ -28,11 +28,11 @@ namespace App\Http\Controllers\Sales\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\SalesType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\SalesInvoice;

@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Inventory\Product;
 
-use App\Enums\AcquisitionType;
+use App\Enums\Inventory\AcquisitionType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\UploadType;
@@ -90,7 +90,7 @@ class UpdateProductRequest extends ProductRequest
                     ->where('product_category_id', $this->inputStringOrEmpty('product_category_id')),
             ],
             'images' => ['nullable', 'array', 'max:10'],
-            'images.*' => ['image', UploadType::IMAGES->rule(), 'max:2048'],
+            'images.*' => ['image', UploadType::IMAGES->rule(), 'max:8000'],
             'removed_attachment_ids' => ['nullable', 'array', 'max:10'],
             'removed_attachment_ids.*' => ['required', 'uuid', 'distinct'],
             'base_price' => ['required', 'numeric', 'min:0'],

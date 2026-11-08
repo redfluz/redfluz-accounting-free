@@ -1,6 +1,6 @@
 @php
     use App\Models\System\Setting;
-    use App\Enums\QuotationStatus;
+    use App\Enums\Sales\QuotationStatus;
 
     $quotationLines = $lines;
     $hasPhysicalProduct = $quotationLines->contains(

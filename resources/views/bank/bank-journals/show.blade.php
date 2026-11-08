@@ -103,7 +103,7 @@
                 <div class="md:col-3">
                     <div class="h-100 rounded border p-3">
                         <span class="fg-secondary small d-block">{{ __('bank_journals.form.date') }}</span>
-                        <strong>{{ $journal->document_date->format(Setting::getDefaultDate()) }}</strong>
+                        <strong>{{ $journal->date->format(Setting::getDefaultDate()) }}</strong>
                     </div>
                 </div>
                 <div class="md:col-3">

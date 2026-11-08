@@ -1,4 +1,6 @@
 @php
+    use App\Enums\Sales\QuotationStatus;
+    use App\Enums\UploadType;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
 
@@ -88,7 +90,7 @@
                     class="form-label fw-bold"
                     for="reference_number"
                     >{{ __('quotations.form.reference_number') }}</label
-                ><label class="form-control form-adorn">
+                ><div class="form-control form-adorn">
                     <input
                         class="form-ghost @error('reference_number') is-invalid @enderror"
                         id="reference_number"
@@ -96,14 +98,14 @@
                         value="{{ old('reference_number', $quotation?->reference_number) }}"
                         maxlength="255"
                     />
-                </label>
+                </div>
                 @error('reference_number')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="md:col-3">
                 <label class="form-label fw-bold" for="date">{{ __('quotations.form.date') }}</label
-                ><label class="form-control form-adorn">
+                ><div class="form-control form-adorn">
                     <div class="form-adorn-icon" aria-hidden="true">
                         <i data-lucide="calendar"></i>
                     </div>
@@ -115,7 +117,7 @@
                         value="{{ old('date', $quotation?->date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                         required
                     />
-                </label>
+                </div>
                 @error('date')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -125,7 +127,7 @@
                     class="form-label fw-bold"
                     for="expiry_date"
                     >{{ __('quotations.form.expiry_date') }}</label
-                ><label class="form-control form-adorn">
+                ><div class="form-control form-adorn">
                     <div class="form-adorn-icon" aria-hidden="true">
                         <i data-lucide="calendar"></i>
                     </div>
@@ -136,7 +138,7 @@
                         type="text" data-bs-toggle="datepicker" autocomplete="off"
                         value="{{ old('expiry_date', $quotation?->expiry_date?->format('Y-m-d') ?? now()->addDays(30)->format('Y-m-d')) }}"
                     />
-                </label>
+                </div>
                 @error('expiry_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -145,7 +147,7 @@
                 <label class="form-label fw-bold" for="status">{{ __('quotations.form.status') }}</label
                 ><select class="form-control @error('status') is-invalid @enderror" id="status" name="status" required>
                     @foreach ($statuses as $status)
-                        @if ($status !== \App\Enums\QuotationStatus::CONVERTED)
+                        @if ($status !== QuotationStatus::CONVERTED)
                             <option
                                 value="{{ $status->value }}"
                                 @selected(old('status', $quotation?->status?->value ?? 'draft') === $status->value)
@@ -181,7 +183,7 @@
             id="attachment"
             name="attachment"
             type="file"
-            accept="{{ \App\Enums\UploadType::DOCUMENT_AND_IMAGES->accept() }}"
+            accept="{{ UploadType::DOCUMENT_AND_IMAGES->accept() }}"
         />
         @if ($quotation?->attachment_path)
             <div class="form-text">{{ basename($quotation->attachment_path) }}</div>
@@ -223,16 +225,16 @@
                         </select>
                     </td>
                     <td style="min-width: 220px">
-                        <label class="form-control form-adorn">
+                        <div class="form-control form-adorn">
                             <input
                                 class="form-ghost quotation-description"
                                 name="lines[{{ $index }}][description]"
                                 value="{{ old("lines.$index.description", $line?->description) }}"
                             />
-                        </label>
+                        </div>
                     </td>
                     <td style="min-width: 120px">
-                        <label class="form-control form-adorn">
+                        <div class="form-control form-adorn">
                             <input
                                 class="form-ghost quotation-quantity"
                                 name="lines[{{ $index }}][quantity]"
@@ -241,10 +243,10 @@
                                 step="0.0001"
                                 value="{{ old("lines.$index.quantity", $line?->quantity) }}"
                             />
-                        </label>
+                        </div>
                     </td>
                     <td style="min-width: 140px">
-                        <label class="form-control form-adorn">
+                        <div class="form-control form-adorn">
                             <input
                                 class="form-ghost quotation-price"
                                 name="lines[{{ $index }}][unit_price]"
@@ -253,7 +255,7 @@
                                 step="0.01"
                                 value="{{ old("lines.$index.unit_price", $line?->unit_price) }}"
                             />
-                        </label>
+                        </div>
                     </td>
                     <td class="quotation-line-total fw-bold text-end">
                         {{ number_format((float) ($line?->total_amount ?? 0), 2) }}

@@ -29,8 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\LedgerStatus;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\PaymentTransferType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -111,14 +111,6 @@ return new class extends Migration
             $table->index('date');
         });
 
-        Schema::create('receipt_lines', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('receipt_id')->constrained('receipts')->cascadeOnDelete();
-            $table->decimal('amount', 15)->default(0);
-            $table->text('description')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
 
         Schema::create('receipt_charts', function (Blueprint $table): void {
             $table->uuid('id')->primary();
@@ -144,7 +136,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('receipt_charts');
-        Schema::dropIfExists('receipt_lines');
         Schema::dropIfExists('receipts');
     }
 };

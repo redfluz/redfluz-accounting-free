@@ -30,7 +30,7 @@ namespace App\Http\Requests\Purchase\PurchaseOrder;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\PurchaseOrderType;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Enums\UploadType;
 use Illuminate\Validation\Rule;
 

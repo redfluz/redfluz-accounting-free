@@ -29,9 +29,10 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\DeliveryOrderStatus;
-use App\Enums\SalesOrderStatus;
-use App\Enums\ShippingStatus;
+
+use App\Enums\Sales\DeliveryOrderStatus;
+use App\Enums\Sales\SalesOrderStatus;
+use App\Enums\Sales\ShippingStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -182,6 +183,5 @@ return new class extends Migration
         Schema::dropIfExists('delivery_orders');
         Schema::dropIfExists('sales_order_lines');
         Schema::dropIfExists('sales_orders');
-
     }
 };

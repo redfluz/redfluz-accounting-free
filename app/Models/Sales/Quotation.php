@@ -26,7 +26,7 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\QuotationStatus;
+use App\Enums\Sales\QuotationStatus;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Support\Traits\AttributesDocuments;

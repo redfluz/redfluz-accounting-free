@@ -26,9 +26,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\Chart;

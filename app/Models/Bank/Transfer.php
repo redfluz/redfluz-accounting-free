@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Models\Bank;
 
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Models\ChartOfAccount\Chart;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -64,7 +64,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $cash_account_id
  * @property string|null $bank_account_id
  * @property string $transit_chart_id
- * @property CarbonInterface $document_date
+ * @property CarbonInterface $date
  * @property numeric-string $amount
  * @property string|null $reference_number
  * @property string|null $attachment_path
@@ -104,7 +104,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable([
     'document_number', 'direction',
     'cash_account_id', 'bank_account_id', 'transit_chart_id',
-    'document_date', 'amount', 'reference_number',
+    'date', 'amount', 'reference_number',
     'attachment_path', 'attachment_name',
     'description', 'notes', 'status',
     'created_by', 'created_name', 'created_at',
@@ -135,7 +135,7 @@ class Transfer extends Model
     protected function casts(): array
     {
         return [
-            'document_date' => 'date',
+            'date' => 'date',
             'status' => LedgerStatus::class,
             'amount' => 'decimal:2',
             'approved_at' => 'datetime',

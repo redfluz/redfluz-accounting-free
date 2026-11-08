@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TaxMode;
+use App\Enums\Finance\TaxMode;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;

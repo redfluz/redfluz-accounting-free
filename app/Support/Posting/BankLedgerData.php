@@ -47,7 +47,7 @@ class BankLedgerData extends Data
      * @param  string|null  $sourceId  The document that moved the money.
      * @param  string|null  $sourceType  The kind of document, as the model's morph class.
      * @param  string  $documentNumber  The document's number.
-     * @param  string  $documentDate  The document's date.
+     * @param  string  $date  The date the movement is booked — the document's date.
      * @param  string|null  $referenceNumber  What the movement settles, if anything.
      * @param  string  $debitAmount  The amount debited to the account.
      * @param  string  $creditAmount  The amount credited to the account.
@@ -78,8 +78,8 @@ class BankLedgerData extends Data
         #[MapName('document_number')]
         public string $documentNumber,
 
-        #[MapName('document_date')]
-        public string $documentDate,
+        #[MapName('date')]
+        public string $date,
 
         #[MapName('reference_number')]
         public ?string $referenceNumber,
@@ -120,7 +120,7 @@ class BankLedgerData extends Data
      * @param  string|null  $sourceId  The document that moved the money.
      * @param  string|null  $sourceType  The document's morph class.
      * @param  string  $documentNumber  The document's number.
-     * @param  string  $documentDate  The document's date.
+     * @param  string  $date  The date the movement is booked.
      * @param  string|null  $referenceNumber  What the movement settles.
      * @param  numeric-string  $debitAmount  The amount debited.
      * @param  numeric-string  $creditAmount  The amount credited.
@@ -134,7 +134,7 @@ class BankLedgerData extends Data
         ?string $sourceId,
         ?string $sourceType,
         string $documentNumber,
-        string $documentDate,
+        string $date,
         ?string $referenceNumber,
         string $debitAmount,
         string $creditAmount,
@@ -151,7 +151,7 @@ class BankLedgerData extends Data
             sourceId: $sourceId,
             sourceType: $sourceType,
             documentNumber: $documentNumber,
-            documentDate: $documentDate,
+            date: $date,
             referenceNumber: $referenceNumber,
             debitAmount: $debitAmount,
             creditAmount: $creditAmount,
@@ -179,7 +179,7 @@ class BankLedgerData extends Data
             'source_id' => $this->sourceId,
             'source_type' => $this->sourceType,
             'document_number' => $this->documentNumber,
-            'document_date' => $this->documentDate,
+            'date' => $this->date,
             'reference_number' => $this->referenceNumber,
             'debit_amount' => $this->debitAmount,
             'credit_amount' => $this->creditAmount,

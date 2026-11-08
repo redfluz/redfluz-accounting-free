@@ -26,9 +26,9 @@
 
 namespace App\Models\Crm;
 
-use App\Enums\LedgerLineType;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerLineType;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Models\Finance\Ledger;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -124,7 +124,6 @@ class Company extends Model
     public function addresses(): HasMany
     {
         return $this->hasMany(CompanyAddress::class)
-            ->orderByDesc('is_default')
             ->orderBy('name');
     }
 

@@ -28,7 +28,7 @@ namespace App\Http\Controllers\Finance\JournalEntry;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Finance\JournalEntry;
 use App\Models\System\Setting;
@@ -76,10 +76,9 @@ class CancelledController extends Controller
                         ->orWhere('reference_number', 'like', "%$search%")
                         ->orWhere('notes', 'like', "%$search%")
                         ->orWhereHas('charts', fn ($iq) => $iq
-                            ->where('debit_acc', 'like', "%$search%")
-                            ->orWhere('credit_acc', 'like', "%$search%")
-                            ->orWhere('debit_acc_desc', 'like', "%$search%")
-                            ->orWhere('credit_acc_desc', 'like', "%$search%")
+                            ->where('chart_code', 'like', "%$search%")
+                            ->orWhere('chart_name', 'like', "%$search%")
+                            ->orWhere('line_description', 'like', "%$search%")
                             ->orWhere('description', 'like', "%$search%"));
                 });
             })

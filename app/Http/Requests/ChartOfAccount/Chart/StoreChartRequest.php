@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ChartOfAccount\Chart;
 
-use App\Enums\ChartReportGroupEnum;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use Illuminate\Validation\Rule;

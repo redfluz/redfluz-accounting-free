@@ -26,8 +26,8 @@
 
 namespace App\Models\Purchase;
 
-use App\Enums\LedgerStatus;
-use App\Enums\PurchaseOrderType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Support\Traits\AttributesDocuments;

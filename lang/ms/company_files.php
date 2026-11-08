@@ -49,6 +49,8 @@ return [
         'label_notes' => 'Nota',
         'label_attachment' => 'Lampiran',
         'label_remove_attachment' => 'Buang lampiran fail sedia ada',
+        'attachment_size_hint' => 'Saiz fail maksimum: 8000 KB setiap fail.',
+        'attachment_too_large' => 'Fail berikut melebihi had 8000 KB dan tidak ditambah:',
         'select_company' => 'Pilih Syarikat',
     ],
     'messages' => [

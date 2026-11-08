@@ -29,10 +29,10 @@ namespace App\Http\Controllers\Purchase;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\PurchaseOrderType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Purchase\PurchaseInvoice\StorePurchaseInvoiceRequest;
 use App\Http\Requests\Purchase\PurchaseInvoice\UpdatePurchaseInvoiceRequest;
@@ -1303,7 +1303,6 @@ class PurchaseInvoiceController extends Controller
                     'type' => $sourceType,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => $item['date'],
-                    'document_date' => $item['date'],
                     'debit_amount' => $item['debit_amount'],
                     'credit_amount' => $item['credit_amount'],
                     'total_amount' => $item['total_amount'],

@@ -23,7 +23,7 @@
                 @csrf
                 @method('PUT')
                 <input name="id" type="hidden" value="{{ $bank->id }}" />
-                @include('bank.banks._fields', ['bank' => $bank, 'charts' => $charts])
+                @include('bank.banks._form', ['bank' => $bank, 'charts' => $charts])
                 <div class="d-flex justify-content-between pt-4 border-top mt-4">
                     <a class="btn btn-solid theme-secondary" href="{{ route('bank.banks.show', $bank) }}"
                         ><i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}</a>

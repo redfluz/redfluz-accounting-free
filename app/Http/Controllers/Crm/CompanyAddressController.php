@@ -90,8 +90,8 @@ class CompanyAddressController extends Controller
         $data = CompanyAddressData::from($request->validated());
         $data->companyId = $company->id;
 
-        DB::transaction(function () use ($company, $data): void {
-            $isDefault = ($data->isDefault ?? false) || ! $company->addresses()->exists();
+        DB::transaction(function () use ($company, $data, $request): void {
+            $isDefault = (bool) $request->validated('is_default', false) || ! $company->addresses()->exists();
             if ($isDefault) {
                 $company->addresses()->update(['is_default' => false]);
             }
@@ -135,8 +135,8 @@ class CompanyAddressController extends Controller
         $data = CompanyAddressData::from($request->validated());
         $company = $companyAddress->company()->firstOrFail();
 
-        DB::transaction(function () use ($company, $companyAddress, $data): void {
-            $isDefault = $data->isDefault ?? false;
+        DB::transaction(function () use ($company, $companyAddress, $data, $request): void {
+            $isDefault = (bool) $request->validated('is_default', false);
             if ($isDefault) {
                 $company->addresses()->whereKeyNot($companyAddress->id)->update(['is_default' => false]);
             }

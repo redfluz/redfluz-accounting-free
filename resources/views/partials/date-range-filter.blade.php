@@ -28,22 +28,22 @@
                                 placeholder="{{ $placeholder }}" aria-label="{{ $placeholder }}" />
                         </div>
                         <div class="{{ $dateColumn }}">
-                            <label class="form-control form-adorn">
+                            <div class="form-control form-adorn">
                                 <div class="form-adorn-icon" aria-hidden="true">
                                     <i data-lucide="calendar"></i>
                                 </div>
                                 <input class="form-ghost" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                     value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
-                            </label>
+                            </div>
                         </div>
                         <div class="{{ $dateColumn }}">
-                            <label class="form-control form-adorn">
+                            <div class="form-control form-adorn">
                                 <div class="form-adorn-icon" aria-hidden="true">
                                     <i data-lucide="calendar"></i>
                                 </div>
                                 <input class="form-ghost" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                     value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
-                            </label>
+                            </div>
                         </div>
                         @if ($hasSelect)
                             <div class="{{ $dateColumn }}">

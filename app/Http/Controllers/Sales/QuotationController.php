@@ -28,11 +28,11 @@ namespace App\Http\Controllers\Sales;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\QuotationStatus;
-use App\Enums\SalesOrderStatus;
-use App\Enums\SalesType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Sales\QuotationStatus;
+use App\Enums\Sales\SalesOrderStatus;
+use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\Quotation\StoreQuotationRequest;
 use App\Http\Requests\Sales\Quotation\UpdateQuotationRequest;

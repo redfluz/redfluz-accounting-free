@@ -25,7 +25,7 @@
 --}}
 
 @php
-    use App\Enums\ChartTotalReportTypeEnum;
+    use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
     use Carbon\Carbon;
 
     $totalAssets = (float) $summary['assets'];
@@ -36,6 +36,37 @@
     $hasComparison = !$hasPeriodColumns && filled($comparisonLabel);
     $columnCount = $hasPeriodColumns ? 2 + count($periodColumns) : ($hasComparison ? 4 : 3);
 @endphp
+
+@props([
+    /** @var array<int, array<string, mixed>> */
+    'rows',
+    /** @var array<string, float> */
+    'summary',
+    /** @var string */
+    'reportName',
+    /** @var array<int, string> */
+    'unknownLedgerAccounts' => [],
+    /** @var array<int, string> */
+    'periodColumns' => [],
+    /** @var string|null */
+    'comparisonLabel' => null,
+    /** @var string */
+    'reportView' => 'normal',
+    /** @var string */
+    'periodType' => 'month',
+    /** @var int */
+    'year' => 0,
+    /** @var int */
+    'month' => 1,
+    /** @var int */
+    'quarter' => 1,
+    /** @var string */
+    'asOfDate' => '',
+    /** @var string */
+    'periodLabel' => '',
+    /** @var string */
+    'ledgerEndDate' => '',
+])
 
 @extends('layouts.app')
 

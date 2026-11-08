@@ -31,9 +31,9 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Bank\Concerns\HandlesTransfers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bank\Transfer\UpdateBankTransferRequest;
@@ -96,7 +96,7 @@ class BankTransferController extends Controller
                 $query->where('document_number', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             }))
-            ->latest('document_date')
+            ->latest('date')
             ->paginate(static::PER_PAGE_GRID)
             ->withQueryString();
 
@@ -188,7 +188,7 @@ class BankTransferController extends Controller
             'cash_account_id' => null,
             'bank_account_id' => $bank->id,
             'transit_chart_id' => $this->transitChart()->id,
-            'document_date' => $fields['documentDate'],
+            'date' => $fields['date'],
             'amount' => $this->toAmount($fields['amount']),
             'reference_number' => $fields['referenceNumber'],
             'attachment_path' => $attachment['path'],
@@ -235,7 +235,7 @@ class BankTransferController extends Controller
 
         $transfer->update([
             'bank_account_id' => $bank->id,
-            'document_date' => $fields['documentDate'],
+            'date' => $fields['date'],
             'amount' => $this->toAmount($fields['amount']),
             'reference_number' => $fields['referenceNumber'],
             'attachment_path' => $replaced ? $uploaded['path'] : $transfer->attachment_path,
@@ -330,7 +330,7 @@ class BankTransferController extends Controller
             $this->poster->post(
                 $transfer,
                 $transfer->document_number,
-                $transfer->document_date,
+                $transfer->date,
                 LedgerType::PAYMENT,
                 LedgerSubType::TRANSFER,
                 $legs,
@@ -525,12 +525,12 @@ class BankTransferController extends Controller
      * each field is checked once here and read as the type it is meant to be.
      *
      * @param  array<string, mixed>  $validated  The validated request input.
-     * @return array{bankAccountId: string, documentDate: string, amount: string, referenceNumber: string|null, description: string|null, notes: string|null}
+     * @return array{bankAccountId: string, date: string, amount: string, referenceNumber: string|null, description: string|null, notes: string|null}
      */
     private function fields(array $validated): array
     {
         $bankAccountId = $validated['bank_account_id'] ?? null;
-        $documentDate = $validated['document_date'] ?? null;
+        $date = $validated['date'] ?? null;
         $rawAmount = $validated['amount'] ?? null;
         $referenceNumber = $validated['reference_number'] ?? null;
         $description = $validated['description'] ?? null;
@@ -538,7 +538,7 @@ class BankTransferController extends Controller
 
         if (
             ! is_string($bankAccountId)
-            || ! is_string($documentDate)
+            || ! is_string($date)
             || ! is_numeric($rawAmount)
         ) {
             abort(422);
@@ -546,7 +546,7 @@ class BankTransferController extends Controller
 
         return [
             'bankAccountId' => $bankAccountId,
-            'documentDate' => $documentDate,
+            'date' => $date,
             'amount' => (string) $rawAmount,
             'referenceNumber' => is_string($referenceNumber) ? $referenceNumber : null,
             'description' => is_string($description) ? $description : null,
@@ -563,7 +563,7 @@ class BankTransferController extends Controller
     {
         return [
             'bank_account_id' => ['required', 'uuid'],
-            'document_date' => ['required', 'date'],
+            'date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],

@@ -153,10 +153,10 @@ trait ReadsMoneyLedger
                     ->orWhere("$table.reference_number", 'like', "%$search%")
                     ->orWhere("$table.description", 'like', "%$search%");
             }))
-            ->when(filled($startDate), fn (QueryBuilder $query): QueryBuilder => $query->whereDate("$table.document_date", '>=', $startDate))
-            ->when(filled($endDate), fn (QueryBuilder $query): QueryBuilder => $query->whereDate("$table.document_date", '<=', $endDate))
+            ->when(filled($startDate), fn (QueryBuilder $query): QueryBuilder => $query->whereDate("$table.date", '>=', $startDate))
+            ->when(filled($endDate), fn (QueryBuilder $query): QueryBuilder => $query->whereDate("$table.date", '<=', $endDate))
             ->whereNull("$table.deleted_at")
-            ->orderByDesc("$table.document_date")
+            ->orderByDesc("$table.date")
             ->orderByDesc("$table.created_at")
             ->paginate(static::PER_PAGE_GRID_STANDARD)
             ->withQueryString();

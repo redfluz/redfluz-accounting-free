@@ -27,7 +27,7 @@
 namespace App\Http\Controllers\Bank\Receipt;
 
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
+use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\Receipt;
 use App\Models\System\Setting;
@@ -90,7 +90,7 @@ class HistoryController extends Controller
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('arLedgers.chart')
             ->firstOrFail();
 
         return view('bank.receipt.history.show', compact('receipt', 'documentNumber'));
@@ -109,7 +109,7 @@ class HistoryController extends Controller
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('arLedgers.chart')
             ->firstOrFail();
 
         return Pdf::loadView('bank.receipt.pdf', [

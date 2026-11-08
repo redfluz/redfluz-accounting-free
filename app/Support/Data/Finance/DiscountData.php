@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Finance;
 
-use App\Enums\DiscountType;
+use App\Enums\Finance\DiscountType;
 use App\Models\Finance\Discount;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

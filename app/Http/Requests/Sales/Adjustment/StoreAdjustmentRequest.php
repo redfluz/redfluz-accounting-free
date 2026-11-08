@@ -30,7 +30,7 @@ namespace App\Http\Requests\Sales\Adjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerSubType;
 use App\Enums\UploadType;
 use Illuminate\Validation\Rule;
 
@@ -65,8 +65,6 @@ class StoreAdjustmentRequest extends AdjustmentRequest
         return [
             'reference_number' => ['required', 'string', 'max:255'],
             'company_id' => ['required', 'uuid', Rule::exists('companies', 'id')->where('is_debtor', true)],
-            'debit_id' => ['required', 'uuid', 'different:credit_id', 'exists:charts,id'],
-            'credit_id' => ['required', 'uuid', 'different:debit_id', 'exists:charts,id'],
             'subtype' => [
                 'required',
                 'string',

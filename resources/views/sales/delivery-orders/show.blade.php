@@ -1,5 +1,5 @@
 @php
-    use App\Enums\DeliveryOrderStatus;
+    use App\Enums\Sales\DeliveryOrderStatus;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
 

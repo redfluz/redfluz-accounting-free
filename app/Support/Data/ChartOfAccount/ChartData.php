@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\ChartOfAccount;
 
-use App\Enums\ChartReportGroupEnum;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Models\ChartOfAccount\Chart;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

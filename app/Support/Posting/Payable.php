@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Support\Posting;
 
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Purchase\PurchaseInvoice;
-use App\Models\Purchase\PurchaseInvoiceChart;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Support\Posting\Concerns\WritesLedgerTables;
 use Illuminate\Support\Collection;
@@ -35,24 +35,15 @@ class Payable
             return 0;
         }
 
-        // Query the purchase invoice charts configuration for default accounts
-        $chartConfig = PurchaseInvoiceChart::query()
-            ->where('company_id', $invoice->company_id)
-            ->first();
+        // Query the chart settings for default accounts
+        $chartConfig = ChartSetting::query()->first();
 
-        // If no company-specific config, try global default
-        if ($chartConfig === null) {
-            $chartConfig = PurchaseInvoiceChart::query()
-                ->whereNull('company_id')
-                ->first();
-        }
-
-        if ($chartConfig === null || $chartConfig->payable_id === null) {
+        if ($chartConfig === null || $chartConfig->vendor_chart_uuid === null) {
             return 0;
         }
 
         // Get the chart account details for the payable (AP) account
-        $chart = Chart::query()->find($chartConfig->payable_id);
+        $chart = Chart::query()->find($chartConfig->vendor_chart_uuid);
 
         if ($chart === null) {
             return 0;
@@ -78,4 +69,5 @@ class Payable
 
         return $this->writeMany('ap_ledgers', $rowArrays);
     }
+
 }

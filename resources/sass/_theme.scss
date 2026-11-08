@@ -551,6 +551,7 @@ svg.lucide {
 // every checkbox and switch uses the theme's red instead of Bootstrap's green.
 :root {
     --control-checked-bg: var(--danger-base);
+    --datepicker-zindex: calc(var(--z-modal) + 10);
 }
 
 // --- Sub-base type steps -----------------------------------------------------

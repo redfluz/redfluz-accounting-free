@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Constants\FlashMessage;
-use App\Enums\DeliveryOrderStatus;
+use App\Enums\Sales\DeliveryOrderStatus;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
-use App\Enums\SalesOrderStatus;
-use App\Enums\SalesType;
-use App\Enums\ShippingStatus;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
+use App\Enums\Sales\SalesOrderStatus;
+use App\Enums\Sales\SalesType;
+use App\Enums\Sales\ShippingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\DeliveryOrder\StoreDeliveryOrderRequest;
 use App\Http\Requests\Sales\DeliveryOrder\UpdateDeliveryOrderRequest;
@@ -542,7 +542,6 @@ class DeliveryOrderController extends Controller
                     'type' => LedgerType::JOURNAL->value,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => $movement['date'],
-                    'document_date' => $movement['date'],
                     'total_amount' => $movement['total_cost'],
                     'status' => LedgerStatus::POSTED->value,
                     'notes' => __('product_ledgers.entries.cogs_posting', ['document' => $movement['document_number']]),

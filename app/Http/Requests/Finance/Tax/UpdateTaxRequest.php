@@ -30,7 +30,7 @@ namespace App\Http\Requests\Finance\Tax;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\TaxMode;
+use App\Enums\Finance\TaxMode;
 use App\Models\Finance\Tax;
 use Illuminate\Validation\Rule;
 

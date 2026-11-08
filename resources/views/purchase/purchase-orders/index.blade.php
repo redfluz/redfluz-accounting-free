@@ -1,4 +1,20 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\Purchase\PurchaseOrder;
+    use App\Models\System\Setting;
+    use Illuminate\Pagination\LengthAwarePaginator;
+@endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, PurchaseOrder> */
+    'purchaseOrders',
+    /** @var string */
+    'search' => '',
+    /** @var string|null */
+    'startDate' => null,
+    /** @var string|null */
+    'endDate' => null,
+])
+
 @extends('layouts.app')
 
 @section('content')

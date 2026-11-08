@@ -26,7 +26,7 @@
 
 namespace App\Http\Controllers\Bank;
 
-use App\Enums\BankAccountKind;
+use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Controllers\Bank\Concerns\ReadsMoneyLedger;

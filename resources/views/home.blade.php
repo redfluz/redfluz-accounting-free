@@ -1,5 +1,8 @@
-@php use App\Models\System\Setting; @endphp
-@inject('dash', App\Services\DashboardService::class)
+@php
+    use App\Models\System\Setting;
+    use App\Services\DashboardService;
+@endphp
+@inject('dash', DashboardService::class)
 @extends('layouts.app')
 
 @section('content')

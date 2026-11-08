@@ -28,14 +28,14 @@ declare(strict_types=1);
 
 namespace App\Support\Posting;
 
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Purchase\PurchaseInvoice;
-use App\Models\Purchase\PurchaseInvoiceChart;
 use App\Models\Purchase\PurchaseInvoiceLine;
+use App\Models\System\Setting;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
@@ -234,13 +234,13 @@ class ApLedgerData extends Data
      *
      * @param  PurchaseInvoice  $invoice  The invoice being posted.
      * @param  PurchaseInvoiceLine  $line  The invoice's line.
-     * @param  PurchaseInvoiceChart  $chartConfig  The chart configuration for default accounts.
+     * @param  ChartSetting  $chartConfig  The chart configuration for default accounts.
      * @param  Chart  $chart  The chart account's details.
      */
     public static function fromPurchaseInvoiceLine(
         PurchaseInvoice $invoice,
         PurchaseInvoiceLine $line,
-        PurchaseInvoiceChart $chartConfig,
+        ChartSetting $chartConfig,
         Chart $chart,
     ): ?self {
         // The payable side is the credit to the supplier's account.
@@ -250,12 +250,12 @@ class ApLedgerData extends Data
         }
 
         // Get the currency from settings
-        $currencyValue = DB::table('settings')->value('currency_id');
+        $currencyValue = Setting::query()->value('currency_id');
         $currencyId = is_string($currencyValue) ? $currencyValue : '';
 
         return new self(
             id: (string) Str::uuid7(),
-            chartId: $chartConfig->payable_id ?? '',
+            chartId: (string) $chart->id,
             companyId: $invoice->company_id ?? '',
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,

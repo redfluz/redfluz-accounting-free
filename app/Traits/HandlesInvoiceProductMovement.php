@@ -26,13 +26,13 @@
 
 namespace App\Traits;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Finance\Ledger;
@@ -319,7 +319,6 @@ trait HandlesInvoiceProductMovement
                 'type' => LedgerType::JOURNAL->value,
                 'subtype' => LedgerSubType::JOURNAL->value,
                 'date' => $movement->date,
-                'document_date' => $movement->date,
                 'total_amount' => $movement->total_cost,
                 'status' => LedgerStatus::POSTED->value,
                 'notes' => __('product_ledgers.entries.cogs_posting', [

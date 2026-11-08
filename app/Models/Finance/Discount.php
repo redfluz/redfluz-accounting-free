@@ -26,7 +26,7 @@
 
 namespace App\Models\Finance;
 
-use App\Enums\DiscountType;
+use App\Enums\Finance\DiscountType;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;

@@ -26,8 +26,8 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\DeliveryOrderStatus;
-use App\Enums\ShippingStatus;
+use App\Enums\Sales\DeliveryOrderStatus;
+use App\Enums\Sales\ShippingStatus;
 use App\Models\Crm\Company;
 use App\Models\Crm\CompanyAddress;
 use App\Models\Inventory\StockLocation;

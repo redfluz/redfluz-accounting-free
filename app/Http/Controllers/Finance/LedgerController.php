@@ -26,11 +26,11 @@
 
 namespace App\Http\Controllers\Finance;
 
-use App\Enums\ChartReportGroupEnum;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\Finance\JournalEntry;

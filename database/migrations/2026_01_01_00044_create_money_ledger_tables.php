@@ -121,7 +121,7 @@ return new class extends Migration
             $table->string('source_type', 50)->nullable();
 
             $table->string('document_number')->index();
-            $table->date('document_date');
+            $table->date('date');
             // What this movement settles or corrects, where that applies.
             $table->string('reference_number')->nullable()->index();
 
@@ -138,7 +138,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['cash_account_id', 'document_date'], 'cash_ledgers_account_date_index');
+            $table->index(['cash_account_id', 'date'], 'cash_ledgers_account_date_index');
             $table->index(['source_type', 'source_id'], 'cash_ledgers_source_index');
         });
 
@@ -158,7 +158,7 @@ return new class extends Migration
             $table->string('source_type', 50)->nullable();
 
             $table->string('document_number')->index();
-            $table->date('document_date');
+            $table->date('date');
             $table->string('reference_number')->nullable()->index();
 
             $table->decimal('debit_amount', 15)->default(0);
@@ -176,7 +176,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['bank_account_id', 'document_date'], 'bank_ledgers_account_date_index');
+            $table->index(['bank_account_id', 'date'], 'bank_ledgers_account_date_index');
             $table->index(['source_type', 'source_id'], 'bank_ledgers_source_index');
         });
 
@@ -195,7 +195,7 @@ return new class extends Migration
             $table->string('source_type', 50)->nullable();
 
             $table->string('document_number')->index();
-            $table->date('document_date');
+            $table->date('date');
             $table->string('reference_number')->nullable()->index();
 
             $table->decimal('debit_amount', 15)->default(0);
@@ -210,7 +210,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['e_wallet_account_id', 'document_date'], 'e_wallet_ledgers_account_date_index');
+            $table->index(['e_wallet_account_id', 'date'], 'e_wallet_ledgers_account_date_index');
             $table->index(['source_type', 'source_id'], 'e_wallet_ledgers_source_index');
         });
     }

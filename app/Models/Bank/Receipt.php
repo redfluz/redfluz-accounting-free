@@ -26,9 +26,9 @@
 
 namespace App\Models\Bank;
 
-use App\Enums\LedgerSourceType;
-use App\Enums\LedgerStatus;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerSourceType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\PaymentTransferType;
 use App\Models\Crm\ArLedger;
 use App\Models\Crm\Company;
 use App\Support\Traits\AttributesDocuments;
@@ -94,8 +94,6 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  * @property string|null $undone_by
  * @property string|null $undone_name
  * @property CarbonInterface|null $undone_at
- * @property-read Collection<int, ReceiptLine> $lines
- * @property-read Collection<int, ReceiptChart> $charts
  * @property-read Collection<int, Activity> $activities
  *
  * @mixin Builder<self>
@@ -121,43 +119,7 @@ class Receipt extends Model
 {
     use AttributesDocuments, HasActivity, HasUuids, RecordsAuthor, SoftDeletes;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'date' => 'date',
-            'status' => LedgerStatus::class,
-            'payment_transfer_type' => PaymentTransferType::class,
-            'total_amount' => 'decimal:2',
-            'approved_at' => 'datetime',
-            'cancelled_at' => 'datetime',
-            'undone_at' => 'datetime',
-        ];
-    }
 
-    /**
-     * The double entry this receipt carries.
-     *
-     * @return HasMany<ReceiptLine, $this>
-     */
-    public function lines(): HasMany
-    {
-        return $this->hasMany(ReceiptLine::class);
-    }
-
-    /**
-     * The chart of accounts this receipt posts to.
-     *
-     * @return HasMany<ReceiptChart, $this>
-     */
-    public function charts(): HasMany
-    {
-        return $this->hasMany(ReceiptChart::class);
-    }
 
     /**
      * The customer the money was received from.

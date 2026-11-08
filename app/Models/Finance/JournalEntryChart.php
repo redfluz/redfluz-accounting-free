@@ -26,6 +26,10 @@
 
 namespace App\Models\Finance;
 
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
+use App\Models\ChartOfAccount\Chart;
+use App\Models\Crm\Company;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -43,25 +47,31 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  *
  * @property string $id
  * @property string $journal_entry_id
- * @property string|null $debit_id
- * @property string|null $credit_id
- * @property string|null $debit_acc
- * @property string|null $credit_acc
- * @property string|null $debit_acc_desc
- * @property string|null $credit_acc_desc
+ * @property string|null $chart_id
+ * @property string|null $company_id
+ * @property string|null $currency_id
+ * @property LedgerType $type
+ * @property LedgerSubType $subtype
  * @property string $document_number
  * @property string|null $reference_number
  * @property CarbonInterface $date
+ * @property string|null $chart_code
+ * @property string|null $chart_name
+ * @property string|null $company_name
  * @property string|null $description
+ * @property string|null $line_description
  * @property numeric-string $debit_amount
  * @property numeric-string $credit_amount
- * @property numeric-string $total_amount
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
+ * @property CarbonInterface|null $deleted_at
  *
  * @noinspection PhpUnused
  *
  * @property-read JournalEntry|null $journalEntry
+ * @property-read Chart|null $chart
+ * @property-read Company|null $company
+ * @property-read Currency|null $currency
  * @property-read Collection<int, Activity> $activities
  * @property-read Collection<int, Activity> $activitiesAsCauser
  * @property-read Collection<int, Activity> $activitiesAsSubject
@@ -69,19 +79,21 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
 #[Table('journal_entry_charts', key: 'id')]
 #[Fillable([
     'journal_entry_id',
-    'debit_id',
-    'credit_id',
-    'debit_acc',
-    'credit_acc',
-    'debit_acc_desc',
-    'credit_acc_desc',
+    'chart_id',
+    'company_id',
+    'currency_id',
+    'type',
+    'subtype',
     'document_number',
     'reference_number',
     'date',
+    'chart_code',
+    'chart_name',
+    'company_name',
     'description',
+    'line_description',
     'debit_amount',
     'credit_amount',
-    'total_amount',
 ])]
 class JournalEntryChart extends Model
 {
@@ -97,19 +109,21 @@ class JournalEntryChart extends Model
         return [
             'id' => 'string',
             'journal_entry_id' => 'string',
-            'debit_id' => 'string',
-            'credit_id' => 'string',
-            'debit_acc' => 'string',
-            'credit_acc' => 'string',
-            'debit_acc_desc' => 'string',
-            'credit_acc_desc' => 'string',
+            'chart_id' => 'string',
+            'company_id' => 'string',
+            'currency_id' => 'string',
+            'type' => LedgerType::class,
+            'subtype' => LedgerSubType::class,
             'document_number' => 'string',
             'reference_number' => 'string',
             'date' => 'date',
+            'chart_code' => 'string',
+            'chart_name' => 'string',
+            'company_name' => 'string',
             'description' => 'string',
+            'line_description' => 'string',
             'debit_amount' => 'decimal:2',
             'credit_amount' => 'decimal:2',
-            'total_amount' => 'decimal:2',
         ];
     }
 
@@ -122,5 +136,35 @@ class JournalEntryChart extends Model
     public function journalEntry(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class, 'journal_entry_id', 'id');
+    }
+
+    /**
+     * The chart account this single-sided line posts against.
+     *
+     * @return BelongsTo<Chart, $this>
+     */
+    public function chart(): BelongsTo
+    {
+        return $this->belongsTo(Chart::class, 'chart_id', 'id');
+    }
+
+    /**
+     * The company the posting belongs to.
+     *
+     * @return BelongsTo<Company, $this>
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id', 'id');
+    }
+
+    /**
+     * The currency the amounts are stated in.
+     *
+     * @return BelongsTo<Currency, $this>
+     */
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class, 'currency_id', 'id');
     }
 }

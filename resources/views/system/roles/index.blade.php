@@ -35,13 +35,14 @@
                 <div class="md:col-4">
                     <div class="input-group">
                         <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
+                               placeholder="{{ __('common.actions.search') }}"
+                               aria-label="{{ __('common.actions.search') }}"/>
                         <button class="btn btn-solid theme-secondary" type="submit">
                             <i class="" data-lucide="search"></i>
                         </button>
                         @if ($search)
                             <a class="btn btn-solid theme-danger" href="{{ route('system.roles.index') }}"
-                                title="{{ __('common.actions.reset') }}">
+                               title="{{ __('common.actions.reset') }}">
                                 <i class="" data-lucide="x"></i>
                             </a>
                         @endif
@@ -52,65 +53,65 @@
             <div class="table-responsive rounded-5 overflow-hidden border">
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
-                        <tr>
-                            <th scope="col">{{ __('roles.table.column_name') }}</th>
-                            <th scope="col">{{ __('roles.table.column_dashboard') }}</th>
-                            <th scope="col" class="w-md">{{ __('roles.grid.assigned_user') }}</th>
-                            <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
-                        </tr>
+                    <tr>
+                        <th scope="col">{{ __('roles.table.column_name') }}</th>
+                        <th scope="col">{{ __('roles.table.column_dashboard') }}</th>
+                        <th scope="col" class="w-md">{{ __('roles.grid.assigned_user') }}</th>
+                        <th scope="col" class="col-action text-center">{{ __('common.labels.actions') }}</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        @forelse ($roles as $role)
-                            <tr>
-                                <td class="fw-bold">
-                                    <a class="text-decoration-none" href="{{ route('system.roles.show', $role) }}">
-                                        {{ $role->name }}
+                    @forelse ($roles as $role)
+                        <tr>
+                            <td class="fw-bold">
+                                <a class="text-decoration-none" href="{{ route('system.roles.show', $role) }}">
+                                    {{ $role->name }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge theme-secondary"> {{ $role->dashboard->label() }} </span>
+                            </td>
+                            <td>
+                                <a class="badge theme-info text-decoration-none"
+                                   href="{{ route('system.roles.show', $role) }}">
+                                    {{ $role->users_count }} {{ __('common.labels.users') }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a class="btn btn-sm btn-solid theme-info me-1"
+                                   href="{{ route('system.roles.show', $role) }}"
+                                   title="{{ __('common.actions.view') }}">
+                                    <i data-lucide="eye"></i>
+                                </a>
+                                @if ($canUpdate)
+                                    <a class="btn btn-sm btn-solid theme-warning me-1"
+                                       href="{{ route('system.roles.edit', $role) }}"
+                                       title="{{ __('common.actions.edit') }}">
+                                        <i data-lucide="square-pen"></i>
                                     </a>
-                                </td>
-                                <td>
-                                    <span class="badge theme-secondary"> {{ $role->dashboard->label() }} </span>
-                                </td>
-                                <td>
-                                    <a class="badge theme-info text-decoration-none"
-                                        href="{{ route('system.roles.show', $role) }}">
-                                        {{ $role->users_count }} {{ __('common.labels.users') }}
-                                    </a>
-                                </td>
-                                <td class="text-center">
-                                    <a class="btn btn-sm btn-solid theme-info me-1"
-                                        href="{{ route('system.roles.show', $role) }}"
-                                        title="{{ __('common.actions.view') }}">
-                                        <i data-lucide="eye"></i>
-                                    </a>
-                                    @if ($canUpdate)
-                                        <a class="btn btn-sm btn-solid theme-warning me-1"
-                                            href="{{ route('system.roles.edit', $role) }}"
-                                            title="{{ __('common.actions.edit') }}">
-                                            <i data-lucide="square-pen"></i>
-                                        </a>
-                                    @endif
-                                    @if ($canRemove)
-                                        <button class="btn btn-sm btn-solid theme-danger btn-delete"
+                                @endif
+                                @if ($canRemove)
+                                    <button class="btn btn-sm btn-solid theme-danger btn-delete"
                                             data-id="{{ $role->id }}" type="button"
                                             title="{{ __('common.actions.delete') }}">
-                                            <i data-lucide="trash-2"></i>
-                                        </button>
+                                        <i data-lucide="trash-2"></i>
+                                    </button>
 
-                                        <form autocomplete="off" class="d-none" id="delete-form-{{ $role->id }}"
-                                            action="{{ route('system.roles.destroy', $role) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td class="fg-secondary py-4 text-center" colspan="5">
-                                    {{ __('common.labels.not_found_record') }}
-                                </td>
-                            </tr>
-                        @endforelse
+                                    <form autocomplete="off" class="d-none" id="delete-form-{{ $role->id }}"
+                                          action="{{ route('system.roles.destroy', $role) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td class="fg-secondary py-4 text-center" colspan="5">
+                                {{ __('common.labels.not_found_record') }}
+                            </td>
+                        </tr>
+                    @endforelse
                     </tbody>
                 </table>
             </div>
@@ -121,7 +122,7 @@
 
 @section('script')
     <script type="module">
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const deleteBtn = e.target.closest('.btn-delete');
 
             if (deleteBtn) {

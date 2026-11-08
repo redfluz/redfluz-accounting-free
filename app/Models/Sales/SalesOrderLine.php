@@ -26,8 +26,8 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\DiscountType;
-use App\Enums\TaxMode;
+use App\Enums\Finance\DiscountType;
+use App\Enums\Finance\TaxMode;
 use App\Models\Inventory\Product;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

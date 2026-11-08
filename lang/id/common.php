@@ -114,6 +114,7 @@ return [
     ],
     'messages' => [
         'batch_approved' => ':count catatan disetujui dan diposting.',
+        'batch_approve_failed' => 'Gagal menyetujui: :numbers.',
         'batch_cancelled' => ':count catatan dibatalkan.',
         'uncancelled' => 'Catatan telah dikembalikan.',
         'nothing_to_uncancel' => 'Rekod itu tidak lagi dibatalkan, jadi tiada apa-apa untuk dipulihkan.',

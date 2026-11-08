@@ -13,11 +13,11 @@
 namespace App\Http\Controllers\Purchase;
 
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementSource;
-use App\Enums\ProductMovementStatus;
-use App\Enums\PurchaseOrderType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementSource;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\Inventory\ProductLedger;

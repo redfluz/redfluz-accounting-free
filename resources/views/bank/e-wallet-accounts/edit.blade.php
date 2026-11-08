@@ -23,7 +23,7 @@
                 @csrf
                 @method('PUT')
                 <input name="id" type="hidden" value="{{ $eWalletAccount->id }}" />
-                @include('bank.e-wallet-accounts._fields', ['eWalletAccount' => $eWalletAccount, 'charts' => $charts])
+                @include('bank.e-wallet-accounts._form', ['eWalletAccount' => $eWalletAccount, 'charts' => $charts])
                 <div class="d-flex justify-content-between pt-4 border-top mt-4">
                     <a class="btn btn-solid theme-secondary" href="{{ route('bank.e-wallet-accounts.show', $eWalletAccount) }}"
                         ><i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}</a>

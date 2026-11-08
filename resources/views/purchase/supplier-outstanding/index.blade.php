@@ -1,11 +1,30 @@
 @php
+    use App\Models\Purchase\PurchaseInvoice;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     use Carbon\Carbon;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canViewInvoices = auth()->user()->hasFilePermission(FileResources::PURCHASE_INVOICES, FileAction::READ);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, PurchaseInvoice> */
+    'invoices',
+    /** @var string */
+    'search' => '',
+    /** @var string|null */
+    'startDate' => null,
+    /** @var string|null */
+    'endDate' => null,
+    /** @var Carbon */
+    'asOfDate',
+    /** @var string */
+    'status' => 'outstanding',
+    /** @var array<string, float> */
+    'totals' => [],
+])
 
 @extends('layouts.app')
 
@@ -45,35 +64,35 @@
                                     <div class="md:col-2">
                                         <label
                                             class="form-label small mb-1" for="start_date">{{ __('supplier_outstanding.invoice_date_from') }}</label>
-                                        <label class="form-control form-adorn">
+                                        <div class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
                                             <input class="form-ghost" id="start_date" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                                 value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
-                                        </label>
+                                        </div>
                                     </div>
                                     <div class="md:col-2">
                                         <label
                                             class="form-label small mb-1" for="end_date">{{ __('supplier_outstanding.invoice_date_to') }}</label>
-                                        <label class="form-control form-adorn">
+                                        <div class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
                                             <input class="form-ghost" id="end_date" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
                                                 value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
-                                        </label>
+                                        </div>
                                     </div>
                                     <div class="md:col-2">
                                         <label
                                             class="form-label small mb-1" for="as_of_date">{{ __('supplier_outstanding.as_of_date') }}</label>
-                                        <label class="form-control form-adorn">
+                                        <div class="form-control form-adorn">
                                             <div class="form-adorn-icon" aria-hidden="true">
                                                 <i data-lucide="calendar"></i>
                                             </div>
                                             <input class="form-ghost" id="as_of_date" name="as_of_date" type="text"
                                                 data-bs-toggle="datepicker" autocomplete="off" value="{{ $asOfDate->toDateString() }}" />
-                                        </label>
+                                        </div>
                                     </div>
                                     <div class="md:col-2">
                                         <label

@@ -30,7 +30,7 @@ namespace App\Http\Requests\Bank\CustomerRefund;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\PaymentTransferType;
 use App\Enums\UploadType;
 use Illuminate\Validation\Rule;
 
@@ -73,10 +73,8 @@ class StoreCustomerRefundRequest extends CustomerRefundRequest
     {
         return [
             'company_id' => ['required', 'uuid', 'exists:companies,id'],
-            'debit_id' => ['nullable', 'uuid', 'different:credit_id', 'exists:charts,id'],
-            'credit_id' => ['nullable', 'uuid', 'different:debit_id', 'exists:charts,id'],
             'reference_number' => ['nullable', 'string', 'max:255'],
-            'document_date' => ['required', 'date'],
+            'date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:5120'],
             'notes' => ['nullable', 'string'],

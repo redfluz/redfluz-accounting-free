@@ -1,4 +1,7 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\System\Setting;
+    use Carbon\Carbon;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -98,7 +101,7 @@
             @forelse ($entries as $entry)
                 <tr>
                     <td class="fw-bold">{{ $entry->document_number }}</td>
-                    <td>{{ \Carbon\Carbon::parse($entry->date)->format(Setting::getDefaultDate()) }}</td>
+                    <td>{{ Carbon::parse($entry->date)->format(Setting::getDefaultDate()) }}</td>
                     <td>{{ __('ledgers.sub_type.'.($entry->subtype->value ?? $entry->subtype)) }}</td>
                     <td>{{ $entry->company_name ?? '-' }}</td>
                     <td class="fw-bold text-end">{{ number_format((float) $entry->total_amount, 2) }}</td>

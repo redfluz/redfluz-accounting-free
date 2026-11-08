@@ -21,7 +21,7 @@
             @include('partials.errors')
             <form autocomplete="off" action="{{ route('bank.banks.store') }}" method="POST">
                 @csrf
-                @include('bank.banks._fields', ['bank' => null, 'charts' => $charts])
+                @include('bank.banks._form', ['bank' => null, 'charts' => $charts])
                 <div class="d-flex justify-content-between pt-4 border-top mt-4">
                     <a class="btn btn-solid theme-secondary" href="{{ route('bank.banks.index') }}"
                         ><i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}</a>

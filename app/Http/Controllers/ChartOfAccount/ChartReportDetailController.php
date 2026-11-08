@@ -29,7 +29,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\ChartOfAccount;
 
 use App\Constants\FlashMessage;
-use App\Enums\ChartReportTypeEnum;
+use App\Enums\ChartOfAccount\ChartReportTypeEnum;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;

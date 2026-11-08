@@ -26,7 +26,7 @@
 
 namespace App\Models\Purchase;
 
-use App\Enums\AcquisitionType;
+use App\Enums\Inventory\AcquisitionType;
 use App\Models\Inventory\Product;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

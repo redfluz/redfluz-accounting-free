@@ -1,11 +1,31 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use App\Models\Bank\Bank;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canCreate = auth()->user()->hasFilePermission(FileResources::BANKS, FileAction::ADD);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::BANKS, FileAction::UPDATE);
     $canRemove = auth()->user()->hasFilePermission(FileResources::BANKS, FileAction::REMOVE);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, Bank> */
+    'banks',
+    /** @var string */
+    'search' => '',
+    /** @var string|null */
+    'listTitle' => null,
+    /** @var string|null */
+    'listSubtitle' => null,
+    /** @var string|null */
+    'createUrl' => null,
+    /** @var string|null */
+    'editRoute' => null,
+    /** @var string|null */
+    'indexRoute' => null,
+])
+
 @extends('layouts.app')
 
 @section('content')

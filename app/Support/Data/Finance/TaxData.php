@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Finance;
 
-use App\Enums\TaxMode;
+use App\Enums\Finance\TaxMode;
 use App\Models\Finance\Tax;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

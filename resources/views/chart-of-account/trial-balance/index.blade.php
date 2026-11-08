@@ -19,6 +19,45 @@
  */
 --}}
 
+@php
+    use Carbon\Carbon;
+@endphp
+
+@props([
+    /** @var string */
+    'reportName',
+    /** @var array<int, array<string, float|string>> */
+    'rows',
+    /** @var array<string, float> */
+    'totals',
+    /** @var float */
+    'difference',
+    /** @var bool */
+    'isBalanced',
+    /** @var array<int, string> */
+    'unknownLedgerAccounts' => [],
+    /** @var string */
+    'periodType' => 'month',
+    /** @var int */
+    'year' => 0,
+    /** @var int */
+    'month' => 1,
+    /** @var int */
+    'quarter' => 1,
+    /** @var string */
+    'periodLabel' => '',
+    /** @var string */
+    'startDate' => '',
+    /** @var string */
+    'endDate' => '',
+    /** @var string */
+    'ledgerOpeningEndDate' => '',
+    /** @var string */
+    'ledgerStartDate' => '',
+    /** @var string */
+    'ledgerEndDate' => '',
+])
+
 @extends('layouts.app')
 
 @section('content')
@@ -103,7 +142,7 @@
                                 <select class="form-control" id="month" name="month">
                                     @foreach (range(1, 12) as $reportMonth)
                                         <option value="{{ $reportMonth }}" @selected($month === $reportMonth)>
-                                            {{ \Carbon\Carbon::create(null, $reportMonth, 1)->translatedFormat('F') }}
+                                            {{ Carbon::create(null, $reportMonth, 1)->translatedFormat('F') }}
                                         </option>
                                     @endforeach
                                 </select>

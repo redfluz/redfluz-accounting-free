@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Inventory;
 
-use App\Enums\AcquisitionType;
+use App\Enums\Inventory\AcquisitionType;
 use App\Models\Inventory\Product;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

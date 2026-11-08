@@ -3,7 +3,7 @@
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     $canApprove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
-    use App\Enums\LedgerStatus;
+    use App\Enums\Finance\LedgerStatus;
 @endphp
 
 @props(['journalEntry'])

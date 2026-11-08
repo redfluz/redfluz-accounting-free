@@ -1,4 +1,5 @@
 @php
+    use App\Enums\Finance\LedgerStatus;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
@@ -74,7 +75,7 @@
             <div class="row g-3">
                 <div class="md:col-6">
                     <div class="fw-bold small fg-secondary">{{ __('bank_transfers.form.date') }}</div>
-                    <div>{{ $transfer->document_date->format(Setting::getDefaultDate()) }}</div>
+                    <div>{{ $transfer->date->format(Setting::getDefaultDate()) }}</div>
                 </div>
                 <div class="md:col-6">
                     <div class="fw-bold small fg-secondary">{{ __('bank_transfers.form.bank_account') }}</div>
@@ -169,7 +170,7 @@
                 <i class="me-1" data-lucide="arrow-left"></i>
                 {{ __('ledgers.back') }}
             </a>
-            @if ($transfer->status === \App\Enums\LedgerStatus::PENDING && $canRemove)
+            @if ($transfer->status === LedgerStatus::PENDING && $canRemove)
                 <form autocomplete="off" action="{{ route('bank.bank-transfers.destroy', $transfer->document_number) }}"
                     method="POST" data-confirm-message="{{ __('common.alerts.confirm_delete') }}"
                     data-confirm-tone="danger">

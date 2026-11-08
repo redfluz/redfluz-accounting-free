@@ -26,7 +26,7 @@
 
 namespace App\Models\ChartOfAccount;
 
-use App\Enums\ChartReportGroupEnum;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Models\Bank\Bank;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

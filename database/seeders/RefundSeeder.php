@@ -32,13 +32,14 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\Bank\Refund\SupplierRefund;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Posting\PaymentLedgerPoster;
+use App\Support\Posting\PostingLeg;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -119,7 +120,6 @@ class RefundSeeder extends Seeder
                     $this->purgePostedRows($refund['number']);
 
                     $existing->lines()->delete();
-                    $existing->charts()->delete();
                     $existing->forceDelete();
                 }
 
@@ -154,31 +154,10 @@ class RefundSeeder extends Seeder
                     'description' => $refund['notes'],
                 ]);
 
-                $model->charts()->create([
-                    'debit_id' => $debitId,
-                    'debit_acc' => $refund['debit_code'],
-                    'debit_acc_desc' => $debitChart,
-                    'document_number' => $refund['number'],
-                    'reference_number' => $refund['reference_number'],
-                    'date' => $refund['date'],
-                    'description' => $refund['notes'],
-                    'debit_amount' => $refund['amount'],
-                    'credit_amount' => '0.00',
-                    'total_amount' => $refund['amount'],
-                ]);
-
-                $model->charts()->create([
-                    'credit_id' => $creditId,
-                    'credit_acc' => $refund['credit_code'],
-                    'credit_acc_desc' => $creditChart,
-                    'document_number' => $refund['number'],
-                    'reference_number' => $refund['reference_number'],
-                    'date' => $refund['date'],
-                    'description' => $refund['notes'],
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $refund['amount'],
-                    'total_amount' => $refund['amount'],
-                ]);
+                $legs = [
+                    PostingLeg::debit($debitId, (string) $refund['amount'], $refund['notes']),
+                    PostingLeg::credit($creditId, (string) $refund['amount'], $refund['notes']),
+                ];
 
                 // The subtype is the kind the seed asked for, which is the same
                 // kind the model it was written to represents. The model reports
@@ -191,6 +170,7 @@ class RefundSeeder extends Seeder
                         : LedgerSubType::RECEIPT_REFUND,
                     'document_number',
                     $this->poster,
+                    $legs,
                 );
             });
         }

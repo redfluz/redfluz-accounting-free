@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Enums\ProductMovementStatus;
+use App\Enums\Inventory\ProductMovementStatus;
 
 $status = $goodsReceipt->status->value ?? $goodsReceipt->status;
 

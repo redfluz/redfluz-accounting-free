@@ -1,11 +1,18 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use App\Models\Finance\Tax;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canAdd = auth()->user()->hasFilePermission(FileResources::TAXES, FileAction::ADD);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::TAXES, FileAction::UPDATE);
     $canRemove = auth()->user()->hasFilePermission(FileResources::TAXES, FileAction::REMOVE);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, Tax> */
+    'taxes',
+])
 
 @extends('layouts.app')
 

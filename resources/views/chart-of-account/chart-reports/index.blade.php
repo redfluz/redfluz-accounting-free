@@ -25,11 +25,20 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
+    use App\Models\ChartOfAccount\ChartReport;
+    use Illuminate\Pagination\LengthAwarePaginator;
 
     $canCreate = auth()->user()->hasFilePermission(FileResources::CHART_REPORTS, FileAction::ADD);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::CHART_REPORTS, FileAction::UPDATE);
     $canRemove = auth()->user()->hasFilePermission(FileResources::CHART_REPORTS, FileAction::REMOVE);
 @endphp
+
+@props([
+    /** @var LengthAwarePaginator<int, ChartReport> */
+    'chartReports',
+    /** @var string */
+    'search' => '',
+])
 
 @extends('layouts.app')
 

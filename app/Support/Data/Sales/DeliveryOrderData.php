@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
-use App\Enums\DeliveryOrderStatus;
-use App\Enums\ShippingStatus;
+use App\Enums\Sales\DeliveryOrderStatus;
+use App\Enums\Sales\ShippingStatus;
 use App\Models\Sales\DeliveryOrder;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;

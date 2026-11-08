@@ -4,6 +4,10 @@
     use App\Models\Finance\Currency;
 
 @endphp
+@props([
+    /** @var Currency */
+    'currency',
+])
 @extends('layouts.app')
 
 @section('content')

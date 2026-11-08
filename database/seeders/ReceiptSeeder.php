@@ -32,12 +32,13 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Posting\PaymentLedgerPoster;
+use App\Support\Posting\PostingLeg;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -110,7 +111,6 @@ class ReceiptSeeder extends Seeder
                     $this->purgePostedRows($receipt['number']);
 
                     $existing->lines()->delete();
-                    $existing->charts()->delete();
                     $existing->forceDelete();
                 }
 
@@ -145,37 +145,17 @@ class ReceiptSeeder extends Seeder
                     'description' => $receipt['notes'],
                 ]);
 
-                $model->charts()->create([
-                    'debit_id' => $debitId,
-                    'debit_acc' => $receipt['debit_code'],
-                    'debit_acc_desc' => $debitChart,
-                    'document_number' => $receipt['number'],
-                    'reference_number' => $receipt['reference_number'],
-                    'date' => $receipt['date'],
-                    'description' => $receipt['notes'],
-                    'debit_amount' => $receipt['amount'],
-                    'credit_amount' => '0.00',
-                    'total_amount' => $receipt['amount'],
-                ]);
-
-                $model->charts()->create([
-                    'credit_id' => $creditId,
-                    'credit_acc' => $receipt['credit_code'],
-                    'credit_acc_desc' => $creditChart,
-                    'document_number' => $receipt['number'],
-                    'reference_number' => $receipt['reference_number'],
-                    'date' => $receipt['date'],
-                    'description' => $receipt['notes'],
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $receipt['amount'],
-                    'total_amount' => $receipt['amount'],
-                ]);
+                $legs = [
+                    PostingLeg::debit($debitId, (string) $receipt['amount'], $receipt['notes']),
+                    PostingLeg::credit($creditId, (string) $receipt['amount'], $receipt['notes']),
+                ];
 
                 $this->postSeededDocument(
                     $model,
                     LedgerSubType::RECEIPT,
                     'document_number',
                     $this->poster,
+                    $legs,
                 );
             });
         }

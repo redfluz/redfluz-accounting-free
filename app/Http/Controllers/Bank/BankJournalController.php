@@ -27,12 +27,12 @@
 namespace App\Http\Controllers\Bank;
 
 use App\Constants\FlashMessage;
-use App\Enums\BankAccountKind;
+use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\LedgerStatus;
-use App\Enums\LedgerSubType;
-use App\Enums\LedgerType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
+use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bank\BankJournal\StoreBankJournalRequest;
 use App\Http\Requests\Bank\BankJournal\UpdateBankJournalRequest;
@@ -120,7 +120,7 @@ class BankJournalController extends Controller
                 $query->where('document_number', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             }))
-            ->latest('document_date')
+            ->latest('date')
             ->paginate(static::PER_PAGE_GRID)
             ->withQueryString();
 
@@ -224,7 +224,7 @@ class BankJournalController extends Controller
             'id' => (string) Str::uuid(),
             'direction' => $fields['direction'],
             'document_number' => $documentNumber,
-            'document_date' => $fields['documentDate'],
+            'date' => $fields['date'],
             'offset_chart_id' => $offsetChart->id,
             'amount' => $amount,
             'description' => $fields['description'],
@@ -272,7 +272,7 @@ class BankJournalController extends Controller
 
         $journal->update(array_merge([
             'direction' => $fields['direction'],
-            'document_date' => $fields['documentDate'],
+            'date' => $fields['date'],
             'offset_chart_id' => $offsetChart->id,
             'amount' => $amount,
             'description' => $fields['description'],
@@ -345,7 +345,7 @@ class BankJournalController extends Controller
             $this->poster->post(
                 $journal,
                 $journal->document_number,
-                $journal->document_date,
+                $journal->date,
                 LedgerType::PAYMENT,
                 LedgerSubType::BANK_JOURNAL,
                 $legs,
@@ -532,21 +532,21 @@ class BankJournalController extends Controller
      * anything again.
      *
      * @param  array<string, mixed>  $validated  The validated request input.
-     * @return array{bankAccountId: string, offsetChartId: string, direction: string, documentDate: string, amount: string, description: string|null, notes: string|null}
+     * @return array{bankAccountId: string, offsetChartId: string, direction: string, date: string, amount: string, description: string|null, notes: string|null}
      */
     private function fields(array $validated): array
     {
         $bankAccountId = $validated['bank_account_id'] ?? null;
         $offsetChartId = $validated['offset_chart_id'] ?? null;
         $direction = $validated['direction'] ?? null;
-        $documentDate = $validated['document_date'] ?? null;
+        $date = $validated['date'] ?? null;
         $rawAmount = $validated['amount'] ?? null;
         $description = $validated['description'] ?? null;
         $notes = $validated['notes'] ?? null;
 
         if (
             ! is_string($bankAccountId) || ! is_string($offsetChartId)
-            || ! is_string($direction) || ! is_string($documentDate)
+            || ! is_string($direction) || ! is_string($date)
             || ! is_numeric($rawAmount)
         ) {
             abort(422);
@@ -560,7 +560,7 @@ class BankJournalController extends Controller
             'bankAccountId' => $bankAccountId,
             'offsetChartId' => $offsetChartId,
             'direction' => $direction,
-            'documentDate' => $documentDate,
+            'date' => $date,
             'amount' => (string) $rawAmount,
             'description' => is_string($description) ? $description : null,
             'notes' => is_string($notes) ? $notes : null,

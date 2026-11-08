@@ -49,6 +49,8 @@ return [
         'label_notes' => 'Catatan',
         'label_attachment' => 'Lampiran',
         'label_remove_attachment' => 'Hapus lampiran berkas saat ini',
+        'attachment_size_hint' => 'Ukuran berkas maksimum: 8000 KB per berkas.',
+        'attachment_too_large' => 'Berkas berikut melebihi batas 8000 KB dan tidak ditambahkan:',
         'select_company' => 'Pilih Perusahaan',
     ],
     'messages' => [

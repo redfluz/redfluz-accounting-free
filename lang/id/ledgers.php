@@ -103,6 +103,12 @@ return [
     'export_pdf' => 'Ekspor PDF',
     'export_excel' => 'Ekspor Excel',
     'all_types' => 'Semua Jenis',
+    'form' => [
+        'current_attachment' => 'Lampiran Saat Ini',
+        'attachment_size_hint' => 'Ukuran file maksimum: 5120 KB.',
+        'attachment_too_large' => 'File yang dipilih melebihi batas 5120 KB. Pilih file yang lebih kecil.',
+        'new_attachment_preview' => 'Pratinjau Lampiran Baru',
+    ],
     'fixed_assets' => [
         'title' => 'Pembelian Aset Tetap',
         'subtitle' => 'Lihat aset tetap yang diakui dari faktur pembelian yang disetujui.',

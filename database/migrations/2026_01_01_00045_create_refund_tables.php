@@ -29,8 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\LedgerStatus;
-use App\Enums\PaymentTransferType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\PaymentTransferType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -63,13 +63,7 @@ return new class extends Migration
             $this->documentColumns($table);
         });
 
-        Schema::create('customer_refund_lines', function (Blueprint $table): void {
-            $this->lineColumns($table, 'customer_refunds');
-        });
 
-        Schema::create('supplier_refund_lines', function (Blueprint $table): void {
-            $this->lineColumns($table, 'supplier_refunds');
-        });
 
         Schema::create('customer_refund_charts', function (Blueprint $table): void {
             $this->chartColumns($table, 'customer_refunds');
@@ -84,8 +78,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('supplier_refund_charts');
         Schema::dropIfExists('customer_refund_charts');
-        Schema::dropIfExists('supplier_refund_lines');
-        Schema::dropIfExists('customer_refund_lines');
         Schema::dropIfExists('supplier_refunds');
         Schema::dropIfExists('customer_refunds');
     }

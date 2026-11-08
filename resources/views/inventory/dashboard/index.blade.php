@@ -1,4 +1,25 @@
-@php use App\Models\System\Setting; @endphp
+@php
+    use App\Models\Inventory\Product;
+    use App\Models\Inventory\ProductLedger;
+    use App\Models\System\Setting;
+    use Illuminate\Support\Collection;
+@endphp
+
+@props([
+    /** @var int */
+    'productCount',
+    /** @var float */
+    'availableUnits',
+    /** @var float */
+    'inventoryValue',
+    /** @var int */
+    'lowStockCount',
+    /** @var Collection<int, Product> */
+    'lowStockProducts',
+    /** @var Collection<int, ProductLedger> */
+    'recentMovements',
+])
+
 @extends('layouts.app')
 
 @section('content')

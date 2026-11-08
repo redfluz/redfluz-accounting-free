@@ -26,7 +26,7 @@
 
 namespace App\Traits;
 
-use App\Enums\LedgerSubType;
+use App\Enums\Finance\LedgerSubType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;

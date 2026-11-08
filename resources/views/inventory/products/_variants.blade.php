@@ -1,19 +1,19 @@
-<?php
+@php
 
-$savedVariants = isset($product)
-    ? $product->variants->map(static fn ($variant): array => [
-        'id' => $variant->id,
-        'variant_name' => $variant->variant_name,
-        'sku' => $variant->sku,
-        'variant_details' => $variant->variant_details,
-        'base_price' => $variant->base_price,
-        'inherits_selling_price' => $variant->inherits_selling_price ? 1 : 0,
-        'selling_price' => $variant->selling_price,
-    ])->all()
-    : [];
-$variants = old('variants', $savedVariants);
+    $savedVariants = isset($product)
+        ? $product->variants->map(static fn ($variant): array => [
+            'id' => $variant->id,
+            'variant_name' => $variant->variant_name,
+            'sku' => $variant->sku,
+            'variant_details' => $variant->variant_details,
+            'base_price' => $variant->base_price,
+            'inherits_selling_price' => $variant->inherits_selling_price ? 1 : 0,
+            'selling_price' => $variant->selling_price,
+        ])->all()
+        : [];
+    $variants = old('variants', $savedVariants);
 
-?>
+@endphp
 
 <div class="mb-3">
     <h6 class="fw-bold mb-1">{{ __('products.variants.title') }}</h6>
@@ -21,10 +21,10 @@ $variants = old('variants', $savedVariants);
 </div>
 
 @for ($variantIndex = 0; $variantIndex < 10; $variantIndex++)
-    <?php $variant = $variants[$variantIndex] ?? []; ?>
+        <?php $variant = $variants[$variantIndex] ?? []; ?>
     <div class="variant-row mb-3 rounded border p-3" data-variant-row>
         @if (! empty($variant['id']))
-            <input name="variants[{{ $variantIndex }}][id]" type="hidden" value="{{ $variant['id'] }}" />
+            <input name="variants[{{ $variantIndex }}][id]" type="hidden" value="{{ $variant['id'] }}"/>
         @endif
 
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -46,7 +46,7 @@ $variants = old('variants', $savedVariants);
                     placeholder="{{ __('products.variants.name_example') }}"
                 />
                 @error("variants.$variantIndex.variant_name")
-                    <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="md:col-4 mb-3">
@@ -61,7 +61,7 @@ $variants = old('variants', $savedVariants);
                     value="{{ $variant['sku'] ?? '' }}"
                 />
                 @error("variants.$variantIndex.sku")
-                    <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="md:col-4 mb-3">
@@ -77,7 +77,7 @@ $variants = old('variants', $savedVariants);
                     placeholder="{{ __('products.variants.details_example') }}"
                 />
                 @error("variants.$variantIndex.variant_details")
-                    <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
         </div>
@@ -97,7 +97,7 @@ $variants = old('variants', $savedVariants);
                     step="0.01"
                 />
                 @error("variants.$variantIndex.base_price")
-                    <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="md:col-4 mb-3">
@@ -115,22 +115,22 @@ $variants = old('variants', $savedVariants);
                     step="0.01"
                 />
                 @error("variants.$variantIndex.selling_price")
-                    <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="md:col-4 mb-3">
-                <input name="variants[{{ $variantIndex }}][inherits_selling_price]" type="hidden" value="0" />
+                <input name="variants[{{ $variantIndex }}][inherits_selling_price]" type="hidden" value="0"/>
                 <div class="pb-2">
-<div class="switch">
-<input
-    data-inherit-selling-price
-    id="variant_inherits_selling_price_{{ $variantIndex }}"
-    name="variants[{{ $variantIndex }}][inherits_selling_price]"
-    type="checkbox"
-    value="1"
-    @checked((bool) ($variant['inherits_selling_price'] ?? true))
-    role="switch" switch />
-</div>
+                    <div class="switch">
+                        <input
+                            data-inherit-selling-price
+                            id="variant_inherits_selling_price_{{ $variantIndex }}"
+                            name="variants[{{ $variantIndex }}][inherits_selling_price]"
+                            type="checkbox"
+                            value="1"
+                            @checked((bool) ($variant['inherits_selling_price'] ?? true))
+                            role="switch"/>
+                    </div>
                     <label for="variant_inherits_selling_price_{{ $variantIndex }}">
                         {{ __('products.variants.use_main_selling_price') }}
                     </label>

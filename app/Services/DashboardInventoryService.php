@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Enums\ProductMovementDirection;
-use App\Enums\ProductMovementStatus;
-use App\Enums\ProductStockBucket;
+use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Inventory\ProductMovementStatus;
+use App\Enums\Inventory\ProductStockBucket;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductLedger;
 use Illuminate\Support\Collection;

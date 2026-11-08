@@ -26,8 +26,8 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\LedgerStatus;
-use App\Enums\SalesType;
+use App\Enums\Finance\LedgerStatus;
+use App\Enums\Sales\SalesType;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Models\Finance\JournalEntry;

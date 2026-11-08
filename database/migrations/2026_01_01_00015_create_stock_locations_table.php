@@ -29,7 +29,7 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\StockLocationType;
+use App\Enums\Inventory\StockLocationType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

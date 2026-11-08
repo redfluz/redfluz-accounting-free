@@ -26,7 +26,7 @@
 
 namespace App\Http\Controllers\Bank;
 
-use App\Enums\BankAccountKind;
+use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Controllers\Bank\Concerns\ReadsMoneyLedger;
@@ -57,10 +57,10 @@ class EWalletLedgerController extends Controller
     use ReadsMoneyLedger;
 
     /** The table every e-wallet movement is filed in. */
-    private const TABLE = 'e_wallet_ledgers';
+    private const string TABLE = 'e_wallet_ledgers';
 
     /** The column on that table naming which wallet account moved. */
-    private const ACCOUNT_COLUMN = 'e_wallet_account_id';
+    private const string ACCOUNT_COLUMN = 'e_wallet_account_id';
 
     /**
      * Show the e-wallet ledger.

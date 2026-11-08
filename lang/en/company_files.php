@@ -49,6 +49,8 @@ return [
         'label_notes' => 'Notes',
         'label_attachment' => 'Attachment',
         'label_remove_attachment' => 'Remove current file attachment',
+        'attachment_size_hint' => 'Maximum file size: 8000 KB per file.',
+        'attachment_too_large' => 'The following files exceed the 8000 KB limit and were not added:',
         'select_company' => 'Select a Company',
     ],
     'messages' => [

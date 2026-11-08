@@ -1,5 +1,6 @@
 @php
-    use App\Enums\ChartTotalReportTypeEnum;
+    use Carbon\Carbon;
+    use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
 
     $rows = $report['rows'];
     $periodColumns = $report['periodColumns'] ?? [];
@@ -113,7 +114,7 @@
                                 <select class="form-control" id="month" name="month">
                                     @foreach (range(1, 12) as $reportMonth)
                                         <option value="{{ $reportMonth }}" @selected($month === $reportMonth)>
-                                            {{ \Carbon\Carbon::create(null, $reportMonth, 1)->translatedFormat('F') }}
+                                            {{ Carbon::create(null, $reportMonth, 1)->translatedFormat('F') }}
                                         </option>
                                     @endforeach
                                 </select>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Finance;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\TaxMode;
+use App\Enums\Finance\TaxMode;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\Tax\StoreTaxRequest;
 use App\Http\Requests\Finance\Tax\UpdateTaxRequest;

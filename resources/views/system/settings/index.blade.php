@@ -25,10 +25,14 @@
 --}}
 @php
     use App\Enums\FileAction;
-    use App\Enums\FileResources;
+    use App\Enums\FileResources;use App\Enums\UploadType;use App\Models\Finance\Currency;
 
     $canUpdate = auth()->user()->hasFilePermission(FileResources::SETTINGS, FileAction::UPDATE);
 @endphp
+@props([
+    /** @var Currency|null */
+    'currencies',
+])
 @extends('layouts.app')
 
 @section('content')
@@ -40,12 +44,13 @@
 
         <div class="card-body">
             @include('partials.alerts')
-            <form autocomplete="off" action="{{ route('system.settings.update') }}" method="POST" enctype="multipart/form-data">
+            <form autocomplete="off" action="{{ route('system.settings.update') }}" method="POST"
+                  enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
                 <h6 class="text-uppercase fg-secondary small fw-bold">{{ __('settings.section.company') }}</h6>
-                <hr />
+                <hr/>
 
                 <div class="row">
                     <div class="md:col-6 mb-3">
@@ -62,7 +67,7 @@
                             required
                         />
                         @error('company_name')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -79,7 +84,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_email')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
@@ -98,7 +103,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_phone')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -115,7 +120,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_mobile')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
@@ -134,7 +139,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_fax')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -151,7 +156,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_website')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
@@ -170,7 +175,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_registration_no')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -187,13 +192,13 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_tax_no')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
 
                 <h6 class="text-uppercase fg-secondary small fw-bold mt-4">{{ __('settings.section.address') }}</h6>
-                <hr />
+                <hr/>
 
                 <div class="mb-3">
                     <label class="form-label fw-bold" for="address">
@@ -207,7 +212,7 @@
                         @disabled(! $canUpdate)
                     >{{ old('address', $setting->address) }}</textarea>
                     @error('address')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -225,7 +230,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_postcode')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -242,7 +247,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_city')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -259,7 +264,7 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_state')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -276,13 +281,13 @@
                             @disabled(! $canUpdate)
                         />
                         @error('company_country')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
 
                 <h6 class="text-uppercase fg-secondary small fw-bold mt-4">{{ __('settings.section.document') }}</h6>
-                <hr />
+                <hr/>
 
                 <div class="row">
                     <div class="md:col-6 mb-3">
@@ -301,12 +306,13 @@
                                     value="{{ $currency->id }}"
                                     @selected(old('currency_id', $setting->currency_id) === $currency->id)
                                 >
-                                    {{ $currency->code }} - {{ $currency->name }} {{ $currency->symbol ? '('.$currency->symbol.')' : '' }}
+                                    {{ $currency->code }}
+                                    - {{ $currency->name }} {{ $currency->symbol ? '('.$currency->symbol.')' : '' }}
                                 </option>
                             @endforeach
                         </select>
                         @error('currency_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -335,11 +341,11 @@
                             id="logo"
                             name="logo"
                             type="file"
-                            accept="{{ \App\Enums\UploadType::IMAGES->accept() }}"
+                            accept="{{ UploadType::IMAGES->accept() }}"
                             @disabled(! $canUpdate)
                         />
                         @error('logo')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
@@ -359,7 +365,7 @@
                         />
                         <div class="form-text">{{ __('settings.help.short_date_format') }}</div>
                         @error('short_date_format')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -377,7 +383,7 @@
                         />
                         <div class="form-text">{{ __('settings.help.long_date_format') }}</div>
                         @error('long_date_format')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>

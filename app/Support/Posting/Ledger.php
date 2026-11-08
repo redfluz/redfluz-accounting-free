@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Support\Posting;
 
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Purchase\PurchaseInvoice;
-use App\Models\Purchase\PurchaseInvoiceChart;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\Sales\SalesInvoice;
-use App\Models\Sales\SalesInvoiceChart;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Support\Posting\Concerns\WritesLedgerTables;
 use Illuminate\Support\Collection;
@@ -46,17 +45,8 @@ class Ledger
             return 0;
         }
 
-        // Query the sales invoice charts configuration for default accounts
-        $chartConfig = SalesInvoiceChart::query()
-            ->where('company_id', $invoice->company_id)
-            ->first();
-
-        // If no company-specific config, try global default
-        if ($chartConfig === null) {
-            $chartConfig = SalesInvoiceChart::query()
-                ->whereNull('company_id')
-                ->first();
-        }
+        // Query the chart settings for default accounts
+        $chartConfig = ChartSetting::query()->first();
 
         if ($chartConfig === null) {
             return 0;
@@ -64,10 +54,9 @@ class Ledger
 
         // Get all chart account details needed for the posting
         $chartIds = array_filter([
-            $chartConfig->receivable_id,
-            $chartConfig->revenue_id,
-            $chartConfig->tax_id,
-            $chartConfig->discount_id,
+            $chartConfig->client_chart_uuid,
+            $chartConfig->income_chart_uuid,
+            $chartConfig->output_tax_chart_uuid,
         ]);
 
         /** @var Collection<string, Chart> $charts */
@@ -96,8 +85,8 @@ class Ledger
 
         // Revenue side entries
         // DR Accounts Receivable (total invoice amount)
-        if ($chartConfig->receivable_id !== null) {
-            $receivableChart = $charts->get($chartConfig->receivable_id);
+        if ($chartConfig->client_chart_uuid !== null) {
+            $receivableChart = $charts->get($chartConfig->client_chart_uuid);
             $rows[] = GeneralLedgerData::fromSalesInvoiceLine(
                 $invoice,
                 $lines->first(), // Use first line for header-level entries
@@ -110,8 +99,8 @@ class Ledger
         }
 
         // CR Sales Revenue (gross sales)
-        if ($chartConfig->revenue_id !== null && bccomp($grossTotal, '0.00', 2) !== 0) {
-            $revenueChart = $charts->get($chartConfig->revenue_id);
+        if ($chartConfig->income_chart_uuid !== null && bccomp($grossTotal, '0.00', 2) !== 0) {
+            $revenueChart = $charts->get($chartConfig->income_chart_uuid);
             $rows[] = GeneralLedgerData::fromSalesInvoiceLine(
                 $invoice,
                 $lines->first(),
@@ -124,8 +113,8 @@ class Ledger
         }
 
         // CR Tax Payable (tax amount)
-        if ($chartConfig->tax_id !== null && bccomp($taxTotal, '0.00', 2) !== 0) {
-            $taxChart = $charts->get($chartConfig->tax_id);
+        if ($chartConfig->output_tax_chart_uuid !== null && bccomp($taxTotal, '0.00', 2) !== 0) {
+            $taxChart = $charts->get($chartConfig->output_tax_chart_uuid);
             $rows[] = GeneralLedgerData::fromSalesInvoiceLine(
                 $invoice,
                 $lines->first(),
@@ -138,21 +127,22 @@ class Ledger
         }
 
         // DR Sales Discounts (discount amount)
-        if ($chartConfig->discount_id !== null && bccomp($discountTotal, '0.00', 2) !== 0) {
-            $discountChart = $charts->get($chartConfig->discount_id);
+        if (bccomp($discountTotal, '0.00', 2) !== 0) {
             $rows[] = GeneralLedgerData::fromSalesInvoiceLine(
                 $invoice,
                 $lines->first(),
                 $chartConfig,
                 'discount',
-                $discountChart,
+                null,
                 $discountTotal,
                 '0.00'
             );
         }
 
+        $currency = $this->defaultCurrency();
+
         $rowArrays = array_map(
-            fn (GeneralLedgerData $row): array => $row->toRow(),
+            fn (GeneralLedgerData $row): array => ['currency_id' => $currency['id']] + $row->toRow(),
             $rows
         );
 
@@ -175,17 +165,8 @@ class Ledger
             return 0;
         }
 
-        // Query the purchase invoice charts configuration for default accounts
-        $chartConfig = PurchaseInvoiceChart::query()
-            ->where('company_id', $invoice->company_id)
-            ->first();
-
-        // If no company-specific config, try global default
-        if ($chartConfig === null) {
-            $chartConfig = PurchaseInvoiceChart::query()
-                ->whereNull('company_id')
-                ->first();
-        }
+        // Query the chart settings for default accounts
+        $chartConfig = ChartSetting::query()->first();
 
         if ($chartConfig === null) {
             return 0;
@@ -193,10 +174,9 @@ class Ledger
 
         // Get all chart account details needed for the posting
         $chartIds = array_filter([
-            $chartConfig->payable_id,
-            $chartConfig->inventory_id,
-            $chartConfig->tax_id,
-            $chartConfig->discount_id,
+            $chartConfig->vendor_chart_uuid,
+            $chartConfig->inventory_chart_uuid,
+            $chartConfig->input_tax_chart_uuid,
         ]);
 
         /** @var Collection<string, Chart> $charts */
@@ -225,8 +205,8 @@ class Ledger
 
         // Acquisition side entries
         // DR Inventory / Purchases (total)
-        if ($chartConfig->inventory_id !== null && bccomp($grossTotal, '0.00', 2) !== 0) {
-            $inventoryChart = $charts->get($chartConfig->inventory_id);
+        if ($chartConfig->inventory_chart_uuid !== null && bccomp($grossTotal, '0.00', 2) !== 0) {
+            $inventoryChart = $charts->get($chartConfig->inventory_chart_uuid);
             $rows[] = GeneralLedgerData::fromPurchaseInvoiceLine(
                 $invoice,
                 $lines->first(),
@@ -239,8 +219,8 @@ class Ledger
         }
 
         // CR Accounts Payable (total invoice amount)
-        if ($chartConfig->payable_id !== null) {
-            $payableChart = $charts->get($chartConfig->payable_id);
+        if ($chartConfig->vendor_chart_uuid !== null) {
+            $payableChart = $charts->get($chartConfig->vendor_chart_uuid);
             $rows[] = GeneralLedgerData::fromPurchaseInvoiceLine(
                 $invoice,
                 $lines->first(),
@@ -253,8 +233,8 @@ class Ledger
         }
 
         // DR Input Tax (tax amount)
-        if ($chartConfig->tax_id !== null && bccomp($taxTotal, '0.00', 2) !== 0) {
-            $taxChart = $charts->get($chartConfig->tax_id);
+        if ($chartConfig->input_tax_chart_uuid !== null && bccomp($taxTotal, '0.00', 2) !== 0) {
+            $taxChart = $charts->get($chartConfig->input_tax_chart_uuid);
             $rows[] = GeneralLedgerData::fromPurchaseInvoiceLine(
                 $invoice,
                 $lines->first(),
@@ -267,24 +247,26 @@ class Ledger
         }
 
         // CR Purchase Discounts (discount amount)
-        if ($chartConfig->discount_id !== null && bccomp($discountTotal, '0.00', 2) !== 0) {
-            $discountChart = $charts->get($chartConfig->discount_id);
+        if (bccomp($discountTotal, '0.00', 2) !== 0) {
             $rows[] = GeneralLedgerData::fromPurchaseInvoiceLine(
                 $invoice,
                 $lines->first(),
                 $chartConfig,
                 'discount',
-                $discountChart,
+                null,
                 '0.00',
                 $discountTotal
             );
         }
 
+        $currency = $this->defaultCurrency();
+
         $rowArrays = array_map(
-            fn (GeneralLedgerData $row): array => $row->toRow(),
+            fn (GeneralLedgerData $row): array => ['currency_id' => $currency['id']] + $row->toRow(),
             $rows
         );
 
         return $this->writeMany('ledgers', $rowArrays);
     }
+
 }

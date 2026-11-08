@@ -32,9 +32,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AcquisitionType;
-use App\Enums\ChartReportGroupEnum;
-use App\Enums\PurchaseOrderType;
+use App\Enums\Inventory\AcquisitionType;
+use App\Enums\ChartOfAccount\ChartReportGroupEnum;
+use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
