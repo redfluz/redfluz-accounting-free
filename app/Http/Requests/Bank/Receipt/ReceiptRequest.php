@@ -43,8 +43,8 @@ use App\Support\Traits\ChecksFilePermission;
  *
  * Each accessor returns null when the field was not supplied, rather than the
  * empty string or a zero. The caller needs to tell "not chosen" from "chosen as
- * nothing", because a refund with no debit account falls back to the configured
- * default and one with an empty debit account is a mistake worth reporting.
+ * nothing", because a document with no company falls back to the configured
+ * default and one with an empty company is a mistake worth reporting.
  */
 abstract class ReceiptRequest extends BaseFormRequest
 {
@@ -64,28 +64,9 @@ abstract class ReceiptRequest extends BaseFormRequest
     }
 
     /**
-     * The account money received is debited against, when the user chose one.
-     *
-     * A receipt is the mirror of a customer refund. On a refund the money account
-     * is the credit and the debtor is the debit, because the money leaves while
-     * what the customer owes falls. Here the money account is the debit and the
-     * debtor is the credit, because the money arrives while what the customer
-     * owes rises.
+     * The document date, as supplied by the user.
      */
-    public function debitId(): ?string
-    {
-        return $this->stringOrNull('debit_id');
-    }
-
-    /**
-     * The account the debtor is credited against, when the user chose one.
-     */
-    public function creditId(): ?string
-    {
-        return $this->stringOrNull('credit_id');
-    }
-
-    public function date(): string
+    public function documentDate(): string
     {
         return $this->stringOrEmpty('date');
     }

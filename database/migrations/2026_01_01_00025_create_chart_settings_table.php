@@ -41,6 +41,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('cogs_chart_uuid')->nullable();
             $table->uuid('income_chart_uuid')->nullable();
+            $table->uuid('discount_chart_uuid')->nullable();
             $table->uuid('bank_chart_uuid')->nullable();
             $table->uuid('client_chart_uuid')->nullable();
             $table->uuid('vendor_chart_uuid')->nullable();
@@ -58,6 +59,7 @@ return new class extends Migration
             $table->date('closing_date')->nullable();
             $table->integer('start_finance_period_month')->default(12);
             $table->boolean('strict_journal_posting')->default(0);
+            $table->boolean('is_tax_enabled')->default(0);
             $table->timestamps();
             $table->softDeletes();
 

@@ -38,7 +38,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
@@ -49,6 +48,7 @@ use Spatie\Activitylog\Support\LogOptions;
  *
  * @property string $id
  * @property string|null $reversal_of_id
+ * @property string|null $reversal_id
  * @property string $document_number
  * @property string|null $reference_number
  * @property CarbonInterface $date
@@ -87,6 +87,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Table('journal_entries', key: 'id')]
 #[Fillable([
     'reversal_of_id',
+    'reversal_id',
     'document_number',
     'reference_number',
     'date',
@@ -115,6 +116,7 @@ class JournalEntry extends Model
         return [
             'id' => 'string',
             'reversal_of_id' => 'string',
+            'reversal_id' => 'string',
             'document_number' => 'string',
             'reference_number' => 'string',
             'date' => 'date',
@@ -156,11 +158,11 @@ class JournalEntry extends Model
      * Define a one-to-one relationship.
      * Get the posted reversal created for this journal entry.
      *
-     * @return HasOne<JournalEntry, $this>
+     * @return BelongsTo<JournalEntry, $this>
      */
-    public function reversal(): HasOne
+    public function reversal(): BelongsTo
     {
-        return $this->hasOne(self::class, 'reversal_of_id', 'id');
+        return $this->belongsTo(self::class, 'reversal_id', 'id');
     }
 
     /**

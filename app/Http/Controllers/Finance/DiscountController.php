@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Finance;
 
-use App\Enums\Finance\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Finance\DiscountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\Discount\StoreDiscountRequest;
 use App\Http\Requests\Finance\Discount\UpdateDiscountRequest;

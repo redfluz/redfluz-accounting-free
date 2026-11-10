@@ -27,9 +27,9 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Constants\FlashMessage;
-use App\Enums\Inventory\AcquisitionType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Inventory\AcquisitionType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
@@ -294,7 +294,9 @@ class ProductController extends Controller
                     ProductMovementSource::SALES_ORDER => route('sales.sales-orders.show', $movement->document_number),
                     ProductMovementSource::DELIVERY_ORDER => route('sales.delivery-orders.show', $movement->document_number),
                     ProductMovementSource::SALES_INVOICE => route('sales.invoices.show', $movement->document_number),
-                    ProductMovementSource::SALES_RETURN => route('sales.adjustments.show', $movement->document_number),
+                    ProductMovementSource::SALES_RETURN => $movement->reference_number
+                        ? route('sales.invoices.show', $movement->reference_number)
+                        : null,
                     // Stock transfers and stock takes have no detail screen in this edition.
                     ProductMovementSource::STOCK_TRANSFER => null,
                     ProductMovementSource::STOCK_TAKE => null,

@@ -47,6 +47,7 @@ use Throwable;
  * @property string $id
  * @property string|null $cogs_chart_uuid
  * @property string|null $income_chart_uuid
+ * @property string|null $discount_chart_uuid
  * @property string|null $bank_chart_uuid
  * @property string|null $cash_chart_uuid
  * @property string|null $cash_in_transit_chart_uuid
@@ -67,11 +68,13 @@ use Throwable;
  * @property CarbonInterface|null $closing_date
  * @property int $start_finance_period_month
  * @property bool $strict_journal_posting
+ * @property bool $is_tax_enabled
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  * @property CarbonInterface|null $deleted_at
  * @property-read Chart|null $cogsChart
  * @property-read Chart|null $incomeChart
+ * @property-read Chart|null $discountChart
  * @property-read Chart|null $bankChart
  * @property-read Chart|null $cashChart
  * @property-read Chart|null $cashInTransitChart
@@ -99,6 +102,7 @@ use Throwable;
 #[Fillable([
     'cogs_chart_uuid',
     'income_chart_uuid',
+    'discount_chart_uuid',
     'bank_chart_uuid',
     'cash_chart_uuid',
     'cash_in_transit_chart_uuid',
@@ -119,6 +123,7 @@ use Throwable;
     'closing_date',
     'start_finance_period_month',
     'strict_journal_posting',
+    'is_tax_enabled',
 ])]
 class ChartSetting extends Model
 {
@@ -133,6 +138,7 @@ class ChartSetting extends Model
             // UUIDs
             'cogs_chart_uuid' => 'string',
             'income_chart_uuid' => 'string',
+            'discount_chart_uuid' => 'string',
             'bank_chart_uuid' => 'string',
             'cash_chart_uuid' => 'string',
             'cash_in_transit_chart_uuid' => 'string',
@@ -155,6 +161,7 @@ class ChartSetting extends Model
             'closing_date' => 'date',
             'start_finance_period_month' => 'integer',
             'strict_journal_posting' => 'boolean',
+            'is_tax_enabled' => 'boolean',
         ];
     }
 
@@ -178,6 +185,17 @@ class ChartSetting extends Model
     public function incomeChart(): BelongsTo
     {
         return $this->belongsTo(Chart::class, 'income_chart_uuid');
+    }
+
+    /**
+     * Define an inverse one-to-one or many relationship.
+     * Get the account a sales discount is charged to.
+     *
+     * @return BelongsTo<Chart, $this>
+     */
+    public function discountChart(): BelongsTo
+    {
+        return $this->belongsTo(Chart::class, 'discount_chart_uuid');
     }
 
     /**

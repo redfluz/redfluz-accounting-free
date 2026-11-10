@@ -24,7 +24,7 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'receipt_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund', 'bank_journal', 'transfer') NULL");
+            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'customer_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund', 'bank_journal', 'transfer') NULL");
 
             return;
         }
@@ -41,7 +41,7 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'receipt_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund', 'bank_journal') NULL");
+            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'customer_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund', 'bank_journal') NULL");
 
             return;
         }

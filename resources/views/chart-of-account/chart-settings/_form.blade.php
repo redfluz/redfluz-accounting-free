@@ -215,6 +215,29 @@
 
         <div class="row">
             <div class="md:col-6 mb-3">
+                <label class="form-label fw-bold" for="discount_chart_uuid">
+                    {{ __('chart_settings.table.column_discount_chart_uuid') }}
+                </label>
+
+                <select class="form-control @error('discount_chart_uuid') is-invalid @enderror"
+                    id="discount_chart_uuid" name="discount_chart_uuid">
+                    <option value="">{{ __('common.actions.select_option') }}</option>
+
+                    @foreach ($discountCharts as $chart)
+                        <option value="{{ $chart->id }}" @selected(old('discount_chart_uuid', $chartSetting?->discount_chart_uuid) === $chart->id)>
+                            {{ $chart->code ? $chart->code . ' - ' : '' }}{{ $chart->name }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @error('discount_chart_uuid')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="md:col-6 mb-3">
                 <label class="form-label fw-bold" for="vendor_chart_uuid">
                     {{ __('chart_settings.table.column_vendor_chart_uuid') }}
                 </label>
@@ -376,6 +399,22 @@
 
                     <label for="strict_journal_posting">
                         {{ __('chart_settings.enable_strict_journal_posting') }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="md:col-4 mb-3">
+                <div class="mt-2">
+                    <input name="is_tax_enabled" type="hidden" value="0" />
+
+                    <div class="switch">
+                        <input id="is_tax_enabled" name="is_tax_enabled" type="checkbox" value="1"
+                            @checked(old('is_tax_enabled', $chartSetting?->is_tax_enabled))
+                            role="switch" switch />
+                    </div>
+
+                    <label for="is_tax_enabled">
+                        {{ __('chart_settings.enable_is_tax_enabled') }}
                     </label>
                 </div>
             </div>

@@ -26,8 +26,8 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Inventory\AcquisitionType;
 use App\Enums\Finance\LedgerStatus;
+use App\Enums\Inventory\AcquisitionType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;

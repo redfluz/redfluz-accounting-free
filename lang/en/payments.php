@@ -40,12 +40,12 @@ return [
         ],
         'refund' => [
             'title' => 'Customer Refunds',
-            'subtitle' => 'Return money to a customer against a receipt.',
+            'subtitle' => 'Return money to a customer against a sales invoice.',
             'create_title' => 'Create Customer Refund',
         ],
         'supplier_refund' => [
             'title' => 'Supplier Refunds',
-            'subtitle' => 'Recover money from a supplier against a payment.',
+            'subtitle' => 'Recover money from a supplier against a purchase invoice.',
             'create_title' => 'Create Supplier Refund',
         ],
     ],
@@ -62,8 +62,13 @@ return [
         'linked_sales_invoice' => 'Linked Sales Invoice',
         'direct_payment' => 'Direct payment (no linked invoice)',
         'linked_invoice_hint' => 'Optional. Receipts list sales invoices; payment vouchers list purchase invoices for the selected company.',
-        'accounting_hint' => 'Leave an account blank to use chart settings. Receipt: debit bank and credit debtor. Payment voucher: debit creditor and credit bank.',
         'payment_transfer' => 'Payment Transfer',
+        'bank_account' => 'Bank Account',
+        'cash_account' => 'Cash Account',
+        'e_wallet_account' => 'E-Wallet Account',
+        'paid_from' => 'Paid From',
+        'received_into' => 'Received Into',
+        'refundable_balance' => 'Refundable Balance',
     ],
     'transfer_types' => [
         'cheque' => 'Cheque',
@@ -74,7 +79,7 @@ return [
     'sub_type' => [
         'receipt' => 'Receipt',
         'payment_voucher' => 'Payment Voucher',
-        'receipt_refund' => 'Customer Refund',
+        'customer_refund' => 'Customer Refund',
         'supplier_refund' => 'Supplier Refund',
     ],
     'actions' => [

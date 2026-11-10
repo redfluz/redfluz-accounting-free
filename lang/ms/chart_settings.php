@@ -32,10 +32,12 @@ return [
     'banks_setup' => 'Persediaan Bank',
     'system_references' => 'Rujukan Sistem',
     'enable_strict_journal_posting' => 'Aktifkan catatan jurnal ketat',
+    'enable_is_tax_enabled' => 'Aktifkan GST/VAT',
 
     'table' => [
         'column_cogs_chart_uuid' => 'Akaun Kos Jualan',
         'column_income_chart_uuid' => 'Akaun Pendapatan',
+        'column_discount_chart_uuid' => 'Akaun Diskaun',
         'column_bank_chart_uuid' => 'Akaun Bank',
         'column_cash_chart_uuid' => 'Akaun Tunai',
         'column_cash_in_transit_chart_uuid' => 'Akaun Tunai Dalam Perjalanan',

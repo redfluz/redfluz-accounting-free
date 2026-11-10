@@ -98,6 +98,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'warranty_months',
     'deduct_inventory',
     'description',
+    'id',
 ])]
 class SalesInvoiceLine extends Model
 {

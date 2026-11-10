@@ -31,8 +31,6 @@ namespace App\Http\Requests\Purchase\PurchaseInvoice;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Purchase\PurchaseOrderType;
-use App\Models\ChartOfAccount\Chart;
-use Closure;
 use Illuminate\Validation\Rule;
 
 /**
@@ -71,50 +69,10 @@ class UpdatePurchaseInvoiceRequest extends PurchaseInvoiceRequest
         return [
             'company_id' => ['nullable', 'uuid', Rule::exists('companies', 'id')->where('is_creditor', true)],
             'contact_id' => ['nullable', 'uuid', 'exists:contacts,id'],
-            'debit_id' => [
-                'nullable',
-                'exists:charts,id',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $value) {
-                        return;
-                    }
-
-                    $chart = Chart::query()->with('chartType')->whereKey($value)->first();
-                    if ($chart === null) {
-                        return;
-                    }
-
-                    if (! $chart->chartType?->isExpenses && (! $chart->chartType?->isAsset || $chart->isBank)) {
-                        $fail(__('ledgers.validation.debit_purchase_must_be_expense_or_asset'));
-                    }
-                },
-            ],
-            'credit_id' => [
-                'nullable',
-                'exists:charts,id',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $value) {
-                        return;
-                    }
-
-                    $chart = Chart::query()->with('chartType')->whereKey($value)->first();
-                    if ($chart === null) {
-                        return;
-                    }
-
-                    if (! $chart->chartType?->isLiability || ! $chart->isCreditor) {
-                        $fail(__('ledgers.validation.credit_purchase_must_be_liability'));
-                    }
-                },
-            ],
             'date' => ['required', 'date'],
             'purchase_type' => ['required', Rule::enum(PurchaseOrderType::class)],
             'credit_term_days' => ['required', 'integer', 'min:0', 'max:365'],
-            'amount' => ['nullable', 'numeric', 'min:0.01'],
-            'payment_debit_id' => ['nullable', 'exists:charts,id'],
-            'payment_credit_id' => ['nullable', 'exists:charts,id'],
             'invoice_notes' => ['nullable', 'string'],
-            'payment_notes' => ['nullable', 'string'],
             'lines' => ['required', 'array', 'size:10'],
             'lines.*.description' => ['nullable', 'string', 'max:1000'],
             'lines.*.quantity' => ['nullable', 'integer', 'min:1'],

@@ -47,6 +47,11 @@ return new class extends Migration
                 ->unique()
                 ->constrained('journal_entries')
                 ->nullOnDelete();
+            $table->foreignUuid('reversal_id')
+                ->nullable()
+                ->unique()
+                ->constrained('journal_entries')
+                ->nullOnDelete();
             $table->string('document_number')->unique();
             $table->string('reference_number')->nullable();
             $table->date('date');

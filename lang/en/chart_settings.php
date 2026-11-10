@@ -32,10 +32,12 @@ return [
     'banks_setup' => 'Banks Setup',
     'system_references' => 'System References',
     'enable_strict_journal_posting' => 'Enable strict journal posting',
+    'enable_is_tax_enabled' => 'Enable GST/VAT',
 
     'table' => [
         'column_cogs_chart_uuid' => 'COGS Account',
         'column_income_chart_uuid' => 'Income Account',
+        'column_discount_chart_uuid' => 'Discount Account',
         'column_bank_chart_uuid' => 'Bank Account',
         'column_cash_chart_uuid' => 'Cash Account',
         'column_cash_in_transit_chart_uuid' => 'Cash in Transit Account',

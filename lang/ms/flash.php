@@ -49,7 +49,6 @@ return [
         'PRODUCT_CATEGORIES' => 'Kategori Produk',
         'PRODUCT_PACKAGES' => 'Pakej Produk',
         'PRODUCT_TYPES' => 'Jenis Produk',
-        'PURCHASE_ADJUSTMENTS' => 'Pelarasan Belian',
         'PURCHASE_INVOICES' => 'Invois Belian',
         'PURCHASE_ORDERS' => 'Pesanan Belian',
         'PURCHASE_QUOTATIONS' => 'Sebut Harga Pembekal',

@@ -27,6 +27,7 @@
 namespace App\Models\Sales;
 
 use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\PaymentTransferType;
 use App\Enums\Sales\SalesType;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
@@ -69,6 +70,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarbonInterface $date
  * @property CarbonInterface|null $due_date
  * @property string|null $attachment_path
+ * @property PaymentTransferType|null $payment_transfer_type
+ * @property string|null $payment_attachment_path
  * @property numeric-string|null $subtotal
  * @property numeric-string|null $total_amount
  * @property string|null $notes
@@ -90,6 +93,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $undone_by
  * @property string|null $undone_name
  * @property CarbonInterface|null $undone_at
+ * @property string|null $reversal_id
  * @property-read Collection<int, SalesInvoiceLine> $lines
  *
  * @mixin Builder<self>
@@ -101,6 +105,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'document_number', 'reference_number', 'sales_order_id', 'quotation_id',
     'company_name', 'contact_name',
     'date', 'due_date', 'attachment_path', 'subtotal', 'total_amount',
+    'payment_transfer_type', 'payment_attachment_path',
     'notes',
     'created_by', 'created_name', 'created_at',
     'updated_by', 'updated_name', 'updated_at',
@@ -108,7 +113,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'approved_by', 'approved_name', 'approved_at',
     'cancelled_by', 'cancelled_name', 'cancelled_at',
     'undone_by', 'undone_name', 'undone_at',
-    'reversal_journal_id',
+    'reversal_id',
     'id',
 ])]
 class SalesInvoice extends Model
@@ -125,6 +130,7 @@ class SalesInvoice extends Model
         return [
             'sales_type' => SalesType::class,
             'status' => LedgerStatus::class,
+            'payment_transfer_type' => PaymentTransferType::class,
             'date' => 'date',
             'due_date' => 'date',
             'subtotal' => 'decimal:2',
@@ -140,9 +146,9 @@ class SalesInvoice extends Model
      *
      * @return BelongsTo<JournalEntry, $this>
      */
-    public function reversalJournal(): BelongsTo
+    public function reversal(): BelongsTo
     {
-        return $this->belongsTo(JournalEntry::class, 'reversal_journal_id');
+        return $this->belongsTo(JournalEntry::class, 'reversal_id');
     }
 
     /**

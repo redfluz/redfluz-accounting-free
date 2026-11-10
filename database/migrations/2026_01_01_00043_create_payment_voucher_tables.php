@@ -81,6 +81,29 @@ return new class extends Migration
                 ->default(LedgerStatus::PENDING->value);
             $table->enum('payment_transfer_type', array_column(PaymentTransferType::cases(), 'value'))
                 ->nullable();
+            // The account the money left, which is the one thing the transfer type
+            // cannot say: "bank transfer" names the route, not the account, and a
+            // business with three banks has to record which one paid.
+            //
+            // Stored the way a bank journal stores it: one nullable column per
+            // account table, and which one is filled follows from the transfer
+            // type. Three columns rather than one shared id because the accounts
+            // live in three tables and a foreign key has to name one of them.
+            $table->foreignUuid('bank_account_id')
+                ->nullable()
+                ->constrained('banks')
+                ->restrictOnDelete()
+                ->index();
+            $table->foreignUuid('cash_account_id')
+                ->nullable()
+                ->constrained('cash_accounts')
+                ->restrictOnDelete()
+                ->index();
+            $table->foreignUuid('e_wallet_account_id')
+                ->nullable()
+                ->constrained('e_wallet_accounts')
+                ->restrictOnDelete()
+                ->index();
             // The invoice this voucher pays. A voucher settling several invoices
             // says so in its lines rather than by repeating the header.
             $table->string('reference_number')->nullable()->index();
@@ -106,32 +129,10 @@ return new class extends Migration
             $table->softDeletes();
             $table->index('date');
         });
-
-
-        Schema::create('payment_voucher_charts', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('payment_voucher_id')->constrained('payment_vouchers')->cascadeOnDelete();
-            $table->foreignUuid('debit_id')->nullable();
-            $table->foreignUuid('credit_id')->nullable();
-            $table->string('debit_acc')->nullable();
-            $table->string('credit_acc')->nullable();
-            $table->string('debit_acc_desc')->nullable();
-            $table->string('credit_acc_desc')->nullable();
-            $table->string('document_number')->nullable();
-            $table->string('reference_number')->nullable();
-            $table->date('date');
-            $table->string('description')->nullable();
-            $table->decimal('debit_amount', 15)->default(0.00);
-            $table->decimal('credit_amount', 15)->default(0.00);
-            $table->decimal('total_amount', 15)->default(0.00);
-            $table->timestamps();
-            $table->softDeletes();
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('payment_voucher_charts');
         Schema::dropIfExists('payment_vouchers');
     }
 };

@@ -37,7 +37,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -61,9 +60,6 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property numeric-string $debit_amount
  * @property numeric-string $credit_amount
  * @property CarbonInterface $created_at
- * @property CarbonInterface $updated_at
- * @property CarbonInterface|null $deleted_at
- *
  * @property-read Chart|null $chart
  * @property-read Company|null $company
  */
@@ -87,7 +83,12 @@ use Spatie\Activitylog\Support\LogOptions;
 ])]
 class Ledger extends Model
 {
-    use HasActivity, HasUuids, SoftDeletes;
+    use HasActivity, HasUuids;
+
+    /**
+     * Disable updated_at: ledgers are immutable history.
+     */
+    public const UPDATED_AT = null;
 
     /**
      * Get the attributes that should be cast.

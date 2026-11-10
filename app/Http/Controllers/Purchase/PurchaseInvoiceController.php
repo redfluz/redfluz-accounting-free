@@ -29,17 +29,21 @@ namespace App\Http\Controllers\Purchase;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Finance\GeneralLedgerEntryType;
 use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Purchase\PurchaseInvoice\BatchApprovePurchaseInvoiceRequest;
+use App\Http\Requests\Purchase\PurchaseInvoice\BatchCancelPurchaseInvoiceRequest;
+use App\Http\Requests\Purchase\PurchaseInvoice\ReversePurchaseInvoiceRequest;
 use App\Http\Requests\Purchase\PurchaseInvoice\StorePurchaseInvoiceRequest;
 use App\Http\Requests\Purchase\PurchaseInvoice\UpdatePurchaseInvoiceRequest;
 use App\Models\Bank\PaymentVoucher;
-use App\Models\Bank\PaymentVoucherChart;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
+use App\Models\Crm\ApLedger;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Models\Finance\JournalEntry;
@@ -50,10 +54,10 @@ use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\System\Setting;
 use App\Support\Data\Purchase\PurchaseInvoiceData;
-use App\Support\Posting\Ledger as LedgerPoster;
-use App\Support\Posting\Payable;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\ApLedgerData;
+use App\Support\Posting\GeneralLedgerData;
+use App\Support\Posting\LedgerData;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use App\Traits\HandlesInvoiceProductMovement;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -81,20 +85,13 @@ class PurchaseInvoiceController extends Controller
     use GeneratesDocumentNumber, HandlesInvoiceProductMovement;
 
     /**
-     * The poster that writes a document's double entry to every ledger it
-     * belongs in.
+     * The posting service that writes ledger rows.
      *
      * Injected rather than resolved through the container at the point of use, so
      * what this controller depends on is declared where it can be read and so a
      * test can hand it a poster of its own.
      */
-    public function __construct(
-        private readonly Payable $payable,
-        private readonly LedgerPoster $ledger,
-        // The on-account payment raised with an invoice is a payment voucher, so
-        // it is posted by the payment poster rather than the invoice one.
-        private readonly PaymentLedgerPoster $paymentPoster,
-    ) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Display a listing of the resource.
@@ -147,7 +144,6 @@ class PurchaseInvoiceController extends Controller
             'indexRoute',
             'createRoute'
         ));
-
     }
 
     /**
@@ -269,8 +265,6 @@ class PurchaseInvoiceController extends Controller
         $companies = Company::query()->where('is_creditor', true)->orderBy('name')->get();
         /** @var Collection<int, Contact> $contacts */
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_creditor', true))->orderBy('name')->get();
-        /** @var Collection<int, Chart> $charts */
-        $charts = Chart::query()->with('chartType')->orderBy('code')->get();
         $sourcePurchaseOrder = null;
 
         $cloneData = session('clone_data');
@@ -280,10 +274,9 @@ class PurchaseInvoiceController extends Controller
 
         return view(
             'purchase.invoices.create',
-            compact('companies', 'contacts', 'charts', 'subtype', 'indexRoute', 'sourcePurchaseOrder', 'canQuickCreateCompany', 'cloneData')
-            + ['postingDateMin' => null, 'postingDateMax' => null]
+            compact('companies', 'contacts', 'subtype', 'indexRoute', 'sourcePurchaseOrder', 'canQuickCreateCompany', 'cloneData')
+                + ['postingDateMin' => null, 'postingDateMax' => null]
         );
-
     }
 
     /**
@@ -338,7 +331,6 @@ class PurchaseInvoiceController extends Controller
 
         abort_if(
             Ledger::query()
-                ->withTrashed()
                 ->whereIn('document_number', $paymentEntries->pluck('document_number'))
                 ->exists(),
             409
@@ -379,16 +371,14 @@ class PurchaseInvoiceController extends Controller
         $companies = Company::query()->where('is_creditor', true)->orderBy('name')->get();
         /** @var Collection<int, Contact> $contacts */
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_creditor', true))->orderBy('name')->get();
-        /** @var Collection<int, Chart> $charts */
-        $charts = Chart::query()->with('chartType')->orderBy('code')->get();
         $sourcePurchaseOrder = $invoice->purchase_order_id !== null
             ? PurchaseOrder::query()->whereKey($invoice->purchase_order_id)->first()
             : null;
 
         return view(
             'purchase.invoices.edit',
-            compact('companies', 'contacts', 'charts', 'subtype', 'indexRoute', 'documentNumber', 'sourcePurchaseOrder', 'canQuickCreateCompany')
-            + ['postingDateMin' => null, 'postingDateMax' => null]
+            compact('companies', 'contacts', 'subtype', 'indexRoute', 'documentNumber', 'sourcePurchaseOrder', 'canQuickCreateCompany')
+                + ['postingDateMin' => null, 'postingDateMax' => null]
         );
     }
 
@@ -433,56 +423,6 @@ class PurchaseInvoiceController extends Controller
         $lineCommercialTerms = $lines->map(
             fn (array $line, int $lineNumber): array => $this->resolveLineCommercialTerms($line, $lineNumber)
         );
-        $debitAccountId = $request->debitId() ?? $chartSetting?->cogs_chart_uuid;
-        $creditAccountId = $request->creditId() ?? $chartSetting?->vendor_chart_uuid;
-
-        if (empty($debitAccountId) || empty($creditAccountId)) {
-            throw ValidationException::withMessages([
-                'debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                'credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-            ]);
-        }
-
-        $debitAccount = $this->accountSnapshot($debitAccountId, 'debit_id');
-        $creditAccount = $this->accountSnapshot($creditAccountId, 'credit_id');
-        $taxAccountId = null;
-        $taxAccount = null;
-
-        if ($lineCommercialTerms->contains(fn (array $terms): bool => (float) $terms['tax_amount'] > 0)) {
-            $taxAccountId = $chartSetting?->input_tax_chart_uuid;
-
-            if (empty($taxAccountId)) {
-                throw ValidationException::withMessages([
-                    'tax_rate' => __('ledgers.validation.input_tax_account_required'),
-                ]);
-            }
-
-            $taxAccount = $this->taxAccountSnapshot($taxAccountId);
-        }
-
-        $hasPayment = filled($request->amount());
-        $paymentSubtype = LedgerSubType::PAYMENT_VOUCHER->value;
-        $paymentDebitAccountId = null;
-        $paymentCreditAccountId = null;
-        $paymentDebitAccount = null;
-        $paymentCreditAccount = null;
-
-        if ($hasPayment) {
-            $paymentDebitAccountId = $request->paymentDebitId()
-                ?? $chartSetting?->vendor_chart_uuid;
-            $paymentCreditAccountId = $request->paymentCreditId()
-                ?? $chartSetting?->bank_chart_uuid;
-
-            if (empty($paymentDebitAccountId) || empty($paymentCreditAccountId)) {
-                throw ValidationException::withMessages([
-                    'payment_debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                    'payment_credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-                ]);
-            }
-
-            $paymentDebitAccount = $this->accountSnapshot($paymentDebitAccountId, 'payment_debit_id');
-            $paymentCreditAccount = $this->accountSnapshot($paymentCreditAccountId, 'payment_credit_id');
-        }
 
         $companyName = filled($request->companyId())
             ? Company::query()->whereKey($request->companyId())->value('name')
@@ -497,34 +437,16 @@ class PurchaseInvoiceController extends Controller
         $invoiceDueDate = Carbon::parse($request->dateValue())
             ->addDays($request->creditTermDays())
             ->toDateString();
-        $paymentDocumentNumber = $hasPayment
-            ? (
-                $this->generateDocumentNumber(LedgerSubType::from($paymentSubtype))
-            )
-            : null;
-        $paymentAmount = $hasPayment
-            ? number_format($request->amount(), 2, '.', '')
-            : null;
 
         DB::transaction(function () use (
-
             $companyName,
             $data,
             $docNumber,
-            $hasPayment,
             $invoiceAttachmentPath,
             $invoiceDueDate,
             $invoiceReferenceNumber,
             $lines,
-            $paymentAmount,
-            $paymentCreditAccount,
-            $paymentCreditAccountId,
-            $paymentDebitAccount,
-            $paymentDebitAccountId,
-            $paymentDocumentNumber,
             $lineCommercialTerms,
-            $taxAccount
-
         ): void {
 
             $now = now();
@@ -585,11 +507,6 @@ class PurchaseInvoiceController extends Controller
                 $invoiceTotal = bcadd($invoiceTotal, $amounts['total'], 2);
 
                 if ((float) $amounts['tax'] > 0) {
-                    if ($taxAccount === null) {
-                        throw ValidationException::withMessages([
-                            'tax_rate' => __('ledgers.validation.input_tax_account_required'),
-                        ]);
-                    }
                     $lineRows[] = [
                         'id' => (string) Str::uuid7(),
                         'purchase_invoice_id' => $invoice->id,
@@ -619,70 +536,11 @@ class PurchaseInvoiceController extends Controller
                 'total_amount' => $invoiceTotal,
             ]);
             $invoice->save();
-
-            if ($hasPayment) {
-                // The on-account payment raised with a purchase invoice is a
-                // payment voucher, so it is stored as one rather than as rows
-                // borrowed from wherever the invoice's own rows live. It carries
-                // its own number and posts on its own approval, exactly as a
-                // voucher raised on its own would.
-                $voucher = PaymentVoucher::query()->create([
-                    'document_number' => $paymentDocumentNumber,
-                    'company_id' => $data->companyId,
-                    'company_name' => $companyName,
-                    'contact_id' => $data->contactId,
-                    'date' => $invoiceDate,
-                    'status' => LedgerStatus::PENDING,
-                    'payment_transfer_type' => null,
-                    'reference_number' => $docNumber,
-                    'attachment_path' => null,
-                    'notes' => $data->paymentNotes,
-                    'total_amount' => $paymentAmount,
-                ]);
-
-                $voucher->lines()->create([
-                    'amount' => $paymentAmount,
-                    'description' => $data->paymentNotes,
-                ]);
-
-                $voucher->lines()->create([
-                    'amount' => $paymentAmount,
-                    'description' => $data->paymentNotes,
-                ]);
-
-                $voucher->charts()->create([
-                    'debit_id' => $paymentDebitAccountId,
-                    'debit_acc' => $paymentDebitAccount['code'],
-                    'debit_acc_desc' => $paymentDebitAccount['description'],
-                    'document_number' => $voucher->document_number,
-                    'reference_number' => $voucher->reference_number,
-                    'date' => $voucher->date->format('Y-m-d'),
-                    'description' => $data->paymentNotes,
-                    'debit_amount' => $paymentAmount,
-                    'credit_amount' => '0.00',
-                    'total_amount' => $paymentAmount,
-                ]);
-
-                $voucher->charts()->create([
-                    'credit_id' => $paymentCreditAccountId,
-                    'credit_acc' => $paymentCreditAccount['code'],
-                    'credit_acc_desc' => $paymentCreditAccount['description'],
-                    'document_number' => $voucher->document_number,
-                    'reference_number' => $voucher->reference_number,
-                    'date' => $voucher->date->format('Y-m-d'),
-                    'description' => $data->paymentNotes,
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $paymentAmount,
-                    'total_amount' => $paymentAmount,
-                ]);
-            }
-
         });
 
         return redirect()
             ->route('purchase.invoices.show', $docNumber)
             ->with('success', FlashMessage::created(FileResources::PURCHASE_INVOICES));
-
     }
 
     /**
@@ -703,28 +561,15 @@ class PurchaseInvoiceController extends Controller
             ->first();
 
         abort_if($invoice === null, 404);
-
-        /** @var Collection<int, PaymentVoucher> $existingPaymentEntries */
-        $existingPaymentEntries = PaymentVoucher::query()
-            ->with('lines')
-            ->where('reference_number', $documentNumber)
-            ->get();
-
         abort_if($invoice->isPosted(), 409);
-        abort_if(
-            Ledger::query()->withTrashed()
-                ->whereIn('document_number', $existingPaymentEntries->pluck('document_number'))
-                ->exists(),
-            409
-        );
-
-        $existingPaymentEntry = $existingPaymentEntries->first();
 
         $sourcePurchaseOrder = $invoice->purchase_order_id !== null
             ? PurchaseOrder::query()->whereKey($invoice->purchase_order_id)->first()
             : null;
-        if ($sourcePurchaseOrder !== null
-            && $request->companyId() !== $sourcePurchaseOrder->company_id) {
+        if (
+            $sourcePurchaseOrder !== null
+            && $request->companyId() !== $sourcePurchaseOrder->company_id
+        ) {
             throw ValidationException::withMessages([
                 'company_id' => __('purchase_orders.validation.generated_invoice_identity'),
             ]);
@@ -759,56 +604,6 @@ class PurchaseInvoiceController extends Controller
         $lineCommercialTerms = $lines->map(
             fn (array $line, int $lineNumber): array => $this->resolveLineCommercialTerms($line, $lineNumber)
         );
-        $debitAccountId = $request->debitId() ?? $chartSetting?->cogs_chart_uuid;
-        $creditAccountId = $request->creditId() ?? $chartSetting?->vendor_chart_uuid;
-
-        if (empty($debitAccountId) || empty($creditAccountId)) {
-            throw ValidationException::withMessages([
-                'debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                'credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-            ]);
-        }
-
-        $debitAccount = $this->accountSnapshot($debitAccountId, 'debit_id');
-        $creditAccount = $this->accountSnapshot($creditAccountId, 'credit_id');
-        $taxAccountId = null;
-        $taxAccount = null;
-
-        if ($lineCommercialTerms->contains(fn (array $terms): bool => (float) $terms['tax_amount'] > 0)) {
-            $taxAccountId = $chartSetting?->input_tax_chart_uuid;
-
-            if (empty($taxAccountId)) {
-                throw ValidationException::withMessages([
-                    'tax_rate' => __('ledgers.validation.input_tax_account_required'),
-                ]);
-            }
-
-            $taxAccount = $this->taxAccountSnapshot($taxAccountId);
-        }
-
-        $hasPayment = filled($request->amount());
-        $paymentSubtype = LedgerSubType::PAYMENT_VOUCHER->value;
-        $paymentDebitAccountId = null;
-        $paymentCreditAccountId = null;
-        $paymentDebitAccount = null;
-        $paymentCreditAccount = null;
-
-        if ($hasPayment) {
-            $paymentDebitAccountId = $request->paymentDebitId()
-                ?? $chartSetting?->vendor_chart_uuid;
-            $paymentCreditAccountId = $request->paymentCreditId()
-                ?? $chartSetting?->bank_chart_uuid;
-
-            if (empty($paymentDebitAccountId) || empty($paymentCreditAccountId)) {
-                throw ValidationException::withMessages([
-                    'payment_debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                    'payment_credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-                ]);
-            }
-
-            $paymentDebitAccount = $this->accountSnapshot($paymentDebitAccountId, 'payment_debit_id');
-            $paymentCreditAccount = $this->accountSnapshot($paymentCreditAccountId, 'payment_credit_id');
-        }
 
         $companyName = filled($request->companyId())
             ? Company::query()->whereKey($request->companyId())->value('name')
@@ -823,36 +618,16 @@ class PurchaseInvoiceController extends Controller
         $invoiceDueDate = Carbon::parse($request->dateValue())
             ->addDays($request->creditTermDays())
             ->toDateString();
-        $paymentDocumentNumber = $hasPayment
-            ? (
-                $existingPaymentEntry->document_number
-                ?? $this->generateDocumentNumber(LedgerSubType::from($paymentSubtype))
-            )
-            : null;
-        $paymentAmount = $hasPayment
-            ? number_format($request->amount(), 2, '.', '')
-            : null;
 
         DB::transaction(function () use (
-
             $companyName,
             $data,
-            $docNumber,
-            $hasPayment,
             $invoice,
             $invoiceAttachmentPath,
             $invoiceDueDate,
             $invoiceReferenceNumber,
             $lines,
-            $paymentAmount,
-            $paymentCreditAccount,
-            $paymentCreditAccountId,
-            $paymentDebitAccount,
-            $paymentDebitAccountId,
-            $paymentDocumentNumber,
             $lineCommercialTerms,
-            $taxAccount
-
         ): void {
 
             $now = now();
@@ -862,16 +637,6 @@ class PurchaseInvoiceController extends Controller
             PurchaseInvoiceLine::query()
                 ->where('purchase_invoice_id', $invoice->id)
                 ->delete();
-
-            PaymentVoucher::query()
-                ->where('reference_number', $docNumber)
-                ->where('status', '!=', LedgerStatus::POSTED->value)
-                ->get()
-                ->each(function (PaymentVoucher $voucher): void {
-                    $voucher->lines()->delete();
-                    $voucher->charts()->delete();
-                    $voucher->forceDelete();
-                });
 
             $invoice->forceFill([
                 'company_id' => $data->companyId,
@@ -923,11 +688,6 @@ class PurchaseInvoiceController extends Controller
                 $invoiceTotal = bcadd($invoiceTotal, $amounts['total'], 2);
 
                 if ((float) $amounts['tax'] > 0) {
-                    if ($taxAccount === null) {
-                        throw ValidationException::withMessages([
-                            'tax_rate' => __('ledgers.validation.input_tax_account_required'),
-                        ]);
-                    }
                     $lineRows[] = [
                         'id' => (string) Str::uuid7(),
                         'purchase_invoice_id' => $invoice->id,
@@ -957,78 +717,11 @@ class PurchaseInvoiceController extends Controller
                 'total_amount' => $invoiceTotal,
             ]);
             $invoice->save();
-
-            if ($hasPayment) {
-                // The on-account payment is a payment voucher. It is replaced
-                // rather than amended, so a voucher that has already posted is
-                // never quietly rewritten by saving the invoice again.
-                PaymentVoucher::query()
-                    ->where('reference_number', $docNumber)
-                    ->where('status', LedgerStatus::PENDING)
-                    ->get()
-                    ->each(function (PaymentVoucher $voucher): void {
-                        $voucher->lines()->delete();
-                        $voucher->charts()->delete();
-                        $voucher->forceDelete();
-                    });
-
-                $voucher = PaymentVoucher::query()->create([
-                    'document_number' => $paymentDocumentNumber,
-                    'company_id' => $data->companyId,
-                    'company_name' => $companyName,
-                    'contact_id' => $data->contactId,
-                    'date' => $invoiceDate,
-                    'status' => LedgerStatus::PENDING,
-                    'payment_transfer_type' => null,
-                    'reference_number' => $docNumber,
-                    'attachment_path' => null,
-                    'notes' => $data->paymentNotes,
-                    'total_amount' => $paymentAmount,
-                ]);
-
-                $voucher->lines()->create([
-                    'amount' => $paymentAmount,
-                    'description' => $data->paymentNotes,
-                ]);
-
-                $voucher->lines()->create([
-                    'amount' => $paymentAmount,
-                    'description' => $data->paymentNotes,
-                ]);
-
-                $voucher->charts()->create([
-                    'debit_id' => $paymentDebitAccountId,
-                    'debit_acc' => $paymentDebitAccount['code'],
-                    'debit_acc_desc' => $paymentDebitAccount['description'],
-                    'document_number' => $voucher->document_number,
-                    'reference_number' => $voucher->reference_number,
-                    'date' => $voucher->date->format('Y-m-d'),
-                    'description' => $data->paymentNotes,
-                    'debit_amount' => $paymentAmount,
-                    'credit_amount' => '0.00',
-                    'total_amount' => $paymentAmount,
-                ]);
-
-                $voucher->charts()->create([
-                    'credit_id' => $paymentCreditAccountId,
-                    'credit_acc' => $paymentCreditAccount['code'],
-                    'credit_acc_desc' => $paymentCreditAccount['description'],
-                    'document_number' => $voucher->document_number,
-                    'reference_number' => $voucher->reference_number,
-                    'date' => $voucher->date->format('Y-m-d'),
-                    'description' => $data->paymentNotes,
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $paymentAmount,
-                    'total_amount' => $paymentAmount,
-                ]);
-            }
-
         });
 
         return redirect()
             ->route('purchase.invoices.show', $docNumber)
             ->with('success', FlashMessage::updated(FileResources::PURCHASE_INVOICES));
-
     }
 
     /**
@@ -1059,33 +752,7 @@ class PurchaseInvoiceController extends Controller
 
             abort_if($invoice->isPosted(), 403);
 
-            /** @var Collection<int, PaymentVoucher> $paymentEntries */
-            $paymentEntries = PaymentVoucher::query()
-                ->with('lines')
-                ->where('reference_number', $documentNumber)
-                ->lockForUpdate()
-                ->get();
-
-            $paymentEntryIds = $paymentEntries->pluck('document_number')->all();
-
-            if (Ledger::query()->withTrashed()->whereIn('id', $paymentEntryIds)->exists()) {
-                throw ValidationException::withMessages([
-                    'document_number' => __('ledgers.validation.posted_invoice_delete_forbidden'),
-                ]);
-            }
-
             $invoice->delete();
-
-            if ($paymentEntryIds !== []) {
-                PaymentVoucher::query()
-                    ->whereIn('document_number', $paymentEntryIds)
-                    ->get()
-                    ->each(function (PaymentVoucher $voucher): void {
-                        $voucher->lines()->delete();
-                        $voucher->charts()->delete();
-                        $voucher->forceDelete();
-                    });
-            }
         });
 
         return redirect()
@@ -1106,8 +773,8 @@ class PurchaseInvoiceController extends Controller
         $this->allows(FileResources::PURCHASE_INVOICES, FileAction::APPROVE);
 
         DB::transaction(function () use ($documentNumber): void {
+            /** @var PurchaseInvoice|null $invoice */
             $invoice = PurchaseInvoice::query()
-                ->with(['lines'])
                 ->where('document_number', $documentNumber)
                 ->lockForUpdate()
                 ->first();
@@ -1115,77 +782,10 @@ class PurchaseInvoiceController extends Controller
             abort_if($invoice === null, 404);
             abort_if($invoice->isPosted(), 409);
 
-            /** @var Collection<int, PurchaseInvoiceLine> $invoiceLines */
-            $invoiceLines = $invoice->lines;
-
-            abort_if($invoiceLines->isEmpty(), 404);
-
-            /** @var Collection<int, PaymentVoucher> $paymentEntries */
-            $paymentEntries = PaymentVoucher::query()
-                ->with('charts')
-                ->where('reference_number', $documentNumber)
-                ->lockForUpdate()
-                ->get();
-
-            $linesTotal = $invoiceLines->reduce(
-                fn (string $total, PurchaseInvoiceLine $line): string => bcadd(
-                    $total,
-                    (string) ($line->line_total_amount ?? '0.00'),
-                    2
-                ),
-                '0.00'
-            );
-
-            // Every invoice line posts as both a debit and a credit for its own
-            // figure, so the lines agree by construction and what has to balance
-            // is the payment raised against the invoice, read from its chart
-            // rows where the accounts actually live.
-            $voucherDebit = $paymentEntries->reduce(
-                fn (string $total, PaymentVoucher $entry): string => bcadd(
-                    $total,
-                    $entry->charts->reduce(
-                        fn (string $chartTotal, PaymentVoucherChart $chart): string => bcadd($chartTotal, $chart->debit_amount, 2),
-                        '0.00'
-                    ),
-                    2
-                ),
-                '0.00'
-            );
-            $voucherCredit = $paymentEntries->reduce(
-                fn (string $total, PaymentVoucher $entry): string => bcadd(
-                    $total,
-                    $entry->charts->reduce(
-                        fn (string $chartTotal, PaymentVoucherChart $chart): string => bcadd($chartTotal, $chart->credit_amount, 2),
-                        '0.00'
-                    ),
-                    2
-                ),
-                '0.00'
-            );
-
-            $totalDebit = bcadd($linesTotal, $voucherDebit, 2);
-            $totalCredit = bcadd($linesTotal, $voucherCredit, 2);
-
-            if (bccomp($totalDebit, $totalCredit, 2) !== 0) {
-                throw ValidationException::withMessages([
-                    'document_number' => __('journal_entries.unbalanced_entry_error'),
-                ]);
-            }
-
-            // Post to both ledgers - services handle chart queries and DTO building
-            $this->payable->post($invoice, $invoiceLines);
-            $this->ledger->postPurchaseInvoice($invoice, $invoiceLines);
+            $this->postInvoice($invoice);
 
             $invoice->forceFill(['status' => LedgerStatus::POSTED]);
             $this->attributeApproved($invoice);
-
-            if ($paymentEntries->isNotEmpty()) {
-                $this->postPaymentEntriesForEach($paymentEntries);
-                $paymentEntries->each(
-                    fn (PaymentVoucher $voucher) => $voucher->update(['status' => LedgerStatus::POSTED])
-                );
-            }
-
         });
 
         return redirect()
@@ -1196,20 +796,16 @@ class PurchaseInvoiceController extends Controller
     /**
      * Reverse a posted purchase invoice by creating a new reversing journal entry.
      *
-     * @param  Request  $request  The HTTP request instance containing the reversal reason.
-     * @param  string  $documentNumber  The purchase invoice number.
-     * @return RedirectResponse Redirects to the specified route.
+     * @param  ReversePurchaseInvoiceRequest  $request  The request containing the reversal reason.
+     * @param  string  $documentNumber  The purchase invoice document number.
+     * @return RedirectResponse Redirects to the invoice detail page.
      *
      * @throws Throwable
      */
-    public function reverse(Request $request, string $documentNumber): RedirectResponse
+    public function reverse(ReversePurchaseInvoiceRequest $request, string $documentNumber): RedirectResponse
     {
-        $this->allows(FileResources::PURCHASE_INVOICES, FileAction::APPROVE);
-
         /** @var array{reason: string} $validated */
-        $validated = $request->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
         $reversalDate = now()->toDateString();
 
         DB::transaction(function () use ($documentNumber, $validated, $reversalDate): void {
@@ -1219,28 +815,113 @@ class PurchaseInvoiceController extends Controller
                 ->first();
 
             abort_if($invoice === null, 404);
+            abort_if($invoice->reversal_id !== null, 409, __('journal_entries.reversal_already_exists'));
             abort_if($invoice->undone_at !== null, 409, __('journal_entries.reversal_already_exists'));
 
-            $postedLedgers = Ledger::query()
-                ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::POSTED)
-                ->lockForUpdate()
-                ->get();
+            /** @var Collection<int, PurchaseInvoiceLine> $lines */
+            $lines = $invoice->lines()->get();
 
-            abort_if($postedLedgers->isEmpty(), 404);
+            abort_if($lines->isEmpty(), 404);
 
-            $creditSum = $postedLedgers->sum('credit_amount');
-            $debitSum = $postedLedgers->sum('debit_amount');
-            $totalDebit = number_format(is_numeric($creditSum) ? (float) $creditSum : 0.0, 2, '.', '');
-            $totalCredit = number_format(is_numeric($debitSum) ? (float) $debitSum : 0.0, 2, '.', '');
+            // Load chart configuration once
+            $chartConfig = ChartSetting::query()->first();
+            abort_if($chartConfig === null, 500, __('posting.chart_config_missing'));
 
-            abort_if(
-                bccomp($totalDebit, '0.00', 2) !== 1 || bccomp($totalDebit, $totalCredit, 2) !== 0,
-                422,
-                __('journal_entries.unbalanced_entry_error')
-            );
+            // Load all needed charts once
+            $chartIds = array_filter([
+                $chartConfig->vendor_chart_uuid,
+                $chartConfig->cogs_chart_uuid,
+                $chartConfig->input_tax_chart_uuid,
+            ]);
 
-            $sourceLedger = $postedLedgers->first();
+            /** @var Collection<string, Chart> $charts */
+            $charts = Chart::query()
+                ->whereIn('id', $chartIds)
+                ->get()
+                ->keyBy(fn (Chart $chart): string => (string) $chart->id);
+
+            /** @var string $currencyId */
+            $currencyId = Setting::query()->value('currency_id') ?? '';
+
+            // Aggregate per invoice exactly the way postInvoice() does, one pass over
+            // the stored line columns. The reversal is built from the same figures the
+            // approval was, so every reversed row nets against the row it reverses.
+            $grossTotal = '0.00';
+            $taxTotal = '0.00';
+            $discountTotal = '0.00';
+
+            foreach ($lines as $line) {
+                /** @var PurchaseInvoiceLine $line */
+                $grossTotal = bcadd($grossTotal, $line->subtotal_amount ?? '0.00', 2);
+                $taxTotal = bcadd($taxTotal, $line->tax_amount ?? '0.00', 2);
+                $discountTotal = bcadd($discountTotal, $line->discount_amount ?? '0.00', 2);
+            }
+
+            // What the supplier was owed, and the cost that was charged to the
+            // purchase account - the same two gated figures approval wrote.
+            $invoiceTotal = bcsub(bcadd($grossTotal, $taxTotal, 2), $discountTotal, 2);
+
+            $expenseTotal = $chartConfig->is_tax_enabled
+                ? bcsub($invoiceTotal, $taxTotal, 2)
+                : $invoiceTotal;
+
+            // Build GL reversal DTOs with swapped amounts (CR→DR, DR→CR)
+            /** @var list<GeneralLedgerData> $glDtos */
+            $glDtos = [];
+            $firstLine = $lines->first();
+
+            // DR Accounts Payable (reverses the CR from approve)
+            if ($chartConfig->vendor_chart_uuid !== null) {
+                $payableChart = $charts->get($chartConfig->vendor_chart_uuid);
+                $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::PAYABLE,
+                    $payableChart,
+                    $invoiceTotal,
+                    '0.00'
+                );
+            }
+
+            // CR COGS (reverses the DR from approve)
+            if ($chartConfig->cogs_chart_uuid !== null && bccomp($expenseTotal, '0.00', 2) !== 0) {
+                $cogsChart = $charts->get($chartConfig->cogs_chart_uuid);
+                $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::COGS,
+                    $cogsChart,
+                    '0.00',
+                    $expenseTotal
+                );
+            }
+
+            // CR Input Tax - only while GST/VAT is enabled, because that is the
+            // only state in which approve() debited it
+            if ($chartConfig->is_tax_enabled && $chartConfig->input_tax_chart_uuid !== null && bccomp($taxTotal, '0.00', 2) !== 0) {
+                $inputTaxChart = $charts->get($chartConfig->input_tax_chart_uuid);
+                $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::TAX,
+                    $inputTaxChart,
+                    '0.00',
+                    $taxTotal
+                );
+            }
+
+            // Calculate totals for the reversal journal entry. The tax is credited on
+            // its own row only while GST/VAT is enabled, and both sides then equal the
+            // payable approval credited.
+            $totalDebit = $invoiceTotal;
+            $totalCredit = $chartConfig->is_tax_enabled
+                ? bcadd($expenseTotal, $taxTotal, 2)
+                : $expenseTotal;
+
+            // Create the reversal journal entry header
             $reversalEntry = JournalEntry::query()->create([
                 'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
@@ -1253,76 +934,107 @@ class PurchaseInvoiceController extends Controller
             ]);
 
             $now = now();
-            $itemRows = $postedLedgers->values()->map(function (Ledger $ledger) use ($reversalEntry, $documentNumber, $now): array {
-                return [
+
+            // Build JournalEntryChart rows from DTOs
+            $chartRows = array_map(
+                fn (GeneralLedgerData $dto): array => [
                     'id' => (string) Str::uuid7(),
                     'journal_entry_id' => $reversalEntry->id,
-                    'debit_id' => $ledger->credit_id,
-                    'credit_id' => $ledger->debit_id,
-                    'debit_acc' => $ledger->credit_acc,
-                    'credit_acc' => $ledger->debit_acc,
-                    'debit_acc_desc' => $ledger->credit_acc_desc,
-                    'credit_acc_desc' => $ledger->debit_acc_desc,
-                    'document_number' => $reversalEntry->document_number,
-                    'reference_number' => $documentNumber,
-                    'date' => $reversalEntry->date,
-                    'description' => __('journal_entries.reversal_line_description', [
-                        'document_number' => $ledger->document_number,
-                        'description' => $ledger->description ?? '-',
-                    ]),
-                    'debit_amount' => $ledger->credit_amount,
-                    'credit_amount' => $ledger->debit_amount,
-                    'total_amount' => $ledger->total_amount,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'deleted_at' => null,
-                ];
-            })->all();
-
-            JournalEntryChart::query()->insert($itemRows);
-
-            $sourceType = $sourceLedger->type;
-            $ledgerRows = collect($itemRows)->map(function (array $item, int $index) use ($postedLedgers, $now, $sourceType, $validated): array {
-                $postedLedger = $postedLedgers[$index] ?? abort(500);
-
-                return [
-                    'id' => $item['id'],
-                    'source_id' => $item['id'],
-                    'source_type' => null,
-                    'company_id' => $postedLedger->company_id,
-                    'contact_id' => $postedLedger->contact_id,
-                    'debit_id' => $item['debit_id'],
-                    'credit_id' => $item['credit_id'],
-                    'debit_acc' => $item['debit_acc'],
-                    'credit_acc' => $item['credit_acc'],
-                    'debit_acc_desc' => $item['debit_acc_desc'],
-                    'credit_acc_desc' => $item['credit_acc_desc'],
-                    'company_name' => $postedLedger->company_name,
-                    'document_number' => $item['document_number'],
-                    'reference_number' => $item['reference_number'],
-                    'type' => $sourceType,
+                    'chart_id' => $dto->chartId,
+                    'company_id' => $dto->companyId,
+                    'currency_id' => $dto->currencyId,
+                    'type' => LedgerType::JOURNAL->value,
                     'subtype' => LedgerSubType::JOURNAL->value,
-                    'date' => $item['date'],
-                    'debit_amount' => $item['debit_amount'],
-                    'credit_amount' => $item['credit_amount'],
-                    'total_amount' => $item['total_amount'],
-                    'status' => LedgerStatus::POSTED->value,
-                    'notes' => $validated['reason'],
-                    'description' => $item['description'],
+                    'document_number' => $dto->documentNumber,
+                    'reference_number' => $dto->referenceNumber,
+                    'date' => $dto->date,
+                    'chart_code' => $dto->chartCode,
+                    'chart_name' => $dto->chartName,
+                    'company_name' => $dto->companyName,
+                    'description' => null,
+                    'line_description' => __('journal_entries.reversal_line_description', [
+                        'document_number' => $dto->documentNumber,
+                        'description' => $dto->lineDescription ?? $dto->description ?? '-',
+                    ]),
+                    'debit_amount' => $dto->debitAmount,
+                    'credit_amount' => $dto->creditAmount,
                     'created_at' => $now,
                     'updated_at' => $now,
                     'deleted_at' => null,
-                ];
-            })->all();
+                ],
+                $glDtos,
+            );
 
-            Ledger::query()->insert($ledgerRows);
+            JournalEntryChart::query()->insert($chartRows);
 
-            $user = auth()->user();
-            $invoice->update([
-                'undone_by' => $user?->id,
-                'undone_name' => $user?->name,
-                'undone_at' => now(),
-            ]);
+            // Post reversal to general ledger via Posting class
+            $this->posting->generalLedger(array_map(
+                fn (GeneralLedgerData $dto): LedgerData => new LedgerData(
+                    id: (string) Str::uuid7(),
+                    chartId: $dto->chartId,
+                    companyId: $dto->companyId,
+                    currencyId: $dto->currencyId,
+                    type: LedgerType::JOURNAL,
+                    subtype: LedgerSubType::JOURNAL,
+                    documentNumber: $dto->documentNumber ?? $documentNumber,
+                    referenceNumber: $dto->referenceNumber,
+                    date: $dto->date,
+                    chartCode: $dto->chartCode,
+                    chartName: $dto->chartName,
+                    companyName: $dto->companyName,
+                    description: $dto->description,
+                    lineDescription: $dto->lineDescription,
+                    debitAmount: $dto->debitAmount,
+                    creditAmount: $dto->creditAmount,
+                    createdAt: $now,
+                    updatedAt: $now,
+                ),
+                $glDtos,
+            ));
+
+            // Reverse AP ledger: create new rows with swapped amounts (ledgers are immutable)
+            /** @var Collection<int, ApLedger> $apEntries */
+            $apEntries = ApLedger::query()
+                ->where('document_number', $documentNumber)
+                ->get();
+
+            if ($apEntries->isNotEmpty()) {
+                /** @var list<ApLedgerData> $apReversalDtos */
+                $apReversalDtos = $apEntries
+                    ->map(function (ApLedger $ap) use ($reversalEntry, $documentNumber, $currencyId, $now): ApLedgerData {
+                        return new ApLedgerData(
+                            id: (string) Str::uuid7(),
+                            chartId: $ap->chart_id,
+                            companyId: $ap->company_id,
+                            currencyId: $currencyId,
+                            type: LedgerType::JOURNAL->value,
+                            subtype: LedgerSubType::JOURNAL->value,
+                            documentNumber: $reversalEntry->document_number,
+                            date: $reversalEntry->date->format('Y-m-d'),
+                            referenceNumber: $documentNumber,
+                            chartCode: $ap->chart_code,
+                            chartName: $ap->chart_name,
+                            chartDescription: $ap->chart_description,
+                            companyName: $ap->company_name,
+                            description: __('journal_entries.reversal_line_description', [
+                                'document_number' => $ap->document_number,
+                                'description' => $ap->description ?? '-',
+                            ]),
+                            debitAmount: (string) $ap->credit_amount,
+                            creditAmount: (string) $ap->debit_amount,
+                            createdAt: $now,
+                            updatedAt: $now,
+                            deletedAt: null,
+                        );
+                    })
+                    ->values()
+                    ->all();
+
+                $this->posting->accountPayableLedger($apReversalDtos);
+            }
+
+            $invoice->update(['reversal_id' => $reversalEntry->id]);
+            $this->attributeUndone($invoice);
         });
 
         return redirect()
@@ -1333,31 +1045,22 @@ class PurchaseInvoiceController extends Controller
     /**
      * Approve multiple purchase invoices and post them to the general ledger.
      *
-     * @param  Request  $request  The HTTP request instance containing document numbers.
+     * @param  BatchApprovePurchaseInvoiceRequest  $request  The validated request containing document numbers.
      * @return RedirectResponse Redirects to the specified route.
      *
      * @throws Throwable
      */
-    public function batchApprove(Request $request): RedirectResponse
+    public function batchApprove(BatchApprovePurchaseInvoiceRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::PURCHASE_INVOICES, FileAction::APPROVE);
-
-        $request->validate([
-            'document_numbers' => 'required|array|min:1',
-            'document_numbers.*' => 'required|string',
-        ]);
+        /** @var array{document_numbers: array<int, string>} $validated */
+        $validated = $request->validated();
 
         $count = 0;
 
-        /** @var array<int, mixed> $documentNumbers */
-        $documentNumbers = $request->input('document_numbers', []);
-
-        DB::transaction(function () use ($documentNumbers, &$count): void {
-            foreach ($documentNumbers as $documentNumber) {
-                $documentNumber = is_string($documentNumber) ? $documentNumber : '';
-
+        DB::transaction(function () use ($validated, &$count): void {
+            foreach ($validated['document_numbers'] as $documentNumber) {
+                /** @var PurchaseInvoice|null $invoice */
                 $invoice = PurchaseInvoice::query()
-                    ->with(['lines'])
                     ->where('document_number', $documentNumber)
                     ->lockForUpdate()
                     ->first();
@@ -1368,80 +1071,25 @@ class PurchaseInvoiceController extends Controller
                     ]);
                 }
 
-                if ($invoice->isPosted()) {
+                if ($invoice->status === LedgerStatus::POSTED) {
                     throw ValidationException::withMessages([
                         'document_numbers' => __('common.batch_rejected.already_posted', ['number' => $documentNumber]),
                     ]);
                 }
 
-                /** @var Collection<int, PurchaseInvoiceLine> $invoiceLines */
-                $invoiceLines = $invoice->lines;
+                /** @var Collection<int, PurchaseInvoiceLine> $lines */
+                $lines = $invoice->lines()->get();
 
-                /** @var Collection<int, PaymentVoucher> $paymentEntries */
-                $paymentEntries = PaymentVoucher::query()
-                    ->with('charts')
-                    ->where('reference_number', $documentNumber)
-                    ->lockForUpdate()
-                    ->get();
-
-                $linesTotal = $invoiceLines->reduce(
-                    fn (string $total, PurchaseInvoiceLine $line): string => bcadd(
-                        $total,
-                        (string) ($line->line_total_amount ?? '0.00'),
-                        2
-                    ),
-                    '0.00'
-                );
-
-                // Every invoice line posts as both a debit and a credit for its
-                // own figure, so the lines agree by construction and what has to
-                // balance is the payment raised against the invoice, read from
-                // its chart rows where the accounts actually live.
-                $voucherDebit = $paymentEntries->reduce(
-                    fn (string $total, PaymentVoucher $entry): string => bcadd(
-                        $total,
-                        $entry->charts->reduce(
-                            fn (string $chartTotal, PaymentVoucherChart $chart): string => bcadd($chartTotal, $chart->debit_amount, 2),
-                            '0.00'
-                        ),
-                        2
-                    ),
-                    '0.00'
-                );
-                $voucherCredit = $paymentEntries->reduce(
-                    fn (string $total, PaymentVoucher $entry): string => bcadd(
-                        $total,
-                        $entry->charts->reduce(
-                            fn (string $chartTotal, PaymentVoucherChart $chart): string => bcadd($chartTotal, $chart->credit_amount, 2),
-                            '0.00'
-                        ),
-                        2
-                    ),
-                    '0.00'
-                );
-
-                $totalDebit = bcadd($linesTotal, $voucherDebit, 2);
-                $totalCredit = bcadd($linesTotal, $voucherCredit, 2);
-
-                if (bccomp($totalDebit, $totalCredit, 2) !== 0) {
+                if ($lines->isEmpty()) {
                     throw ValidationException::withMessages([
-                        'document_numbers' => __('common.batch_rejected.unbalanced', ['number' => $documentNumber]),
+                        'document_numbers' => __('common.batch_rejected.no_entries', ['number' => $documentNumber]),
                     ]);
                 }
 
-                // Post to both ledgers - services handle chart queries and DTO building
-                $this->payable->post($invoice, $invoiceLines);
-                $this->ledger->postPurchaseInvoice($invoice, $invoiceLines);
+                $this->postInvoice($invoice);
 
                 $invoice->forceFill(['status' => LedgerStatus::POSTED]);
                 $this->attributeApproved($invoice);
-
-                if ($paymentEntries->isNotEmpty()) {
-                    $this->postPaymentEntriesForEach($paymentEntries);
-                    $paymentEntries->each(
-                        fn (PaymentVoucher $voucher) => $voucher->update(['status' => LedgerStatus::POSTED])
-                    );
-                }
 
                 $count++;
             }
@@ -1455,31 +1103,18 @@ class PurchaseInvoiceController extends Controller
     /**
      * Cancel multiple pending purchase invoices.
      *
-     * @param  Request  $request  The HTTP request instance containing document numbers.
+     * @param  BatchCancelPurchaseInvoiceRequest  $request  The validated request containing document numbers.
      * @return RedirectResponse Redirects to the specified route.
      */
-    public function batchCancel(Request $request): RedirectResponse
+    public function batchCancel(BatchCancelPurchaseInvoiceRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::PURCHASE_INVOICES, FileAction::CANCEL);
+        /** @var array{document_numbers: array<int, string>} $validated */
+        $validated = $request->validated();
 
-        $request->validate([
-            'document_numbers' => 'required|array|min:1',
-            'document_numbers.*' => 'required|string',
-        ]);
-
-        /** @var array<int, mixed> $documentNumbers */
-        $documentNumbers = $request->input('document_numbers', []);
-
-        $affected = 0;
-        foreach ($documentNumbers as $documentNumber) {
-            if (! is_string($documentNumber)) {
-                continue;
-            }
-            $affected += PurchaseInvoice::query()
-                ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::PENDING)
-                ->update(['status' => LedgerStatus::CANCELLED]);
-        }
+        $affected = PurchaseInvoice::query()
+            ->whereIn('document_number', $validated['document_numbers'])
+            ->where('status', LedgerStatus::PENDING)
+            ->update(['status' => LedgerStatus::CANCELLED]);
 
         return redirect()
             ->route('purchase.invoices.cancelled.index')
@@ -1487,122 +1122,149 @@ class PurchaseInvoiceController extends Controller
     }
 
     /**
-     * Post an invoice's optional payment to the ledgers as its own document.
+     * Post one purchase invoice to its payable sub-ledger and the general ledger.
      *
-     * A payment made against an invoice carries its own document number and
-     * date, so its rows are posted as a payment voucher rather than folded into
-     * the invoice's rows: the money ledger then shows the voucher where the
-     * printed ledger a reader reconciles against says it belongs.
+     * The rows are written per invoice, the way a sales invoice writes them: one
+     * debit to the purchase account, one debit to the input tax account when
+     * GST/VAT is enabled, and one credit to the supplier for what is owed. Every
+     * general ledger row has the identical payable ledger row beside it. The
+     * supplier discount is never written to its own account; it stays inside the
+     * cost of the purchase.
      *
-     * @param  Collection<int, PaymentVoucher>  $vouchers  The vouchers being posted.
+     * @param  PurchaseInvoice  $invoice  The invoice being posted.
+     *
+     * @throws Throwable
      */
-    private function postPaymentEntriesForEach(Collection $vouchers): void
+    private function postInvoice(PurchaseInvoice $invoice): void
     {
-        foreach ($vouchers as $voucher) {
-            $this->postPaymentEntries($voucher);
+        /** @var list<GeneralLedgerData> $glDtos */
+        $glDtos = [];
+
+        /** @var list<ApLedgerData> $apDtos */
+        $apDtos = [];
+
+        // Aggregate per invoice - one pass, no per-line rows
+        $grossTotal = '0.00';
+        $taxTotal = '0.00';
+        $discountTotal = '0.00';
+
+        [$chartConfig, $vendorChart, $cogsChart, $inputTaxChart, $currencyId] = $this->getPurchaseInvoiceConfig();
+
+        /** @var Collection<int, PurchaseInvoiceLine> $lines */
+        $lines = $invoice->lines;
+        abort_if($lines->isEmpty(), 404);
+
+        foreach ($lines as $line) {
+            /** @var PurchaseInvoiceLine $line */
+            $grossTotal = bcadd($grossTotal, $line->subtotal_amount ?? '0.00', 2);
+            $taxTotal = bcadd($taxTotal, $line->tax_amount ?? '0.00', 2);
+            $discountTotal = bcadd($discountTotal, $line->discount_amount ?? '0.00', 2);
+        }
+
+        // What the supplier is owed: the price, plus the tax the supplier charged,
+        // less the discount the supplier gave.
+        $invoiceTotal = bcsub(bcadd($grossTotal, $taxTotal, 2), $discountTotal, 2);
+
+        // The purchase account carries the cost. With GST/VAT enabled the tax is
+        // claimed back through its own account, so the cost is what is left of the
+        // payable; with it disabled no tax is claimed and the tax is part of the cost.
+        $expenseTotal = $chartConfig->is_tax_enabled
+            ? bcsub($invoiceTotal, $taxTotal, 2)
+            : $invoiceTotal;
+
+        // $firstLine is only for the DTO's line reference - amounts are invoice-level
+        /** @var PurchaseInvoiceLine $firstLine */
+        $firstLine = $lines->first();
+
+        // DR Purchase Expense
+        if ($cogsChart instanceof Chart && bccomp($expenseTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::COGS, $cogsChart,
+                $expenseTotal, '0.00'
+            );
+            $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
+                $invoice, $firstLine, $vendorChart, $currencyId,
+                $expenseTotal, '0.00'
+            );
+        }
+
+        // DR Input Tax - only while GST/VAT is enabled
+        if ($chartConfig->is_tax_enabled && $inputTaxChart instanceof Chart && bccomp($taxTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::TAX, $inputTaxChart,
+                $taxTotal, '0.00'
+            );
+            $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
+                $invoice, $firstLine, $vendorChart, $currencyId,
+                $taxTotal, '0.00'
+            );
+        }
+
+        // CR Payable = invoice total
+        if (bccomp($invoiceTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::PAYABLE, $vendorChart,
+                '0.00', $invoiceTotal
+            );
+            $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
+                $invoice, $firstLine, $vendorChart, $currencyId,
+                '0.00', $invoiceTotal
+            );
+        }
+
+        if (! empty($apDtos)) {
+            $this->posting->accountPayableLedger($apDtos);
+        }
+        if (! empty($glDtos)) {
+            $this->posting->generalLedger($glDtos);
         }
     }
 
     /**
-     * Post one payment voucher's legs to the ledgers it belongs in.
+     * The configuration a purchase invoice posts against.
      *
-     * @param  PaymentVoucher  $voucher  The voucher being posted.
+     * The chart accounts and the posting currency are read here once, so posting
+     * only ever sees the accounts and the currency it writes. A missing
+     * configuration or a missing supplier account is a setup failure, not a
+     * posting with a blank payable, so both stop the request.
+     *
+     * @return array{0: ChartSetting, 1: Chart, 2: Chart|null, 3: Chart|null, 4: string} The chart configuration, the vendor, COGS and input tax accounts, then the currency id.
      */
-    private function postPaymentEntries(PaymentVoucher $voucher): void
+    private function getPurchaseInvoiceConfig(): array
     {
-        if ($voucher->charts->isEmpty()) {
-            return;
-        }
+        /** @var ChartSetting|null $chartConfig */
+        $chartConfig = ChartSetting::query()->first();
+        abort_if($chartConfig === null, 500, __('posting.chart_config_missing'));
 
-        // A voucher is one figure crossing two accounts, so the poster is given
-        // the legs its chart rows carry rather than built rows: there is no
-        // line detail of its own to keep.
-        $this->paymentPoster->post(
-            $voucher,
-            (string) $voucher->document_number,
-            $voucher->date,
-            LedgerType::PAYMENT,
-            LedgerSubType::PAYMENT_VOUCHER,
-            array_values($voucher->charts->map(function (PaymentVoucherChart $chart) use ($voucher): PostingLeg {
-                if ($chart->debit_id !== null) {
-                    return PostingLeg::movement(
-                        $chart->id,
-                        $chart->debit_id,
-                        true,
-                        $chart->debit_amount,
-                        '0.00',
-                        $chart->description,
-                        $voucher->reference_number,
-                    );
-                }
+        $chartIds = array_filter([
+            $chartConfig->vendor_chart_uuid,
+            $chartConfig->cogs_chart_uuid,
+            $chartConfig->input_tax_chart_uuid,
+        ]);
 
-                return PostingLeg::movement(
-                    $chart->id,
-                    (string) $chart->credit_id,
-                    false,
-                    '0.00',
-                    $chart->credit_amount,
-                    $chart->description,
-                    $voucher->reference_number,
-                );
-            })->all()),
-            companyId: $voucher->company_id,
-            contactId: $voucher->contact_id,
-            companyName: $voucher->company_name,
-            referenceNumber: $voucher->reference_number,
-        );
-    }
+        /** @var Collection<string, Chart> $charts */
+        $charts = Chart::query()
+            ->whereIn('id', $chartIds)
+            ->get()
+            ->keyBy(fn (Chart $chart): string => (string) $chart->id);
 
-    /**
-     * Convert a chart UUID into immutable code and description history fields.
-     *
-     * @param  mixed  $chartId  The selected or configured chart UUID.
-     * @param  string  $attribute  The form field receiving a validation error.
-     * @return array{code: string, description: string|null} The account history snapshot.
-     *
-     * @throws ValidationException If the configured chart no longer exists.
-     */
-    private function accountSnapshot(mixed $chartId, string $attribute): array
-    {
-        $chart = Chart::query()->whereKey($chartId)->first();
+        /** @var Chart|null $vendorChart */
+        $vendorChart = $charts->get((string) $chartConfig->vendor_chart_uuid);
+        abort_if(! $vendorChart instanceof Chart, 500, __('posting.chart_config_missing'));
 
-        if ($chart === null) {
-            throw ValidationException::withMessages([
-                $attribute => __('common.labels.not_found_record'),
-            ]);
-        }
+        /** @var Chart|null $cogsChart */
+        $cogsChart = $charts->get((string) $chartConfig->cogs_chart_uuid);
 
-        $accountCode = trim((string) $chart->code);
+        /** @var Chart|null $inputTaxChart */
+        $inputTaxChart = $charts->get((string) $chartConfig->input_tax_chart_uuid);
 
-        if ($accountCode === '') {
-            throw ValidationException::withMessages([
-                $attribute => __('common.labels.not_found_record'),
-            ]);
-        }
+        /** @var string $currencyId */
+        $currencyId = Setting::query()->value('currency_id') ?? '';
 
-        return [
-            'code' => $accountCode,
-            'description' => filled($chart->name) ? (string) $chart->name : null,
-        ];
-    }
-
-    /**
-     * Resolve and validate the input-tax control account used by purchase invoice posting.
-     *
-     * @param  mixed  $chartId  The chart id value.
-     * @return array{code: string, description: string|null}
-     */
-    private function taxAccountSnapshot(mixed $chartId): array
-    {
-        $chart = Chart::query()->with('chartType')->whereKey($chartId)->first();
-
-        if ($chart?->chartType?->isAsset !== true) {
-            throw ValidationException::withMessages([
-                'tax_rate' => __('ledgers.validation.input_tax_must_be_asset'),
-            ]);
-        }
-
-        return $this->accountSnapshot($chartId, 'tax_rate');
+        return [$chartConfig, $vendorChart, $cogsChart, $inputTaxChart, $currencyId];
     }
 
     /**

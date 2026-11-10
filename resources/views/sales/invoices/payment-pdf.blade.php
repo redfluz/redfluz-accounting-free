@@ -73,8 +73,8 @@
         $paymentSubtype = $payment->subtype->value ?? $payment->subtype;
         $isReceipt = $paymentSubtype === 'receipt';
         $bankAccount = $isReceipt
-            ? $paymentEntries->firstWhere('debit_acc', '!=', null)->debit_acc
-            : $paymentEntries->firstWhere('credit_acc', '!=', null)->credit_acc;
+            ? $paymentEntries->firstWhere('chart_code', '!=', null)->chart_code
+            : $paymentEntries->firstWhere('chart_code', '!=', null)->chart_code;
     @endphp
 
     <div class="header">

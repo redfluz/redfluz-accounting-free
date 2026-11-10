@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>{{ __('ledgers.history_title') }} - {{ __('refunds.title') }}</title>
+    <title>{{ __('refunds.history_title') }}</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -50,7 +50,7 @@
         <div class="muted">{{ $setting->company_name }}</div>
     @endif
 
-    <h1>{{ __('refunds.title') }} - {{ __('ledgers.history_title') }}</h1>
+    <h1>{{ __('refunds.history_title') }}</h1>
     <div class="muted">
         @if ($startDate || $endDate)
             {{ $startDate ?? '...' }} - {{ $endDate ?? '...' }} |

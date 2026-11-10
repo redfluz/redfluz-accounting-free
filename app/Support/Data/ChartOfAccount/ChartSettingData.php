@@ -63,6 +63,9 @@ class ChartSettingData extends Data
         #[MapName('income_chart_uuid')]
         public ?string $incomeChartUuid = null,
 
+        #[MapName('discount_chart_uuid')]
+        public ?string $discountChartUuid = null,
+
         #[MapName('bank_chart_uuid')]
         public ?string $bankChartUuid = null,
 
@@ -123,6 +126,9 @@ class ChartSettingData extends Data
         #[MapName('strict_journal_posting')]
         public ?bool $strictJournalPosting = null,
 
+        #[MapName('is_tax_enabled')]
+        public ?bool $isTaxEnabled = null,
+
         #[MapName('created_at')]
         public ?CarbonImmutable $createdAt = null,
 
@@ -158,6 +164,7 @@ class ChartSettingData extends Data
             id: $model->id,
             cogsChartUuid: $model->cogs_chart_uuid,
             incomeChartUuid: $model->income_chart_uuid,
+            discountChartUuid: $model->discount_chart_uuid,
             bankChartUuid: $model->bank_chart_uuid,
             cashChartUuid: $model->cash_chart_uuid,
             cashInTransitChartUuid: $model->cash_in_transit_chart_uuid,
@@ -178,6 +185,7 @@ class ChartSettingData extends Data
             closingDate: self::moment($model->closing_date),
             startFinancePeriodMonth: $model->start_finance_period_month,
             strictJournalPosting: $model->strict_journal_posting,
+            isTaxEnabled: $model->is_tax_enabled,
             createdAt: self::moment($model->created_at),
             updatedAt: self::moment($model->updated_at),
             deletedAt: self::moment($model->deleted_at),
@@ -198,6 +206,7 @@ class ChartSettingData extends Data
         return [
             'cogs_chart_uuid' => $this->cogsChartUuid,
             'income_chart_uuid' => $this->incomeChartUuid,
+            'discount_chart_uuid' => $this->discountChartUuid,
             'bank_chart_uuid' => $this->bankChartUuid,
             'cash_chart_uuid' => $this->cashChartUuid,
             'cash_in_transit_chart_uuid' => $this->cashInTransitChartUuid,
@@ -218,6 +227,7 @@ class ChartSettingData extends Data
             'closing_date' => $this->closingDate?->format('Y-m-d'),
             'start_finance_period_month' => $this->startFinancePeriodMonth,
             'strict_journal_posting' => $this->strictJournalPosting,
+            'is_tax_enabled' => $this->isTaxEnabled,
         ];
     }
 
@@ -232,6 +242,7 @@ class ChartSettingData extends Data
             'id' => $this->id,
             'cogs_chart_uuid' => $this->cogsChartUuid,
             'income_chart_uuid' => $this->incomeChartUuid,
+            'discount_chart_uuid' => $this->discountChartUuid,
             'bank_chart_uuid' => $this->bankChartUuid,
             'cash_chart_uuid' => $this->cashChartUuid,
             'cash_in_transit_chart_uuid' => $this->cashInTransitChartUuid,
@@ -252,6 +263,7 @@ class ChartSettingData extends Data
             'closing_date' => $this->closingDate?->format('Y-m-d'),
             'start_finance_period_month' => $this->startFinancePeriodMonth,
             'strict_journal_posting' => $this->strictJournalPosting,
+            'is_tax_enabled' => $this->isTaxEnabled,
             'created_at' => $this->createdAt?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updatedAt?->format('Y-m-d H:i:s'),
             'deleted_at' => $this->deletedAt?->format('Y-m-d H:i:s'),

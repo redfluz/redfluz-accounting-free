@@ -77,6 +77,9 @@ class JournalEntryData extends Data
         #[MapName('reversal_of_id')]
         public ?string $reversalOfId = null,
 
+        #[MapName('reversal_id')]
+        public ?string $reversalId = null,
+
         #[MapName('created_at')]
         public ?CarbonImmutable $createdAt = null,
 
@@ -125,6 +128,7 @@ class JournalEntryData extends Data
             totalCredit: $model->total_credit,
             status: $model->status,
             reversalOfId: $model->reversal_of_id,
+            reversalId: $model->reversal_id,
             createdAt: self::moment($model->created_at),
             updatedAt: self::moment($model->updated_at),
             deletedAt: self::moment($model->deleted_at),
@@ -163,6 +167,7 @@ class JournalEntryData extends Data
         return [
             'id' => $this->id,
             'reversal_of_id' => $this->reversalOfId,
+            'reversal_id' => $this->reversalId,
             'document_number' => $this->entryNumber,
             'reference_number' => $this->referenceNumber,
             'date' => $this->date?->format('Y-m-d'),

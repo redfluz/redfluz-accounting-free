@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Constants\FlashMessage;
-use App\Enums\Sales\DeliveryOrderStatus;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\LedgerStatus;
@@ -13,6 +12,7 @@ use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Inventory\ProductStockBucket;
+use App\Enums\Sales\DeliveryOrderStatus;
 use App\Enums\Sales\SalesOrderStatus;
 use App\Enums\Sales\SalesType;
 use App\Enums\Sales\ShippingStatus;
@@ -530,22 +530,21 @@ class DeliveryOrderController extends Controller
                     ->update(['deduct_inventory' => true, 'updated_at' => now()]);
             }
 
-            $ledgerRows = $movementRows->flatMap(function (array $movement) use ($cogsChart, $inventoryChart): array {
+            $currencyId = DB::table('settings')->value('currency_id')
+                ?? DB::table('currencies')->where('is_default', true)->value('id');
+
+            $ledgerRows = $movementRows->flatMap(function (array $movement) use ($cogsChart, $inventoryChart, $currencyId): array {
                 $common = [
-                    'source_id' => $movement['id'],
-                    'source_type' => null,
                     'company_id' => $movement['company_id'],
-                    'contact_id' => null,
+                    'currency_id' => $currencyId,
                     'company_name' => $movement['company_name'],
                     'document_number' => $movement['document_number'],
                     'reference_number' => $movement['reference_number'],
                     'type' => LedgerType::JOURNAL->value,
                     'subtype' => LedgerSubType::JOURNAL->value,
                     'date' => $movement['date'],
-                    'total_amount' => $movement['total_cost'],
-                    'status' => LedgerStatus::POSTED->value,
-                    'notes' => __('product_ledgers.entries.cogs_posting', ['document' => $movement['document_number']]),
-                    'description' => $movement['notes'],
+                    'description' => __('product_ledgers.entries.cogs_posting', ['document' => $movement['document_number']]),
+                    'line_description' => $movement['notes'],
                     'created_at' => $movement['created_at'],
                     'updated_at' => $movement['updated_at'],
                     'deleted_at' => null,
@@ -554,23 +553,17 @@ class DeliveryOrderController extends Controller
                 return [
                     $common + [
                         'id' => $movement['cogs_ledger_id'],
-                        'debit_id' => $cogsChart->id,
-                        'credit_id' => null,
-                        'debit_acc' => $cogsChart->code,
-                        'credit_acc' => null,
-                        'debit_acc_desc' => $cogsChart->name,
-                        'credit_acc_desc' => null,
+                        'chart_id' => $cogsChart->id,
+                        'chart_code' => $cogsChart->code,
+                        'chart_name' => $cogsChart->name,
                         'debit_amount' => $movement['total_cost'],
                         'credit_amount' => '0.00',
                     ],
                     $common + [
                         'id' => $movement['inventory_ledger_id'],
-                        'debit_id' => null,
-                        'credit_id' => $inventoryChart->id,
-                        'debit_acc' => null,
-                        'credit_acc' => $inventoryChart->code,
-                        'debit_acc_desc' => null,
-                        'credit_acc_desc' => $inventoryChart->name,
+                        'chart_id' => $inventoryChart->id,
+                        'chart_code' => $inventoryChart->code,
+                        'chart_name' => $inventoryChart->name,
                         'debit_amount' => '0.00',
                         'credit_amount' => $movement['total_cost'],
                     ],

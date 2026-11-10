@@ -106,16 +106,14 @@
                     </thead>
                     <tbody>
                         @foreach ($journalEntry->charts as $item)
-                            @if (filled($item->debit_acc) ||
-                                    filled($item->credit_acc) ||
+                            @if (filled($item->chart_name) ||
                                     filled($item->description) ||
                                     (float) $item->debit_amount > 0 ||
                                     (float) $item->credit_amount > 0)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
-                                        {{ $item->debit_acc ?? ($item->credit_acc ?? '-') }} -
-                                        {{ $item->debit_acc_desc ?? ($item->credit_acc_desc ?? '-') }}
+                                        {{ $item->chart_code ?? '' }} {{ $item->chart_name ?? '-' }}
                                     </td>
                                     <td>{{ $item->description ?? '-' }}</td>
                                     <td class="text-end">{{ number_format((float) $item->debit_amount, 2) }}</td>

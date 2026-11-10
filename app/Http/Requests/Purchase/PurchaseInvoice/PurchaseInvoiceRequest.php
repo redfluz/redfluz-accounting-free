@@ -66,22 +66,6 @@ abstract class PurchaseInvoiceRequest extends BaseFormRequest
         return $this->stringOrNull('contact_id');
     }
 
-    /**
-     * The debit account for the invoice, when the user chose one.
-     */
-    public function debitId(): ?string
-    {
-        return $this->stringOrNull('debit_id');
-    }
-
-    /**
-     * The credit account for the invoice, when the user chose one.
-     */
-    public function creditId(): ?string
-    {
-        return $this->stringOrNull('credit_id');
-    }
-
     public function dateValue(): string
     {
         return $this->stringOrEmpty('date');
@@ -96,42 +80,10 @@ abstract class PurchaseInvoiceRequest extends BaseFormRequest
     }
 
     /**
-     * The invoice amount, as a float for the arithmetic that follows.
-     */
-    public function amount(): float
-    {
-        return $this->floatOrZero('amount');
-    }
-
-    /**
-     * The debit account for the payment portion, when the user chose one.
-     */
-    public function paymentDebitId(): ?string
-    {
-        return $this->stringOrNull('payment_debit_id');
-    }
-
-    /**
-     * The credit account for the payment portion, when the user chose one.
-     */
-    public function paymentCreditId(): ?string
-    {
-        return $this->stringOrNull('payment_credit_id');
-    }
-
-    /**
      * Free-text notes for the invoice, if the user wrote any.
      */
     public function invoiceNotes(): ?string
     {
         return $this->stringOrNull('invoice_notes');
-    }
-
-    /**
-     * Free-text notes for the payment, if the user wrote any.
-     */
-    public function paymentNotes(): ?string
-    {
-        return $this->stringOrNull('payment_notes');
     }
 }

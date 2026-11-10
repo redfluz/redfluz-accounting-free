@@ -42,9 +42,10 @@ use App\Models\ChartOfAccount\Chart;
 use App\Models\Finance\Currency;
 use App\Models\Finance\JournalEntry;
 use App\Models\Finance\JournalEntryChart;
-use App\Models\Finance\Ledger;
 use App\Models\System\Setting;
 use App\Support\Data\Finance\JournalEntryData;
+use App\Support\Posting\LedgerData;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
@@ -65,6 +66,11 @@ use Throwable;
 class JournalEntryController extends Controller
 {
     use GeneratesDocumentNumber;
+
+    /**
+     * @param  Posting  $posting  The posting service for writing ledger rows.
+     */
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Display a listing of the resource.
@@ -361,41 +367,35 @@ class JournalEntryController extends Controller
                 }
             }
 
-            abort_if(
-                Ledger::query()->withTrashed()->whereIn('id', $itemIds)->exists(),
-                409,
-                __('journal_entries.already_posted')
-            );
-
-            $now = now();
             /** @var string|null $currencyId */
             $currencyId = Currency::query()->where('is_default', true)->value('id');
-            $ledgerRows = $lockedEntry->charts
+
+            /** @var list<LedgerData> $ledgerDtos */
+            $ledgerDtos = $lockedEntry->charts
+                ->map(fn (JournalEntryChart $item): LedgerData => new LedgerData(
+                    id: $item->id,
+                    chartId: $item->chart_id,
+                    companyId: $item->company_id,
+                    currencyId: $item->currency_id ?? $currencyId,
+                    type: $item->type,
+                    subtype: $item->subtype,
+                    documentNumber: $item->document_number,
+                    referenceNumber: $item->reference_number,
+                    date: $item->date,
+                    chartCode: $item->chart_code,
+                    chartName: $item->chart_name,
+                    companyName: $item->company_name,
+                    description: $lockedEntry->notes,
+                    lineDescription: $item->line_description,
+                    debitAmount: (string) $item->debit_amount,
+                    creditAmount: (string) $item->credit_amount,
+                    createdAt: now(),
+                    updatedAt: now(),
+                ))
                 ->values()
-                ->map(fn (JournalEntryChart $item): array => [
-                    'id' => $item->id,
-                    'chart_id' => $item->chart_id,
-                    'company_id' => $item->company_id,
-                    'currency_id' => $item->currency_id ?? $currencyId,
-                    'type' => $item->type,
-                    'subtype' => $item->subtype,
-                    'document_number' => $item->document_number,
-                    'reference_number' => $item->reference_number,
-                    'date' => $item->date,
-                    'chart_code' => $item->chart_code,
-                    'chart_name' => $item->chart_name,
-                    'company_name' => $item->company_name,
-                    'description' => $lockedEntry->notes,
-                    'line_description' => $item->line_description,
-                    'debit_amount' => $item->debit_amount,
-                    'credit_amount' => $item->credit_amount,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'deleted_at' => null,
-                ])
                 ->all();
 
-            Ledger::query()->insert($ledgerRows);
+            $this->posting->generalLedger($ledgerDtos);
 
             $lockedEntry->update(['status' => LedgerStatus::POSTED]);
             $this->attributeApproved($lockedEntry);
@@ -448,7 +448,7 @@ class JournalEntryController extends Controller
                 __('journal_entries.reversal_cannot_reverse')
             );
             abort_if(
-                $lockedEntry->reversal()->exists(),
+                $lockedEntry->reversal_id !== null,
                 409,
                 __('journal_entries.reversal_already_exists')
             );
@@ -456,28 +456,14 @@ class JournalEntryController extends Controller
             $itemIds = $lockedEntry->charts->modelKeys();
             abort_if($itemIds === [], 422, __('journal_entries.lines_required'));
 
-            /** @var Collection<string, Ledger> $postedLedgers */
-            $postedLedgers = Ledger::query()
-                ->whereIn('id', $itemIds)
-                ->whereNull('deleted_at')
-                ->lockForUpdate()
-                ->get()
-                ->keyBy('id');
-
-            abort_if(
-                $postedLedgers->count() !== count($itemIds),
-                409,
-                __('journal_entries.reversal_ledger_mismatch')
-            );
-
-            $sumCredit = $postedLedgers->sum('credit_amount');
+            $sumCredit = $lockedEntry->charts->sum('credit_amount');
             $totalDebit = number_format(
                 is_numeric($sumCredit) ? (float) $sumCredit : 0.0,
                 2,
                 '.',
                 ''
             );
-            $sumDebit = $postedLedgers->sum('debit_amount');
+            $sumDebit = $lockedEntry->charts->sum('debit_amount');
             $totalCredit = number_format(
                 is_numeric($sumDebit) ? (float) $sumDebit : 0.0,
                 2,
@@ -502,65 +488,70 @@ class JournalEntryController extends Controller
                 'notes' => $validated['reason'],
             ]);
 
+            $lockedEntry->reversal_id = $reversalEntry->id;
+            $this->attributeUndone($lockedEntry);
+
             $now = now();
-            $itemRows = collect($itemIds)
-                ->values()
-                ->map(function (string $itemId) use ($postedLedgers, $reversalEntry, $now): array {
-                    /** @var Ledger $postedLedger */
-                    $postedLedger = $postedLedgers->get($itemId);
 
-                    return [
-                        'id' => (string) Str::uuid7(),
-                        'journal_entry_id' => $reversalEntry->id,
-                        'chart_id' => $postedLedger->chart_id,
-                        'company_id' => $postedLedger->company_id,
-                        'currency_id' => $postedLedger->currency_id,
-                        'type' => LedgerType::JOURNAL->value,
-                        'subtype' => LedgerSubType::JOURNAL->value,
-                        'document_number' => $reversalEntry->document_number,
-                        'reference_number' => $reversalEntry->reference_number ?: $reversalEntry->document_number,
-                        'date' => $reversalEntry->date,
-                        'chart_code' => $postedLedger->chart_code,
-                        'chart_name' => $postedLedger->chart_name,
-                        'company_name' => $postedLedger->company_name,
-                        'description' => null,
-                        'line_description' => __('journal_entries.reversal_line_description', [
-                            'document_number' => $postedLedger->document_number,
-                            'description' => $postedLedger->line_description ?? $postedLedger->description ?? '-',
+            /** @var list<LedgerData> $ledgerDtos */
+            $ledgerDtos = $lockedEntry->charts
+                ->map(function (JournalEntryChart $item) use ($reversalEntry, $validated, $now): LedgerData {
+                    return new LedgerData(
+                        id: (string) Str::uuid7(),
+                        chartId: $item->chart_id,
+                        companyId: $item->company_id,
+                        currencyId: $item->currency_id,
+                        type: LedgerType::JOURNAL,
+                        subtype: LedgerSubType::JOURNAL,
+                        documentNumber: $reversalEntry->document_number,
+                        referenceNumber: $reversalEntry->reference_number ?: $reversalEntry->document_number,
+                        date: $reversalEntry->date,
+                        chartCode: $item->chart_code,
+                        chartName: $item->chart_name,
+                        companyName: $item->company_name,
+                        description: $validated['reason'],
+                        lineDescription: __('journal_entries.reversal_line_description', [
+                            'document_number' => $item->document_number,
+                            'description' => $item->line_description ?? $item->description ?? '-',
                         ]),
-                        'debit_amount' => $postedLedger->credit_amount,
-                        'credit_amount' => $postedLedger->debit_amount,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                        'deleted_at' => null,
-                    ];
-                });
+                        debitAmount: (string) $item->credit_amount,
+                        creditAmount: (string) $item->debit_amount,
+                        createdAt: $now,
+                        updatedAt: $now,
+                    );
+                })
+                ->values()
+                ->all();
 
-            JournalEntryChart::query()->insert($itemRows->all());
+            $chartRows = array_map(
+                fn (LedgerData $dto): array => [
+                    'id' => $dto->id,
+                    'journal_entry_id' => $reversalEntry->id,
+                    'chart_id' => $dto->chartId,
+                    'company_id' => $dto->companyId,
+                    'currency_id' => $dto->currencyId,
+                    'type' => LedgerType::JOURNAL->value,
+                    'subtype' => LedgerSubType::JOURNAL->value,
+                    'document_number' => $dto->documentNumber,
+                    'reference_number' => $dto->referenceNumber,
+                    'date' => $dto->date,
+                    'chart_code' => $dto->chartCode,
+                    'chart_name' => $dto->chartName,
+                    'company_name' => $dto->companyName,
+                    'description' => null,
+                    'line_description' => $dto->lineDescription,
+                    'debit_amount' => $dto->debitAmount,
+                    'credit_amount' => $dto->creditAmount,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                    'deleted_at' => null,
+                ],
+                $ledgerDtos,
+            );
 
-            $ledgerRows = $itemRows->map(fn (array $item): array => [
-                'id' => $item['id'],
-                'chart_id' => $item['chart_id'],
-                'company_id' => $item['company_id'],
-                'currency_id' => $item['currency_id'],
-                'type' => $item['type'],
-                'subtype' => $item['subtype'],
-                'document_number' => $item['document_number'],
-                'reference_number' => $item['reference_number'],
-                'date' => $item['date'],
-                'chart_code' => $item['chart_code'],
-                'chart_name' => $item['chart_name'],
-                'company_name' => $item['company_name'],
-                'description' => $validated['reason'],
-                'line_description' => $item['line_description'],
-                'debit_amount' => $item['debit_amount'],
-                'credit_amount' => $item['credit_amount'],
-                'created_at' => $item['created_at'],
-                'updated_at' => $item['updated_at'],
-                'deleted_at' => null,
-            ])->all();
+            JournalEntryChart::query()->insert($chartRows);
 
-            Ledger::query()->insert($ledgerRows);
+            $this->posting->generalLedger($ledgerDtos);
         });
 
         return redirect()
@@ -735,41 +726,35 @@ class JournalEntryController extends Controller
                     ]);
                 }
 
-                if (Ledger::query()->withTrashed()->whereIn('id', $itemIds)->exists()) {
-                    throw ValidationException::withMessages([
-                        'entry_ids' => __('common.batch_rejected.already_posted', ['number' => $entryId]),
-                    ]);
-                }
-
-                $now = now();
                 /** @var string|null $currencyId */
                 $currencyId = Currency::query()->where('is_default', true)->value('id');
-                $ledgerRows = $lockedEntry->charts
+
+                /** @var list<LedgerData> $ledgerDtos */
+                $ledgerDtos = $lockedEntry->charts
+                    ->map(fn (JournalEntryChart $item): LedgerData => new LedgerData(
+                        id: $item->id,
+                        chartId: $item->chart_id,
+                        companyId: $item->company_id,
+                        currencyId: $item->currency_id ?? $currencyId,
+                        type: $item->type,
+                        subtype: $item->subtype,
+                        documentNumber: $item->document_number,
+                        referenceNumber: $item->reference_number,
+                        date: $item->date,
+                        chartCode: $item->chart_code,
+                        chartName: $item->chart_name,
+                        companyName: $item->company_name,
+                        description: $lockedEntry->notes,
+                        lineDescription: $item->line_description,
+                        debitAmount: (string) $item->debit_amount,
+                        creditAmount: (string) $item->credit_amount,
+                        createdAt: now(),
+                        updatedAt: now(),
+                    ))
                     ->values()
-                    ->map(fn (JournalEntryChart $item): array => [
-                        'id' => $item->id,
-                        'chart_id' => $item->chart_id,
-                        'company_id' => $item->company_id,
-                        'currency_id' => $item->currency_id ?? $currencyId,
-                        'type' => $item->type,
-                        'subtype' => $item->subtype,
-                        'document_number' => $item->document_number,
-                        'reference_number' => $item->reference_number,
-                        'date' => $item->date,
-                        'chart_code' => $item->chart_code,
-                        'chart_name' => $item->chart_name,
-                        'company_name' => $item->company_name,
-                        'description' => $lockedEntry->notes,
-                        'line_description' => $item->line_description,
-                        'debit_amount' => $item->debit_amount,
-                        'credit_amount' => $item->credit_amount,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                        'deleted_at' => null,
-                    ])
                     ->all();
 
-                Ledger::query()->insert($ledgerRows);
+                $this->posting->generalLedger($ledgerDtos);
                 $lockedEntry->update(['status' => LedgerStatus::POSTED]);
                 $this->attributeApproved($lockedEntry);
 

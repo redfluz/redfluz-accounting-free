@@ -92,13 +92,13 @@
         <div class="muted">{{ $setting->company_name }}</div>
     @endif
 
-    <h1>{{ __('refunds.title') }} {{ $documentNumber }}</h1>
+    <h1>{{ __('payments.sub_type.supplier_refund') }} {{ $documentNumber }}</h1>
     <div class="muted">
         {{ $refund->status->value === 'posted' ? __('journal_entries.status_approved') : __('ledgers.status_cancelled') }}
-        | {{ __('refunds.title') }}
+        | {{ __('payments.sub_type.supplier_refund') }}
     </div>
 
-    <h2>{{ __('refunds.title') }}</h2>
+    <h2>{{ __('payments.sub_type.supplier_refund') }}</h2>
     <table class="summary">
         <tr>
             <td>
@@ -123,7 +123,11 @@
                 <div class="label">{{ __('payments.form.payment_transfer') }}</div>
                 <div class="value">{{ $refund->payment_transfer_type?->label() ?? '-' }}</div>
             </td>
-            <td colspan="3"></td>
+            <td>
+                <div class="label">{{ __('payments.form.received_into') }}</div>
+                <div class="value">{{ $refund->moneyAccount()?->name ?? '-' }}</div>
+            </td>
+            <td colspan="2"></td>
         </tr>
     </table>
 

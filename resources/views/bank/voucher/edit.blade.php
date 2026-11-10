@@ -32,7 +32,7 @@ $canDelete = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
 
 ?>
 
-@props(['voucher', 'documentNumber', 'companies'])
+@props(['voucher', 'documentNumber', 'companies', 'banks', 'cashAccounts', 'eWalletAccounts'])
 
 @extends('layouts.app')
 
@@ -49,7 +49,13 @@ $canDelete = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
             <input name="id" type="hidden" value="{{ $voucher->id }}" />
             <div class="card-body">
                 @include('partials.alerts')
-                @include('bank.voucher._form', ['voucher' => $voucher, 'companies' => $companies])
+                @include('bank.voucher._form', [
+                    'voucher' => $voucher,
+                    'companies' => $companies,
+                    'banks' => $banks,
+                    'cashAccounts' => $cashAccounts,
+                    'eWalletAccounts' => $eWalletAccounts,
+                ])
             </div>
 
             <div class="card-footer d-flex justify-content-between">

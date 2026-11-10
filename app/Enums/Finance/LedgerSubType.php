@@ -40,10 +40,8 @@ enum LedgerSubType: string
     case DECREASE_ADJUSTMENT = 'decrease_adjustment';
     case MANUAL_SALES_ADJUSTMENT = 'manual_sales_adjustment';
     case MANUAL_PURCHASE_ADJUSTMENT = 'manual_purchase_adjustment';
-    case PURCHASE_DEBIT_NOTE = 'purchase_debit_note';
-    case PURCHASE_CREDIT_NOTE = 'purchase_credit_note';
 
-    case RECEIPT_REFUND = 'receipt_refund';
+    case CUSTOMER_REFUND = 'customer_refund';
     case SUPPLIER_REFUND = 'supplier_refund';
 
     case REFUND = 'refund';
@@ -82,9 +80,7 @@ enum LedgerSubType: string
             self::DECREASE_ADJUSTMENT => 'Decrease Adjustment',
             self::MANUAL_SALES_ADJUSTMENT => 'Manual Sales Adjustment',
             self::MANUAL_PURCHASE_ADJUSTMENT => 'Manual Purchase Adjustment',
-            self::PURCHASE_DEBIT_NOTE => __('purchase_adjustments.sub_type.purchase_debit_note'),
-            self::PURCHASE_CREDIT_NOTE => __('purchase_adjustments.sub_type.purchase_credit_note'),
-            self::RECEIPT_REFUND => 'Receipt Refund',
+            self::CUSTOMER_REFUND => 'Receipt Refund',
             self::SUPPLIER_REFUND => 'Supplier Refund',
             self::REFUND => 'Refund',
             self::WITHDRAWAL => 'Withdrawal',
@@ -122,9 +118,7 @@ enum LedgerSubType: string
             self::DECREASE_ADJUSTMENT => 'CNV',
             self::MANUAL_SALES_ADJUSTMENT => 'MSA',
             self::MANUAL_PURCHASE_ADJUSTMENT => 'MPA',
-            self::PURCHASE_DEBIT_NOTE => 'PDN',
-            self::PURCHASE_CREDIT_NOTE => 'PCN',
-            self::RECEIPT_REFUND => 'RFR',
+            self::CUSTOMER_REFUND => 'RFR',
             self::SUPPLIER_REFUND => 'SRF',
             self::REFUND => 'REF',
             self::WITHDRAWAL => 'WDR',

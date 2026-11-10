@@ -26,8 +26,8 @@
 
 namespace App\Models\Bank;
 
-use App\Enums\Finance\LedgerSourceType;
 use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Crm\ArLedger;
 use App\Models\Crm\Company;
@@ -60,8 +60,8 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  *
  * A receipt that has been posted has written to the general ledger and to
  * whichever money ledger its account belongs to, and to the receivables ledger
- * for the customer side. Those rows point back here through source_id and
- * source_type, so the entries a receipt produced can always be found.
+ * for the customer side. Those rows point back here through the document number
+ * and subtype, so the entries a receipt produced can always be found.
  *
  * @property string $id
  * @property string $company_id
@@ -119,7 +119,23 @@ class Receipt extends Model
 {
     use AttributesDocuments, HasActivity, HasUuids, RecordsAuthor, SoftDeletes;
 
-
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => LedgerStatus::class,
+            'payment_transfer_type' => PaymentTransferType::class,
+            'date' => 'date',
+            'total_amount' => 'decimal:2',
+            'approved_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'undone_at' => 'datetime',
+        ];
+    }
 
     /**
      * The customer the money was received from.
@@ -134,18 +150,16 @@ class Receipt extends Model
     /**
      * The receivable entries this receipt raised when it was posted.
      *
-     * Matched on the subtype rather than a polymorphic type, because the receivable
-     * ledger stores the LedgerSourceType that raised the row, not the model class
-     * that did. Without the subtype half of the match every receipt would claim
-     * every other receipt's entries too, since they all share one source_id space
-     * only by coincidence.
+     * Matched on the document number plus the subtype: the receivable ledger
+     * stores the LedgerSubType that raised the row, so a number raised by a
+     * different kind of document never matches here.
      *
      * @return HasMany<ArLedger, $this>
      */
-    public function receivableEntries(): HasMany
+    public function arLedgers(): HasMany
     {
-        return $this->hasMany(ArLedger::class, 'source_id', 'id')
-            ->where('source_type', LedgerSourceType::RECEIPT->value);
+        return $this->hasMany(ArLedger::class, 'document_number', 'document_number')
+            ->where('subtype', LedgerSubType::RECEIPT->value);
     }
 
     /**

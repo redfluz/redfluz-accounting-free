@@ -36,7 +36,7 @@
             <div>
                 <h4 class="fw-bold mb-0">{{ $documentNumber }}</h4>
                 <span class="fg-secondary small">
-                    {{ __('refunds.title') }} | {{ $refund->company_name ?: '-' }}
+                    {{ __('payments.sub_type.supplier_refund') }} | {{ $refund->company_name ?: '-' }}
                 </span>
             </div>
             <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
@@ -79,6 +79,14 @@
                     <div class="h-100 rounded border p-3">
                         <span class="fg-secondary small d-block">{{ __('payments.form.payment_transfer') }}</span>
                         <strong>{{ $refund->payment_transfer_type?->label() ?? '-' }}</strong>
+                    </div>
+                </div>
+                {{-- The account the money came back into, named on the document rather
+                     than inferred: the transfer type only says how it travelled. --}}
+                <div class="md:col-3">
+                    <div class="h-100 rounded border p-3">
+                        <span class="fg-secondary small d-block">{{ __('payments.form.received_into') }}</span>
+                        <strong>{{ $refund->moneyAccount()?->name ?? '-' }}</strong>
                     </div>
                 </div>
             </div>

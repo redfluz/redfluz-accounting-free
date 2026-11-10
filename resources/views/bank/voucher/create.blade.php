@@ -31,7 +31,7 @@ $canCreate = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
 
 ?>
 
-@props(['companies', 'documentNumber'])
+@props(['companies', 'documentNumber', 'banks', 'cashAccounts', 'eWalletAccounts'])
 
 @extends('layouts.app')
 
@@ -46,7 +46,13 @@ $canCreate = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
             @csrf
             <div class="card-body">
                 @include('partials.alerts')
-                @include('bank.voucher._form', ['voucher' => null, 'companies' => $companies])
+                @include('bank.voucher._form', [
+                    'voucher' => null,
+                    'companies' => $companies,
+                    'banks' => $banks,
+                    'cashAccounts' => $cashAccounts,
+                    'eWalletAccounts' => $eWalletAccounts,
+                ])
             </div>
 
             <div class="card-footer d-flex justify-content-between">

@@ -1,5 +1,6 @@
 @php
     use App\Enums\Finance\LedgerSubType;
+    use App\Enums\Finance\PaymentTransferType;
     use App\Enums\UploadType;
 
     $existingLines = $invoice?->lines ?? collect();
@@ -119,7 +120,7 @@
 
     <div class="sales-tab-panel bg-2 rounded border p-3" id="payment-details-section">
         <div class="row g-3">
-            <div class="col-12">
+            <div class="md:col-6">
                 <label class="form-label fw-bold"
                     for="amount">{{ __('ledgers.table.column_amount') }}</label>
                 <div class="form-control form-adorn">
@@ -129,6 +130,40 @@
                 </div>
                 <div class="form-text">{{ __('ledgers.optional_payment_hint') }}</div>
                 @error('amount')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="md:col-6">
+                <label class="form-label fw-bold" for="payment_transfer_type">
+                    {{ __('payments.form.payment_transfer') }}
+                </label>
+                <select class="form-control @error('payment_transfer_type') is-invalid @enderror" id="payment_transfer_type" name="payment_transfer_type">
+                    <option value="" disabled hidden>{{ __('common.actions.select_option') }}</option>
+                    @foreach (PaymentTransferType::cases() as $transferType)
+                        <option value="{{ $transferType->value }}" @selected(old('payment_transfer_type', $invoice?->payment_transfer_type?->value) === $transferType->value)>
+                            {{ $transferType->label() }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('payment_transfer_type')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-bold" for="payment_attachment">
+                    {{ __('ledgers.form.payment_attachment') }}
+                </label>
+                <input class="form-control @error('payment_attachment') is-invalid @enderror"
+                    id="payment_attachment" name="payment_attachment" type="file"
+                    accept="{{ UploadType::DOCUMENT_AND_IMAGES->accept() }}" />
+                @if ($invoice?->payment_attachment_path)
+                    <div class="mt-2">
+                        <a href="{{ asset('storage/' . $invoice->payment_attachment_path) }}" target="_blank" class="fg-primary small">
+                            {{ __('common.actions.view_attachment') }}
+                        </a>
+                    </div>
+                @endif
+                @error('payment_attachment')
                     <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
             </div>
@@ -169,22 +204,6 @@
         @endif
     </div>
 
-</div>
-
-{{-- Hidden accounting selects referenced by JS --}}
-<div class="d-none">
-    <select id="debit_id" name="debit_id">
-        <option value="">{{ __('common.actions.select_option') }}</option>
-    </select>
-    <select id="credit_id" name="credit_id">
-        <option value="">{{ __('common.actions.select_option') }}</option>
-    </select>
-    <select id="payment_debit_id" name="payment_debit_id">
-        <option value="">{{ __('common.actions.select_option') }}</option>
-    </select>
-    <select id="payment_credit_id" name="payment_credit_id">
-        <option value="">{{ __('common.actions.select_option') }}</option>
-    </select>
 </div>
 
 <div class="border-top pt-4" id="invoice-lines-section">
@@ -401,11 +420,8 @@
 @push('scripts')
     <script>
         const allContacts = @json($contacts);
-        const allCharts = @json($charts);
         const selectText = @json(__('common.actions.select_option'));
         const selectedContactId = @json(old('contact_id', $invoice?->contact_id));
-        const selectedDebitAcc = @json(old('debit_id'));
-        const selectedCreditAcc = @json(old('credit_id'));
         const invoiceSaveText = @json($invoice === null ? __('common.actions.save') : __('common.actions.update'));
 
         function filterContactsByCompany() {
@@ -426,49 +442,7 @@
                 });
         }
 
-        function filterChartOfAccounts() {
-            const debitSelect = document.getElementById('debit_id');
-            const creditSelect = document.getElementById('credit_id');
-            const paymentDebitSelect = document.getElementById('payment_debit_id');
-            const paymentCreditSelect = document.getElementById('payment_credit_id');
-            debitSelect.innerHTML = `<option value="">${selectText}</option>`;
-            creditSelect.innerHTML = `<option value="">${selectText}</option>`;
-            paymentDebitSelect.innerHTML = `<option value="">${selectText}</option>`;
-            paymentCreditSelect.innerHTML = `<option value="">${selectText}</option>`;
-
-            allCharts.forEach((chart) => {
-                const type = chart.chart_type;
-                if (!type) return;
-
-                const label = `${chart.code ? `${chart.code} - ` : ''}${chart.name}`;
-                const canDebit = type.isAsset === true && chart.isDebtor === true;
-                const canCredit = type.isIncome === true;
-
-                if (canDebit)
-                    debitSelect.add(new Option(label, chart.id, false, String(chart.id) === String(
-                        selectedDebitAcc)));
-                if (canCredit)
-                    creditSelect.add(new Option(label, chart.id, false, String(chart.id) === String(
-                        selectedCreditAcc)));
-                if (chart.isBank === true) paymentDebitSelect.add(new Option(label, chart.id));
-                if (type.isAsset === true && chart.isDebtor === true) paymentCreditSelect.add(new Option(label,
-                    chart.id));
-            });
-
-            refreshAccountSelects();
-        }
-
-        function refreshAccountSelects() {
-            if (typeof window.initCombobox !== 'function') {
-                return;
-            }
-
-            document.querySelectorAll('.js-account-select').forEach((element) => {
-                window.initCombobox(element, {
-                    placeholder: selectText,
-                });
-            });
-        }
+        filterContactsByCompany();
 
         function refreshProductSelects() {
             if (typeof window.initCombobox !== 'function') {
@@ -496,10 +470,6 @@
             Object.entries(panels).forEach(([id, name]) => {
                 document.getElementById(id)?.classList.toggle('sales-tab-panel-active', section === name);
             });
-        }
-
-        function refreshEntryForm() {
-            filterChartOfAccounts();
         }
 
         function applySelectedProductPrice(select, force = false) {

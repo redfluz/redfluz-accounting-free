@@ -30,6 +30,7 @@ use App\Enums\Finance\LedgerStatus;
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
+use App\Models\Finance\JournalEntry;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
@@ -88,6 +89,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $undone_by
  * @property string|null $undone_name
  * @property CarbonInterface|null $undone_at
+ * @property string|null $reversal_id
  * @property-read Collection<int, PurchaseInvoiceLine> $lines
  *
  * @mixin Builder<self>
@@ -106,6 +108,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'approved_by', 'approved_name', 'approved_at',
     'cancelled_by', 'cancelled_name', 'cancelled_at',
     'undone_by', 'undone_name', 'undone_at',
+    'reversal_id',
 ])]
 class PurchaseInvoice extends Model
 {
@@ -196,5 +199,15 @@ class PurchaseInvoice extends Model
     public function isEditable(): bool
     {
         return ! $this->isPosted() && ! $this->isCancelled();
+    }
+
+    /**
+     * The reversing journal entry, if this invoice was reversed.
+     *
+     * @return BelongsTo<JournalEntry, $this>
+     */
+    public function reversal(): BelongsTo
+    {
+        return $this->belongsTo(JournalEntry::class, 'reversal_id');
     }
 }

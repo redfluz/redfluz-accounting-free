@@ -108,6 +108,13 @@ class CompanyController extends Controller
         $arTotals = $this->calculateStatement($arLedgers);
         $apTotals = $this->calculateStatement($apLedgers);
 
+        // The statement grids read newest date first. The reverse happens here,
+        // after the running balances were written, because each row keeps the
+        // chronological figure it was assigned; reversing the query itself
+        // would accumulate the balance backwards from the newest movement.
+        $arLedgers = $arLedgers->reverse()->values();
+        $apLedgers = $apLedgers->reverse()->values();
+
         // --- CALENDAR LOGIC ---
         // 1. Determine the month
         $month = $request->input('month');

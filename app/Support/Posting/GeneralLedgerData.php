@@ -28,11 +28,16 @@ declare(strict_types=1);
 
 namespace App\Support\Posting;
 
+use App\Enums\Finance\GeneralLedgerEntryType;
 use App\Enums\Finance\LedgerSourceType;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
+use App\Models\Finance\ManualPurchaseAdjustment;
+use App\Models\Finance\ManualPurchaseAdjustmentChart;
+use App\Models\Finance\ManualSalesAdjustment;
+use App\Models\Finance\ManualSalesAdjustmentChart;
 use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\Sales\SalesInvoice;
@@ -66,15 +71,13 @@ class GeneralLedgerData extends Data
         LedgerSubType::MANUAL_SALES_INVOICE->value => LedgerSourceType::SALES_INVOICE,
         LedgerSubType::PURCHASE_INVOICE->value => LedgerSourceType::PURCHASE_INVOICE,
         LedgerSubType::RECEIPT->value => LedgerSourceType::RECEIPT,
-        LedgerSubType::RECEIPT_REFUND->value => LedgerSourceType::RECEIPT_REFUND,
+        LedgerSubType::CUSTOMER_REFUND->value => LedgerSourceType::CUSTOMER_REFUND,
         LedgerSubType::SUPPLIER_REFUND->value => LedgerSourceType::SUPPLIER_REFUND,
         LedgerSubType::PAYMENT_VOUCHER->value => LedgerSourceType::PAYMENT_VOUCHER,
         LedgerSubType::INCREASE_ADJUSTMENT->value => LedgerSourceType::SALES_ADJUSTMENT,
         LedgerSubType::DECREASE_ADJUSTMENT->value => LedgerSourceType::SALES_ADJUSTMENT,
         LedgerSubType::MANUAL_SALES_ADJUSTMENT->value => LedgerSourceType::SALES_ADJUSTMENT,
         LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT->value => LedgerSourceType::PURCHASE_ADJUSTMENT,
-        LedgerSubType::PURCHASE_DEBIT_NOTE->value => LedgerSourceType::PURCHASE_ADJUSTMENT,
-        LedgerSubType::PURCHASE_CREDIT_NOTE->value => LedgerSourceType::PURCHASE_ADJUSTMENT,
         LedgerSubType::BANK_JOURNAL->value => LedgerSourceType::BANK_JOURNAL,
     ];
 
@@ -154,7 +157,6 @@ class GeneralLedgerData extends Data
      * Build a general ledger row for one side of a sales invoice entry.
      *
      * @param  ChartSetting  $chartConfig  The chart configuration for default accounts.
-     * @param  string  $entryType  Which entry this is: 'receivable', 'revenue', 'tax', 'discount', 'cogs', 'inventory'.
      * @param  Chart|null  $chart  The chart account's details.
      * @param  numeric-string  $debitAmount  The debit amount for this entry.
      * @param  numeric-string  $creditAmount  The credit amount for this entry.
@@ -163,20 +165,19 @@ class GeneralLedgerData extends Data
         SalesInvoice $invoice,
         SalesInvoiceLine $line,
         ChartSetting $chartConfig,
-        string $entryType,
+        GeneralLedgerEntryType $entryType,
         ?Chart $chart,
         string $debitAmount,
         string $creditAmount,
     ): self {
-        // Determine which chart ID to use based on entry type
         $chartId = match ($entryType) {
-            'receivable' => $chartConfig->client_chart_uuid,
-            'revenue' => $chartConfig->income_chart_uuid,
-            'tax' => $chartConfig->output_tax_chart_uuid,
-            'discount' => null,
-            'cogs' => $chartConfig->cogs_chart_uuid,
-            'inventory' => $chartConfig->inventory_chart_uuid,
-            default => null,
+            GeneralLedgerEntryType::RECEIVABLE => $chartConfig->client_chart_uuid,
+            GeneralLedgerEntryType::REVENUE => $chartConfig->income_chart_uuid,
+            GeneralLedgerEntryType::TAX => $chartConfig->output_tax_chart_uuid,
+            GeneralLedgerEntryType::DISCOUNT => $chartConfig->discount_chart_uuid,
+            GeneralLedgerEntryType::COGS => $chartConfig->cogs_chart_uuid,
+            GeneralLedgerEntryType::INVENTORY => $chartConfig->inventory_chart_uuid,
+            GeneralLedgerEntryType::PAYABLE => $chartConfig->vendor_chart_uuid,
         };
 
         return new self(
@@ -226,7 +227,6 @@ class GeneralLedgerData extends Data
      * Build a general ledger row for one side of a purchase invoice entry.
      *
      * @param  ChartSetting  $chartConfig  The chart configuration for default accounts.
-     * @param  string  $entryType  Which entry this is: 'payable', 'inventory', 'tax', 'discount'.
      * @param  Chart|null  $chart  The chart account's details.
      * @param  numeric-string  $debitAmount  The debit amount for this entry.
      * @param  numeric-string  $creditAmount  The credit amount for this entry.
@@ -235,18 +235,19 @@ class GeneralLedgerData extends Data
         PurchaseInvoice $invoice,
         PurchaseInvoiceLine $line,
         ChartSetting $chartConfig,
-        string $entryType,
+        GeneralLedgerEntryType $entryType,
         ?Chart $chart,
         string $debitAmount,
         string $creditAmount,
     ): self {
-        // Determine which chart ID to use based on entry type
         $chartId = match ($entryType) {
-            'payable' => $chartConfig->vendor_chart_uuid,
-            'inventory' => $chartConfig->inventory_chart_uuid,
-            'tax' => $chartConfig->input_tax_chart_uuid,
-            'discount' => null,
-            default => null,
+            GeneralLedgerEntryType::PAYABLE => $chartConfig->vendor_chart_uuid,
+            GeneralLedgerEntryType::INVENTORY => $chartConfig->inventory_chart_uuid,
+            GeneralLedgerEntryType::TAX => $chartConfig->input_tax_chart_uuid,
+            GeneralLedgerEntryType::DISCOUNT => null,
+            GeneralLedgerEntryType::RECEIVABLE => $chartConfig->client_chart_uuid,
+            GeneralLedgerEntryType::REVENUE => $chartConfig->income_chart_uuid,
+            GeneralLedgerEntryType::COGS => $chartConfig->cogs_chart_uuid,
         };
 
         return new self(
@@ -273,31 +274,110 @@ class GeneralLedgerData extends Data
     }
 
     /**
-     * The single-sided posting leg this row contributes to a posting.
+     * Build the general ledger row that mirrors one payable sub-ledger row.
+     *
+     * The sub-ledger row is the source. What is owed to the supplier is written to
+     * the payable ledger and, unchanged, to the same account in the general
+     * ledger, so the two agree line for line instead of relying on two totals that
+     * happen to come out the same.
+     *
+     * @param  ApLedgerData  $row  The payable row being mirrored.
+     * @param  PurchaseInvoice  $invoice  The invoice the row was raised by.
      */
-    public function toLeg(): PostingLeg
+    public static function fromApLedgerRow(ApLedgerData $row, PurchaseInvoice $invoice): self
     {
-        $hasDebit = bccomp($this->debitAmount, '0.00', 2) !== 0;
-        $hasCredit = bccomp($this->creditAmount, '0.00', 2) !== 0;
+        return new self(
+            id: (string) Str::uuid7(),
+            chartId: $row->chartId,
+            companyId: $row->companyId,
+            currencyId: $row->currencyId,
+            type: $row->type,
+            subtype: $row->subtype,
+            documentNumber: $row->documentNumber,
+            referenceNumber: $row->referenceNumber,
+            date: $invoice->date,
+            chartCode: $row->chartCode,
+            chartName: $row->chartName,
+            companyName: $row->companyName,
+            description: $invoice->notes,
+            lineDescription: $row->description,
+            debitAmount: $row->debitAmount,
+            creditAmount: $row->creditAmount,
+            createdAt: now(),
+            updatedAt: now(),
+            deletedAt: null,
+        );
+    }
 
-        if ($hasDebit && $hasCredit) {
-            throw PostingException::oneSidedEntryRequired($this->id);
-        }
+    /**
+     * Build the general ledger row from a manual sales adjustment chart line.
+     *
+     * The line is one single-sided entry as the user keyed it: one account,
+     * one amount, debit or credit, never both.
+     *
+     * @param  Collection<string, string>  $accountDescriptions  Chart id to name.
+     */
+    public static function fromManualSalesAdjustmentLine(
+        ManualSalesAdjustment $adjustment,
+        ManualSalesAdjustmentChart $line,
+        Collection $accountDescriptions,
+    ): self {
+        return new self(
+            id: (string) Str::uuid7(),
+            chartId: $line->chart_id,
+            companyId: $line->company_id ?? $adjustment->company_id,
+            currencyId: null,
+            type: $line->type->value,
+            subtype: $line->subtype->value,
+            documentNumber: $line->document_number,
+            referenceNumber: $line->reference_number,
+            date: $line->date,
+            chartCode: $line->chart_code,
+            chartName: $line->chart_name ?? self::accountName($accountDescriptions, $line->chart_id),
+            companyName: $line->company_name ?? $adjustment->company_name,
+            description: $line->description ?? $adjustment->notes,
+            lineDescription: $line->line_description,
+            debitAmount: $line->debit_amount ?? '0.00',
+            creditAmount: $line->credit_amount ?? '0.00',
+            createdAt: now(),
+            updatedAt: now(),
+            deletedAt: null,
+        );
+    }
 
-        if ($this->chartId === null) {
-            throw PostingException::oneSidedEntryRequired($this->id);
-        }
-
-        $debitSide = $hasDebit || ! $hasCredit;
-
-        return PostingLeg::movement(
-            $this->id,
-            $this->chartId,
-            $debitSide,
-            $this->debitAmount,
-            $this->creditAmount,
-            $this->lineDescription,
-            $this->referenceNumber,
+    /**
+     * Build the general ledger row from a manual purchase adjustment chart line.
+     *
+     * The line is one single-sided entry as the user keyed it: one account,
+     * one amount, debit or credit, never both.
+     *
+     * @param  Collection<string, string>  $accountDescriptions  Chart id to name.
+     */
+    public static function fromManualPurchaseAdjustmentLine(
+        ManualPurchaseAdjustment $adjustment,
+        ManualPurchaseAdjustmentChart $line,
+        Collection $accountDescriptions,
+    ): self {
+        return new self(
+            id: (string) Str::uuid7(),
+            chartId: $line->chart_id,
+            companyId: $line->company_id ?? $adjustment->company_id,
+            currencyId: null,
+            type: $line->type->value,
+            subtype: $line->subtype->value,
+            documentNumber: $line->document_number,
+            referenceNumber: $line->reference_number,
+            date: $line->date,
+            chartCode: $line->chart_code,
+            chartName: $line->chart_name ?? self::accountName($accountDescriptions, $line->chart_id),
+            companyName: $line->company_name ?? $adjustment->company_name,
+            description: $line->description ?? $adjustment->notes,
+            lineDescription: $line->line_description,
+            debitAmount: $line->debit_amount ?? '0.00',
+            creditAmount: $line->credit_amount ?? '0.00',
+            createdAt: now(),
+            updatedAt: now(),
+            deletedAt: null,
         );
     }
 

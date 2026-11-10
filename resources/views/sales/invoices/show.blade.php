@@ -30,9 +30,7 @@ use App\Enums\FileResources;
 $canApprove = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::APPROVE);
 $canRemove = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::REMOVE);
 $canUpdate = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::UPDATE);
-$canReverse = $canApprove && $isPosted && ! $invoice->reversal_journal_id && ! $invoice->undone_at;
-$canReturn = $isPosted && $canUpdate && ! $invoice->reversal_journal_id && ! $invoice->undone_at;
-$canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
+$canReverse = $canApprove && $isPosted && ! $invoice->reversal_id && ! $invoice->undone_at;
 ?>
 
 @props([
@@ -42,8 +40,6 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
     'payments',
     'isPosted',
     'indexRoute',
-    'lineReturns',
-    'returnableLines',
     'canDeductInventory' => false,
     'inventoryDeducted' => false,
 ])
@@ -103,9 +99,9 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                     <span class="badge theme-success d-flex align-items-center">
                         {{ __('journal_entries.status_approved') }}
                     </span>
-                    @if ($canUndo)
+                    @if ($canReverse)
                         <button class="btn btn-solid theme-warning btn-sm text-nowrap" data-bs-toggle="dialog"
-                            data-bs-target="#undoWizardModal" type="button">
+                            data-bs-target="#reverseJournalModal" type="button">
                             <i data-lucide="undo-2"></i> {{ __('journal_entries.reverse_button') }}
                         </button>
                     @endif
@@ -185,11 +181,6 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                                 <td>{{ $line->description ?? '-' }}</td>
                                 <td class="text-end">
                                     {{ $line->quantity }}
-                                    @if (bccomp($lineReturns[$line->id]['returned'] ?? '0', '0', 4) === 1)
-                                        <small class="fg-secondary d-block">
-                                            {{ __('sales_returns.returned_indicator', ['qty' => $lineReturns[$line->id]['returned']]) }}
-                                        </small>
-                                    @endif
                                 </td>
                                 <td class="text-end">{{ number_format((float) $line->unit_price, 2) }}</td>
                                 <td class="text-end">{{ number_format((float) $line->discount_amount, 2) }}</td>
@@ -259,44 +250,6 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
             @endforelse
         </div>
     </div>
-    @if ($canUndo)
-        <dialog class="dialog dialog-lg" id="undoWizardModal" aria-labelledby="undoWizardModalLabel">
-            <div class="dialog-header">
-                <h5 class="dialog-title" id="undoWizardModalLabel">
-                    {{ __('sales_returns.wizard_title', ['document' => $documentNumber]) }}
-                </h5>
-                <button class="btn-close" data-bs-dismiss="dialog" type="button"
-                    aria-label="{{ __('common.actions.close') }}"></button>
-            </div>
-            <div class="dialog-body">
-                @if ($canReverse)
-                    <button
-                        class="btn btn-solid theme-warning w-100 mb-2 flex-column align-items-start text-start text-wrap"
-                        type="button" data-bs-toggle="dialog" data-bs-target="#reverseJournalModal">
-                        <strong>
-                            <i data-lucide="undo-2"></i> {{ __('sales_returns.wizard_full_title') }}
-                        </strong>
-                        <span class="small fw-normal">{{ __('journal_entries.reverse_explanation') }}</span>
-                    </button>
-                @endif
-                @if ($canReturn && $returnableLines->isNotEmpty())
-                    <button
-                        class="btn btn-solid theme-primary w-100 flex-column align-items-start text-start text-wrap"
-                        type="button" data-bs-toggle="dialog" data-bs-target="#partialReturnModal">
-                        <strong>
-                            <i data-lucide="package-check"></i> {{ __('sales_returns.wizard_partial_title') }}
-                        </strong>
-                        <span class="small fw-normal">{{ __('sales_returns.wizard_partial_description') }}</span>
-                    </button>
-                @endif
-            </div>
-            <div class="dialog-footer">
-                <button class="btn btn-solid theme-secondary" data-bs-dismiss="dialog" type="button">
-                    {{ __('common.actions.cancel') }}
-                </button>
-            </div>
-        </dialog>
-    @endif
     @if ($canReverse)
         <dialog class="dialog dialog-lg" id="reverseJournalModal" aria-labelledby="reverseJournalModalLabel">
             <form method="POST" action="{{ route('sales.invoices.reverse', $documentNumber) }}">
@@ -325,12 +278,6 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                     </div>
                 </div>
                 <div class="dialog-footer">
-                    @if ($canReturn && $returnableLines->isNotEmpty())
-                        <button class="btn btn-solid theme-secondary me-auto" type="button"
-                            data-bs-toggle="dialog" data-bs-target="#undoWizardModal">
-                            <i class="me-1" data-lucide="arrow-left"></i> {{ __('common.actions.back') }}
-                        </button>
-                    @endif
                     <button class="btn btn-solid theme-secondary" data-bs-dismiss="dialog" type="button">
                         {{ __('common.actions.cancel') }}</button><button class="btn btn-solid theme-warning"
                         type="submit" data-confirm-message="{{ __('journal_entries.confirm_reverse') }}">
@@ -346,134 +293,5 @@ $canUndo = $canReverse || ($canReturn && $returnableLines->isNotEmpty());
                 );
             </script>
         @endif
-    @endif
-    @if ($canReturn && $returnableLines->isNotEmpty())
-        <dialog class="dialog dialog-lg" id="partialReturnModal" aria-labelledby="partialReturnModalLabel">
-            <form method="POST" action="{{ route('sales.invoices.receive-return', $documentNumber) }}"
-                data-confirm-message="{{ __('sales_returns.confirm') }}" data-confirm-tone="danger">
-                @csrf
-                <div class="dialog-header">
-                    <h5 class="dialog-title" id="partialReturnModalLabel">
-                        {{ __('sales_returns.wizard_partial_title') }}
-                    </h5>
-                    <button class="btn-close" data-bs-dismiss="dialog" type="button"
-                        aria-label="{{ __('common.actions.close') }}"></button>
-                </div>
-                <div class="dialog-body">
-                    @if ($errors->has('returns'))
-                        <div class="alert alert theme-danger mb-3">{{ $errors->first('returns') }}</div>
-                    @endif
-                    <div class="table-responsive mb-3 rounded border">
-                        <table class="table table-striped align-middle mb-0">
-                            <thead class="bg-1">
-                                <tr>
-                                    <th scope="col">{{ __('ledgers.table.column_product') }}</th>
-                                    <th scope="col" class="text-end">{{ __('sales_returns.column_invoiced') }}</th>
-                                    <th scope="col" class="text-end">{{ __('sales_returns.column_returned') }}</th>
-                                    <th scope="col" class="text-end">{{ __('sales_returns.column_remaining') }}</th>
-                                    <th scope="col" class="text-end" style="min-width: 10rem;">{{ __('sales_returns.quantity') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($returnableLines as $returnableLine)
-                                    <tr>
-                                        <td>{{ $returnableLine['product_name'] }}</td>
-                                        <td class="text-end">{{ $returnableLine['quantity'] }}</td>
-                                        <td class="text-end">{{ $returnableLine['returned'] }}</td>
-                                        <td class="text-end">{{ $returnableLine['remaining'] }}</td>
-                                        <td class="text-end">
-                                            <input type="hidden" name="returns[{{ $returnableLine['id'] }}][line_id]"
-                                                value="{{ $returnableLine['id'] }}" />
-                                            <input type="number" step="0.0001" min="0"
-                                                max="{{ $returnableLine['remaining'] }}"
-                                                name="returns[{{ $returnableLine['id'] }}][quantity]"
-                                                value="{{ old('returns.' . $returnableLine['id'] . '.quantity') }}"
-                                                data-unit-price="{{ $returnableLine['unit_price'] }}"
-                                                class="form-control form-control-sm text-end return-quantity"
-                                                placeholder="0.0000"
-                                                aria-label="{{ __('sales_returns.quantity') }}" />
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot class="bg-1">
-                                <tr>
-                                    <th scope="row" colspan="4" class="text-end">{{ __('sales_returns.credit_note_total') }}</th>
-                                    <th scope="row" class="text-end" id="returnTotalAmount">{{ $currencySymbol }} 0.00</th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="return_notes">{{ __('sales_returns.notes') }}</label>
-                        <input name="return_notes" id="return_notes" type="text" maxlength="1000" class="form-control"
-                            value="{{ old('return_notes') }}" />
-                    </div>
-                </div>
-                <div class="dialog-footer">
-                    @if ($canReverse)
-                        <button class="btn btn-solid theme-secondary me-auto" type="button"
-                            data-bs-toggle="dialog" data-bs-target="#undoWizardModal">
-                            <i class="me-1" data-lucide="arrow-left"></i> {{ __('common.actions.back') }}
-                        </button>
-                    @endif
-                    <button class="btn btn-solid theme-secondary" data-bs-dismiss="dialog" type="button">
-                        {{ __('common.actions.cancel') }}</button><button class="btn btn-solid theme-warning"
-                        type="submit">
-                        <i data-lucide="package-check"></i> {{ __('sales_returns.submit') }}
-                    </button>
-                </div>
-            </form>
-        </dialog>
-        @if ($errors->has('returns'))
-            <script>
-                document.addEventListener('DOMContentLoaded', () =>
-                    bootstrap.Dialog.getOrCreateInstance(document.getElementById('partialReturnModal')).show(),
-                );
-            </script>
-        @endif
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const inputs = Array.from(document.querySelectorAll('#partialReturnModal .return-quantity'));
-                const totalCell = document.getElementById('returnTotalAmount');
-
-                if (inputs.length === 0) {
-                    return;
-                }
-
-                const currencySymbol = @json($currencySymbol);
-                const formatAmount = (value) =>
-                    currencySymbol + ' ' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-                // Every filled line lands on the same credit note, so show what
-                // that note will be worth while the quantities are being typed.
-                const refreshTotal = () => {
-                    let total = 0;
-
-                    inputs.forEach((input) => {
-                        const remaining = parseFloat(input.max);
-                        let quantity = parseFloat(input.value);
-
-                        if (!isNaN(remaining) && quantity > remaining) {
-                            quantity = remaining;
-                            input.value = remaining;
-                        }
-
-                        if (isNaN(quantity) || quantity <= 0) {
-                            return;
-                        }
-
-                        total += quantity * parseFloat(input.dataset.unitPrice || '0');
-                    });
-
-                    if (totalCell) {
-                        totalCell.textContent = formatAmount(total);
-                    }
-                };
-
-                inputs.forEach((input) => input.addEventListener('input', refreshTotal));
-                refreshTotal();
-            });
-        </script>
     @endif
 @endsection

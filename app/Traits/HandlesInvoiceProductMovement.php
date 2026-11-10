@@ -26,7 +26,6 @@
 
 namespace App\Traits;
 
-use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Inventory\ProductMovementDirection;
@@ -35,11 +34,13 @@ use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Inventory\ProductStockBucket;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
+use App\Models\Finance\Currency;
 use App\Models\Finance\Ledger;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Inventory\StockLocation;
 use App\Models\Sales\SalesInvoice;
+use App\Models\System\Setting;
 use App\Services\DecimalService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -307,35 +308,38 @@ trait HandlesInvoiceProductMovement
             ]);
         }
 
+        /** @var string|null $settingsCurrencyId */
+        $settingsCurrencyId = Setting::query()->value('currency_id');
+
+        /** @var string|null $defaultCurrencyId */
+        $defaultCurrencyId = Currency::query()->where('is_default', true)->value('id');
+
+        /** @var string|null $currencyId */
+        $currencyId = $settingsCurrencyId ?? $defaultCurrencyId;
+
         foreach ($movements as $movement) {
+            /** @var ProductLedger $movement */
             $common = [
-                'source_id' => $movement->id,
-                'source_type' => null,
                 'company_id' => $movement->company_id,
+                'currency_id' => $currencyId,
                 'company_name' => $movement->company_name,
-                'contact_id' => null,
                 'document_number' => $movement->document_number,
                 'reference_number' => $movement->reference_number ?? $movement->document_number,
                 'type' => LedgerType::JOURNAL->value,
                 'subtype' => LedgerSubType::JOURNAL->value,
                 'date' => $movement->date,
-                'total_amount' => $movement->total_cost,
-                'status' => LedgerStatus::POSTED->value,
-                'notes' => __('product_ledgers.entries.cogs_posting', [
+                'description' => __('product_ledgers.entries.cogs_posting', [
                     'document' => $movement->document_number,
                 ]),
-                'description' => $movement->notes,
+                'line_description' => $movement->notes,
             ];
 
             $cogsLedger = new Ledger;
             $cogsLedger->forceFill($common + [
                 'id' => $movement->cogs_ledger_id,
-                'debit_id' => $cogsChart->id,
-                'credit_id' => null,
-                'debit_acc' => $cogsChart->code,
-                'credit_acc' => null,
-                'debit_acc_desc' => $cogsChart->name,
-                'credit_acc_desc' => null,
+                'chart_id' => $cogsChart->id,
+                'chart_code' => $cogsChart->code,
+                'chart_name' => $cogsChart->name,
                 'debit_amount' => $movement->total_cost,
                 'credit_amount' => '0.00',
             ]);
@@ -344,12 +348,9 @@ trait HandlesInvoiceProductMovement
             $inventoryLedger = new Ledger;
             $inventoryLedger->forceFill($common + [
                 'id' => $movement->inventory_ledger_id,
-                'debit_id' => null,
-                'credit_id' => $inventoryChart->id,
-                'debit_acc' => null,
-                'credit_acc' => $inventoryChart->code,
-                'debit_acc_desc' => null,
-                'credit_acc_desc' => $inventoryChart->name,
+                'chart_id' => $inventoryChart->id,
+                'chart_code' => $inventoryChart->code,
+                'chart_name' => $inventoryChart->name,
                 'debit_amount' => '0.00',
                 'credit_amount' => $movement->total_cost,
             ]);

@@ -31,7 +31,7 @@ $canCreate = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
 
 ?>
 
-@props(['companies', 'refundNumber'])
+@props(['companies', 'documentNumber', 'banks', 'eWalletAccounts'])
 
 @extends('layouts.app')
 
@@ -39,14 +39,19 @@ $canCreate = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
             <h5 class="fw-bold m-0">{{ __('payments.workflow.refund.create_title') }}</h5>
-            <span class="fg-secondary small">{{ $refundNumber }}</span>
+            <span class="fg-secondary small">{{ $documentNumber }}</span>
         </div>
 
         <form autocomplete="off" action="{{ route('bank.customer-refunds.store') }}" enctype="multipart/form-data" method="POST">
             @csrf
             <div class="card-body">
                 @include('partials.alerts')
-                @include('bank.customer-refund._form', ['refund' => null, 'companies' => $companies])
+                @include('bank.customer-refund._form', [
+                    'refund' => null,
+                    'companies' => $companies,
+                    'banks' => $banks,
+                    'eWalletAccounts' => $eWalletAccounts,
+                ])
             </div>
 
             <div class="card-footer d-flex justify-content-between">

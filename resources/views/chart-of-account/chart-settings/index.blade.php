@@ -34,6 +34,8 @@
 
                             <th scope="col">Income</th>
 
+                            <th scope="col">{{ __('chart_settings.table.column_discount_chart_uuid') }}</th>
+
                             <th scope="col">Bank</th>
 
                             <th scope="col">{{ __('chart_settings.table.column_cash_chart_uuid') }}</th>
@@ -65,6 +67,16 @@
                                         <span class="fw-semibold"> {{ $chartSetting->incomeChart->code }} </span>
                                         -
                                         {{ $chartSetting->incomeChart->name }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @if ($chartSetting->discountChart)
+                                        <span class="fw-semibold"> {{ $chartSetting->discountChart->code }} </span>
+                                        -
+                                        {{ $chartSetting->discountChart->name }}
                                     @else
                                         -
                                     @endif

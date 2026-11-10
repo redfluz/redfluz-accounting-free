@@ -26,7 +26,7 @@
 
 return [
     'workflow' => [
-        'receipt_refund' => [
+        'customer_refund' => [
             'title' => 'Bayaran Balik Pelanggan',
             'subtitle' => 'Bayar balik bayaran pelanggan yang dikaitkan dengan invois jualan.',
             'create_title' => 'Cipta Bayaran Balik Pelanggan',
@@ -38,6 +38,7 @@ return [
         ],
     ],
     'title' => 'Bayaran Balik',
+    'history_title' => 'Bayaran Balik Disiarkan',
     'subtitle' => 'Cipta dan cetak bayaran balik pelanggan dan pembekal yang dipautkan kepada invois asal.',
     'table' => [
         'column_entry' => 'Entri',
@@ -49,7 +50,7 @@ return [
         'accounting_hint' => 'Bayaran balik resit: debit penghutang dan kredit bank. Bayaran balik pembekal: debit bank dan kredit pemiutang. Pemindahan: bank ke bank. Pengeluaran: kredit bank.',
     ],
     'sub_type' => [
-        'receipt_refund' => 'Bayaran Balik Pelanggan',
+        'customer_refund' => 'Bayaran Balik Pelanggan',
         'supplier_refund' => 'Bayaran Balik Pembekal',
         'refund' => 'Bayaran Balik',
         'transfer' => 'Pemindahan Dana',
@@ -67,10 +68,10 @@ return [
         'linked_document_invalid' => 'Pilih invois jualan atau invois belian yang telah dipos dan sah bagi syarikat yang dipilih.',
         'debit_account_invalid' => 'Akaun debit yang dipilih tidak sah untuk jenis bayaran balik ini.',
         'credit_account_invalid' => 'Akaun kredit yang dipilih tidak sah untuk jenis bayaran balik ini.',
-        'amount_exceeds_paid' => 'Bayaran balik tidak boleh melebihi baki bayaran tersedia sebanyak RM :amount.',
+        'amount_exceeds_paid' => 'Bayaran balik tidak boleh melebihi baki bayaran tersedia sebanyak :currency :amount.',
     ],
     'pdf' => [
-        'receipt_refund_title' => 'BAYARAN BALIK RESIT',
+        'customer_refund_title' => 'BAYARAN BALIK RESIT',
         'supplier_refund_title' => 'BAYARAN BALIK PEMBEKAL',
         'refund_title' => 'BAYARAN BALIK',
         'transfer_title' => 'PEMINDAHAN DANA',

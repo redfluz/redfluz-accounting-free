@@ -101,7 +101,7 @@ class SupplierCancelledController extends Controller
         $refund = SupplierRefund::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::CANCELLED)
-            ->with('lines')
+            ->with('apLedgers')
             ->firstOrFail();
 
         return view('bank.supplier-refund.cancelled.show', compact('refund', 'documentNumber'));
@@ -120,7 +120,7 @@ class SupplierCancelledController extends Controller
         $refund = SupplierRefund::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::CANCELLED)
-            ->with('lines')
+            ->with('apLedgers')
             ->firstOrFail();
 
         return Pdf::loadView('bank.supplier-refund.pdf', [

@@ -27,18 +27,22 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Constants\FlashMessage;
-use App\Enums\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Finance\DiscountType;
+use App\Enums\Finance\GeneralLedgerEntryType;
 use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
-use App\Enums\Inventory\ProductMovementDirection;
+use App\Enums\Finance\TaxMode;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Sales\SalesType;
-use App\Enums\Finance\TaxMode;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\SalesInvoice\BatchApproveSalesInvoiceRequest;
+use App\Http\Requests\Sales\SalesInvoice\BatchCancelSalesInvoiceRequest;
+use App\Http\Requests\Sales\SalesInvoice\ReverseSalesInvoiceRequest;
+use App\Http\Requests\Sales\SalesInvoice\StoreSalesInvoiceCompanyRequest;
 use App\Http\Requests\Sales\SalesInvoice\StoreSalesInvoiceRequest;
 use App\Http\Requests\Sales\SalesInvoice\UpdateSalesInvoiceRequest;
 use App\Models\ChartOfAccount\Chart;
@@ -54,20 +58,17 @@ use App\Models\Finance\Tax;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\DeliveryOrder;
-use App\Models\Sales\SalesAdjustment;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
-use App\Services\DecimalService;
 use App\Support\Data\Sales\SalesInvoiceData;
+use App\Support\Posting\ArLedgerData;
 use App\Support\Posting\GeneralLedgerData;
-use App\Support\Posting\InvoiceLedgerPoster;
-use App\Support\Posting\Ledger;
-use App\Support\Posting\Receivable;
+use App\Support\Posting\LedgerData;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use App\Traits\HandlesInvoiceProductMovement;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
@@ -98,9 +99,7 @@ class SalesInvoiceController extends Controller
      * test can hand it a poster of its own.
      */
     public function __construct(
-        private readonly Receivable $receivable,
-        private readonly Ledger $ledger,
-        private readonly InvoiceLedgerPoster $invoicePoster
+        private readonly Posting $posting
     ) {}
 
     /**
@@ -149,7 +148,6 @@ class SalesInvoiceController extends Controller
             'indexRoute',
             'createRoute'
         ));
-
     }
 
     /**
@@ -174,55 +172,9 @@ class SalesInvoiceController extends Controller
         /** @var Collection<int, SalesInvoiceLine> $lines */
         $lines = $invoice->lines;
 
-        // Per-line return audit: what was invoiced, how much already came
-        // back, and what is still returnable for every product line.
-        /** @var array<string, array{id: string, product_name: string|null, quantity: string, returned: string, remaining: numeric-string, unit_price: string}> $lineReturns */
-        $lineReturns = [];
-
-        foreach ($lines as $line) {
-            /** @var SalesInvoiceLine $line */
-            if ($line->product_id === null) {
-                continue;
-            }
-
-            $returnedIn = (string) ProductLedger::query()
-                ->whereIn('source_type', [ProductMovementSource::SALES_INVOICE, ProductMovementSource::SALES_RETURN])
-                ->where('direction', ProductMovementDirection::IN)
-                ->whereNull('deleted_at')
-                ->where('source_entry_id', $line->id)
-                ->where('status', ProductMovementStatus::ACTIVE->value)
-                ->sum('quantity');
-
-            $quantity = DecimalService::normalize((string) ($line->quantity ?? 0));
-            $returned = DecimalService::normalize($returnedIn);
-
-            $lineReturns[$line->id] = [
-                'id' => $line->id,
-                'product_name' => $line->product_name,
-                'quantity' => $quantity,
-                'returned' => $returned,
-                'remaining' => bcsub($quantity, $returned, 4),
-                'unit_price' => DecimalService::normalize((string) ($line->unit_price ?? 0)),
-            ];
-        }
-
-        // What each product line still has left to return: invoiced less what
-        // already came back through the return action.
-        /** @var list<array{id: string, product_name: string|null, quantity: string, returned: string, remaining: numeric-string, unit_price: string}> $returnableItems */
-        $returnableItems = [];
-
-        foreach ($lineReturns as $lineReturn) {
-            if (bccomp($lineReturn['remaining'], '0.0000', 4) === 1) {
-                $returnableItems[] = $lineReturn;
-            }
-        }
-
-        /** @var \Illuminate\Support\Collection<int, array{id: string, product_name: string|null, quantity: string, returned: string, remaining: numeric-string, unit_price: string}> $returnableLines */
-        $returnableLines = new \Illuminate\Support\Collection($returnableItems);
-
         /** @var Collection<int, ArLedger> $payments */
         $payments = ArLedger::query()->where('type', LedgerType::PAYMENT)
-            ->where('reference_number', $documentNumber)->whereNotNull('debit_acc')->orderBy('date')->get();
+            ->where('reference_number', $documentNumber)->whereNotNull('chart_code')->orderBy('date')->get();
 
         $isPosted = $invoice->status === LedgerStatus::POSTED;
 
@@ -234,9 +186,7 @@ class SalesInvoiceController extends Controller
             'lines',
             'payments',
             'isPosted',
-            'indexRoute',
-            'lineReturns',
-            'returnableLines'
+            'indexRoute'
         ) + [
             'canDeductInventory' => $this->canDeductInventory($documentNumber),
             'inventoryDeducted' => $this->inventoryDeducted($documentNumber),
@@ -326,365 +276,6 @@ class SalesInvoiceController extends Controller
     }
 
     /**
-     * Receive part of a posted sale back from the customer.
-     *
-     * A return is the reverse of a sale: every returned quantity goes back on
-     * the shelf as an active stock movement, and one decrease adjustment (credit
-     * note) covering all of them is raised against the invoice and posted at
-     * once, so the customer owes less. Both halves happen in one transaction
-     * because a return with only one half is either missing stock or missing
-     * money.
-     *
-     * One submission is one return. A return may span several invoice lines and
-     * all of them share the same credit note number, so returning nine units
-     * across three products raises one cn100xx document, not three.
-     *
-     * @param  Request  $request  The returned lines and quantities.
-     * @param  string  $documentNumber  The sales invoice document number.
-     * @return RedirectResponse Redirects to the invoice detail page.
-     *
-     * @throws Throwable
-     */
-    public function receiveReturn(Request $request, string $documentNumber): RedirectResponse
-    {
-        $this->allows(FileResources::SALES_INVOICES, FileAction::UPDATE);
-
-        // The grid posts returns[<line id>][quantity]. The older single line
-        // payload (return_line_id + return_quantity) is still accepted so any
-        // saved form or bookmarked URL keeps working.
-        /** @var array{returns?: list<array{line_id: string, quantity?: numeric-string|int|float|null}>, return_line_id?: string, return_quantity?: numeric-string|int|float|null, return_notes?: string|null} $validated */
-        $validated = $request->validate([
-            'returns' => ['sometimes', 'array'],
-            'returns.*' => ['array'],
-            'returns.*.line_id' => ['required', 'uuid'],
-            'returns.*.quantity' => ['nullable', 'numeric', 'min:0'],
-            'return_line_id' => ['required_without:returns', 'uuid'],
-            'return_quantity' => ['required_without:returns', 'numeric', 'min:0.0001'],
-            'return_notes' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        /** @var array<string, numeric-string> $requested */
-        $requested = [];
-
-        // Blank quantity boxes mean "not returning this line", so skip them and
-        // fold repeats of the same line into one quantity.
-        foreach ($validated['returns'] ?? [] as $entry) {
-            $lineId = $entry['line_id'];
-            $rawQuantity = $entry['quantity'] ?? null;
-
-            // A blank quantity box means "not returning this line".
-            if ($rawQuantity === null) {
-                continue;
-            }
-
-            $quantity = DecimalService::normalize((string) $rawQuantity);
-
-            if (bccomp($quantity, '0.0000', 4) !== 1) {
-                continue;
-            }
-
-            $requested[$lineId] = bcadd($requested[$lineId] ?? '0', $quantity, 4);
-        }
-
-        if ($requested === [] && isset($validated['return_line_id'], $validated['return_quantity'])) {
-            $requested[$validated['return_line_id']] = DecimalService::normalize(
-                (string) $validated['return_quantity']
-            );
-        }
-
-        if ($requested === []) {
-            throw ValidationException::withMessages([
-                'returns' => __('sales_returns.select_at_least_one_line'),
-            ]);
-        }
-
-        $invoice = SalesInvoice::query()
-            ->where('document_number', $documentNumber)
-            ->lockForUpdate()
-            ->first();
-        abort_if($invoice === null, 404);
-        abort_if($invoice->status !== LedgerStatus::POSTED, 409);
-
-        /** @var array<string, array{line: SalesInvoiceLine, product: Product, quantity: numeric-string, credit: numeric-string, cost: numeric-string}> $returnRows */
-        $returnRows = [];
-        $totalCredit = '0';
-
-        foreach ($requested as $lineId => $quantity) {
-            /** @var SalesInvoiceLine|null $line */
-            $line = $invoice->lines()
-                ->whereKey($lineId)
-                ->whereNotNull('product_id')
-                ->first();
-            abort_if($line === null, 404);
-
-            // Use the line's returned_quantity to track what has been returned.
-            // This works even after a full undo, unlike querying product_ledger.
-            $returnedIn = DecimalService::normalize((string) ($line->returned_quantity ?? '0'));
-            $remaining = bcsub(
-                DecimalService::normalize((string) ($line->quantity ?? 0)),
-                $returnedIn,
-                4
-            );
-
-            if (bccomp($quantity, $remaining, 4) === 1) {
-                throw ValidationException::withMessages([
-                    'returns' => __('sales_returns.quantity_exceeds_remaining', [
-                        'product' => $line->product_name ?? $line->id,
-                        'remaining' => $remaining,
-                    ]),
-                ]);
-            }
-
-            $product = Product::query()->whereKey($line->product_id)->first();
-            abort_if($product === null, 404);
-
-            $credit = bcmul($quantity, DecimalService::normalize((string) $line->unit_price), 2);
-            $cost = bcmul($quantity, DecimalService::normalize((string) $product->base_price), 2);
-
-            $returnRows[$lineId] = [
-                'line' => $line,
-                'product' => $product,
-                'quantity' => $quantity,
-                'credit' => $credit,
-                'cost' => $cost,
-            ];
-
-            $totalCredit = bcadd($totalCredit, $credit, 2);
-        }
-
-        $chartSetting = ChartSetting::query()->first();
-        abort_if($chartSetting === null || $chartSetting->client_chart_uuid === null || $chartSetting->income_chart_uuid === null, 422);
-        $receivableChart = Chart::query()->find($chartSetting->client_chart_uuid);
-        $revenueChart = Chart::query()->find($chartSetting->income_chart_uuid);
-        abort_if($receivableChart === null || $revenueChart === null, 422);
-
-        $cogsChart = filled($chartSetting->cogs_chart_uuid)
-            ? Chart::query()->whereKey($chartSetting->cogs_chart_uuid)->first()
-            : null;
-        $inventoryChart = filled($chartSetting->inventory_chart_uuid)
-            ? Chart::query()->whereKey($chartSetting->inventory_chart_uuid)->first()
-            : null;
-        abort_if($cogsChart === null || $inventoryChart === null, 422);
-
-        $location = $this->resolveStockLocation(null);
-        $notes = is_string($validated['return_notes'] ?? null) && trim($validated['return_notes']) !== ''
-            ? trim($validated['return_notes'])
-            : __('sales_returns.default_note', ['document' => $documentNumber]);
-        $now = now();
-        // The return movement carries the credit note number, so the sequence
-        // is drawn once, before any movement row is written.
-        $adjustmentNumber = $this->generateDocumentNumber(LedgerSubType::DECREASE_ADJUSTMENT);
-
-        DB::transaction(function () use (
-            $adjustmentNumber, $cogsChart, $documentNumber, $inventoryChart, $invoice,
-            $location, $notes, $now, $receivableChart, $revenueChart, $returnRows, $totalCredit
-        ): void {
-            $movementRows = [];
-            $financeRows = [];
-
-            foreach ($returnRows as $returnRow) {
-                /** @var SalesInvoiceLine $line */
-                $line = $returnRow['line'];
-                /** @var Product $product */
-                $product = $returnRow['product'];
-                $quantity = $returnRow['quantity'];
-                $costAmount = $returnRow['cost'];
-                $movementId = (string) Str::uuid7();
-                $cogsLedgerId = (string) Str::uuid7();
-                $inventoryLedgerId = (string) Str::uuid7();
-
-                // The goods are physically back, so the movement is active at once.
-                // Every returned line shares the one credit note number, which is what
-                // keeps a multi line return on a single document.
-                $movementRows[] = [
-                    'id' => $movementId,
-                    'product_id' => $product->id,
-                    'stock_location_id' => $location->id,
-                    'stock_location_name' => $location->name,
-                    'company_id' => $invoice->company_id,
-                    'source_entry_id' => $line->id,
-                    'cogs_ledger_id' => $cogsLedgerId,
-                    'inventory_ledger_id' => $inventoryLedgerId,
-                    'product_sku' => $product->sku,
-                    'product_name' => $line->product_name ?? $product->name,
-                    'company_name' => $invoice->company_name,
-                    'document_number' => $adjustmentNumber,
-                    'reference_number' => $documentNumber,
-                    'source_type' => ProductMovementSource::SALES_RETURN->value,
-                    'direction' => ProductMovementDirection::IN->value,
-                    'date' => today()->toDateString(),
-                    'quantity' => $quantity,
-                    'unit_cost' => DecimalService::normalize((string) $product->base_price),
-                    'total_cost' => $costAmount,
-                    'status' => ProductMovementStatus::ACTIVE->value,
-                    'activated_at' => $now,
-                    'notes' => $notes,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-
-                // Reverse the cost of what came back: stock up, cost of sales down.
-                $financeRows[] = [
-                    'id' => $inventoryLedgerId,
-                    'source_id' => $movementId,
-                    'source_type' => null,
-                    'company_id' => $invoice->company_id,
-                    'company_name' => $invoice->company_name,
-                    'contact_id' => $invoice->contact_id,
-                    'document_number' => $adjustmentNumber,
-                    'reference_number' => $documentNumber,
-                    'type' => LedgerType::JOURNAL->value,
-                    'subtype' => LedgerSubType::JOURNAL->value,
-                    'date' => today()->toDateString(),
-                    'debit_id' => $inventoryChart->id,
-                    'credit_id' => null,
-                    'debit_acc' => $inventoryChart->code,
-                    'credit_acc' => null,
-                    'debit_acc_desc' => $inventoryChart->name,
-                    'credit_acc_desc' => null,
-                    'debit_amount' => $costAmount,
-                    'credit_amount' => '0.00',
-                    'total_amount' => $costAmount,
-                    'status' => LedgerStatus::POSTED->value,
-                    'notes' => $notes,
-                    'description' => $notes,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'deleted_at' => null,
-                ];
-
-                $financeRows[] = [
-                    'id' => $cogsLedgerId,
-                    'source_id' => $movementId,
-                    'source_type' => null,
-                    'company_id' => $invoice->company_id,
-                    'company_name' => $invoice->company_name,
-                    'contact_id' => $invoice->contact_id,
-                    'document_number' => $adjustmentNumber,
-                    'reference_number' => $documentNumber,
-                    'type' => LedgerType::JOURNAL->value,
-                    'subtype' => LedgerSubType::JOURNAL->value,
-                    'date' => today()->toDateString(),
-                    'debit_id' => null,
-                    'credit_id' => $cogsChart->id,
-                    'debit_acc' => null,
-                    'credit_acc' => $cogsChart->code,
-                    'debit_acc_desc' => null,
-                    'credit_acc_desc' => $cogsChart->name,
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $costAmount,
-                    'total_amount' => $costAmount,
-                    'status' => LedgerStatus::POSTED->value,
-                    'notes' => $notes,
-                    'description' => $notes,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'deleted_at' => null,
-                ];
-            }
-
-            ProductLedger::query()->insert($movementRows);
-
-            $adjustment = SalesAdjustment::query()->create([
-                'id' => (string) Str::uuid7(),
-                'company_id' => $invoice->company_id,
-                'contact_id' => $invoice->contact_id,
-                'subtype' => LedgerSubType::DECREASE_ADJUSTMENT,
-                'document_number' => $adjustmentNumber,
-                'reference_number' => $documentNumber,
-                'company_name' => $invoice->company_name,
-                'contact_name' => $invoice->contact_name,
-                'date' => today()->toDateString(),
-                'status' => LedgerStatus::PENDING,
-                'subtotal' => $totalCredit,
-                'total_amount' => $totalCredit,
-                'notes' => $notes,
-            ]);
-
-            // One line per returned invoice line, all on this single credit note.
-            foreach ($returnRows as $returnRow) {
-                /** @var SalesInvoiceLine $line */
-                $line = $returnRow['line'];
-                /** @var Product $product */
-                $product = $returnRow['product'];
-                $creditAmount = $returnRow['credit'];
-
-                $adjustment->lines()->create([
-                    'product_id' => $product->id,
-                    'product_name' => $line->product_name ?? $product->name,
-                    'quantity' => $returnRow['quantity'],
-                    'unit_price' => DecimalService::normalize((string) $line->unit_price),
-                    'subtotal_amount' => $creditAmount,
-                    'line_total_amount' => $creditAmount,
-                    'total_amount' => $creditAmount,
-                    'description' => $notes,
-                ]);
-
-                $adjustment->charts()->create([
-                    'debit_id' => $revenueChart->id,
-                    'debit_acc' => $revenueChart->code,
-                    'debit_acc_desc' => $revenueChart->name,
-                    'document_number' => $adjustmentNumber,
-                    'reference_number' => $documentNumber,
-                    'date' => today()->toDateString(),
-                    'description' => $notes,
-                    'debit_amount' => $creditAmount,
-                    'credit_amount' => '0.00',
-                    'total_amount' => $creditAmount,
-                ]);
-
-                $adjustment->charts()->create([
-                    'credit_id' => $receivableChart->id,
-                    'credit_acc' => $receivableChart->code,
-                    'credit_acc_desc' => $receivableChart->name,
-                    'document_number' => $adjustmentNumber,
-                    'reference_number' => $documentNumber,
-                    'date' => today()->toDateString(),
-                    'description' => $notes,
-                    'debit_amount' => '0.00',
-                    'credit_amount' => $creditAmount,
-                    'total_amount' => $creditAmount,
-                ]);
-            }
-
-            $chartsById = Chart::query()
-                ->whereIn('id', [$revenueChart->id, $receivableChart->id])
-                ->get(['id', 'name'])
-                ->mapWithKeys(fn (Chart $chart): array => [(string) $chart->id => (string) $chart->name]);
-            $generalRows = [];
-            foreach ($adjustment->charts()->get() as $chart) {
-                $generalRows[] = GeneralLedgerData::fromSalesAdjustmentLine($adjustment, $chart, $chartsById);
-            }
-
-            $this->invoicePoster->post(
-                $adjustment,
-                $adjustmentNumber,
-                today(),
-                LedgerType::INVOICE,
-                LedgerSubType::DECREASE_ADJUSTMENT,
-                $generalRows,
-                companyId: $adjustment->company_id,
-                contactId: $adjustment->contact_id,
-                companyName: $adjustment->company_name,
-                referenceNumber: $documentNumber,
-            );
-
-            $adjustment->update(['status' => LedgerStatus::POSTED]);
-            $this->attributeApproved($adjustment);
-
-            FinanceLedger::query()->insert($financeRows);
-
-            // Track how much has been returned on each returned line.
-            foreach ($returnRows as $returnRow) {
-                $returnRow['line']->increment('returned_quantity', (float) $returnRow['quantity']);
-            }
-        });
-
-        return redirect()->route('sales.invoices.show', $documentNumber)
-            ->with('success', FlashMessage::updated(FileResources::SALES_INVOICES));
-    }
-
-    /**
      * Stream a real invoice document using the selected or default PDF design.
      *
      * @param  string  $documentNumber  The invoice document number.
@@ -737,7 +328,7 @@ class SalesInvoiceController extends Controller
 
         abort_if($paymentEntries->isEmpty(), 404);
 
-        $payment = $paymentEntries->firstWhere('debit_acc', '!=', null) ?? $paymentEntries->first();
+        $payment = $paymentEntries->firstWhere('chart_code', '!=', null) ?? $paymentEntries->first();
 
         return Pdf::loadView('sales.invoices.payment-pdf', [
             'payment' => $payment,
@@ -764,8 +355,6 @@ class SalesInvoiceController extends Controller
         $products = Product::query()->orderBy('name')->get();
         /** @var Collection<int, Contact> $contacts */
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get();
-        /** @var Collection<int, Chart> $charts */
-        $charts = Chart::query()->with('chartType')->orderBy('code')->get();
         /** @var Collection<int, Tax> $taxes */
         $taxes = Tax::query()->where('is_active', true)->orderBy('code')->get();
         /** @var Collection<int, Discount> $discounts */
@@ -779,24 +368,20 @@ class SalesInvoiceController extends Controller
 
         return view(
             'sales.invoices.create',
-            compact('companies', 'products', 'contacts', 'charts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'deliveryOrder', 'canCreateCompany', 'cloneData')
+            compact('companies', 'products', 'contacts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'deliveryOrder', 'canCreateCompany', 'cloneData')
         );
-
     }
 
     /**
      * Create a customer without leaving the Sales Invoice form.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  StoreSalesInvoiceCompanyRequest  $request  The HTTP request instance.
      * @return JsonResponse Returns the new customer for the form selector.
      */
-    public function storeCompany(Request $request): JsonResponse
+    public function storeCompany(StoreSalesInvoiceCompanyRequest $request): JsonResponse
     {
-        $this->allows(FileResources::COMPANIES, FileAction::ADD);
         /** @var array{name: string} $validated */
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
         $company = Company::query()->create([
             'name' => trim($validated['name']),
             'is_debtor' => true,
@@ -835,7 +420,6 @@ class SalesInvoiceController extends Controller
 
         abort_if(
             FinanceLedger::query()
-                ->withTrashed()
                 ->where('reference_number', $documentNumber)
                 ->where('type', LedgerType::INVOICE)
                 ->exists(),
@@ -856,8 +440,6 @@ class SalesInvoiceController extends Controller
             'invoice_notes' => $invoice->notes,
             'amount' => $paymentDebit->debit_amount ?? $paymentCredit?->credit_amount,
             'payment_notes' => $paymentDebit->description ?? $paymentCredit?->description,
-            'payment_debit_id' => $paymentDebit?->chart_id,
-            'payment_credit_id' => $paymentCredit?->chart_id,
             'lines' => $invoiceLines
                 ->values()
                 ->map(fn (SalesInvoiceLine $line): array => [
@@ -883,8 +465,6 @@ class SalesInvoiceController extends Controller
         $products = Product::query()->orderBy('name')->get();
         /** @var Collection<int, Contact> $contacts */
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get();
-        /** @var Collection<int, Chart> $charts */
-        $charts = Chart::query()->with('chartType')->orderBy('code')->get();
         /** @var Collection<int, Tax> $taxes */
         $taxes = Tax::query()->where('is_active', true)->orderBy('code')->get();
         /** @var Collection<int, Discount> $discounts */
@@ -901,7 +481,7 @@ class SalesInvoiceController extends Controller
 
         return view(
             'sales.invoices.edit',
-            compact('companies', 'products', 'contacts', 'charts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'documentNumber', 'deliveryOrder', 'canCreateCompany')
+            compact('companies', 'products', 'contacts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'documentNumber', 'deliveryOrder', 'canCreateCompany')
         );
     }
 
@@ -965,56 +545,17 @@ class SalesInvoiceController extends Controller
                 );
             }
         );
-        $debitAccountId = $data->debitId ?? $chartSetting?->client_chart_uuid;
-        $creditAccountId = $data->creditId ?? $chartSetting?->income_chart_uuid;
-
-        if (empty($debitAccountId) || empty($creditAccountId)) {
-            throw ValidationException::withMessages([
-                'debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                'credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-            ]);
-        }
-
-        $debitAccount = $this->accountSnapshot($debitAccountId, 'debit_id');
-        $creditAccount = $this->accountSnapshot($creditAccountId, 'credit_id');
-        $taxAccountId = null;
-        $taxAccount = null;
 
         if ($lineCommercialTerms->contains(fn (array $terms): bool => (float) $terms['tax_rate'] > 0)) {
-            $taxAccountId = $chartSetting?->output_tax_chart_uuid;
-
-            if (empty($taxAccountId)) {
+            if (empty($chartSetting?->output_tax_chart_uuid)) {
                 throw ValidationException::withMessages([
                     'tax_rate' => __('ledgers.validation.output_tax_account_required'),
                 ]);
             }
-
-            $taxAccount = $this->taxAccountSnapshot($taxAccountId);
         }
 
         $hasPayment = filled($data->amount ?? null);
         $paymentSubtype = LedgerSubType::RECEIPT->value;
-        $paymentDebitAccountId = null;
-        $paymentCreditAccountId = null;
-        $paymentDebitAccount = null;
-        $paymentCreditAccount = null;
-
-        if ($hasPayment) {
-            $paymentDebitAccountId = $data->paymentDebitId
-                ?? $chartSetting?->bank_chart_uuid;
-            $paymentCreditAccountId = $data->paymentCreditId
-                ?? $chartSetting?->client_chart_uuid;
-
-            if (empty($paymentDebitAccountId) || empty($paymentCreditAccountId)) {
-                throw ValidationException::withMessages([
-                    'payment_debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                    'payment_credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-                ]);
-            }
-
-            $paymentDebitAccount = $this->accountSnapshot($paymentDebitAccountId, 'payment_debit_id');
-            $paymentCreditAccount = $this->accountSnapshot($paymentCreditAccountId, 'payment_credit_id');
-        }
 
         $companyName = filled($data->companyId ?? null)
             ? Company::query()->whereKey($data->companyId)->value('name')
@@ -1029,6 +570,12 @@ class SalesInvoiceController extends Controller
         $invoiceAttachmentPath = $request->hasFile('invoice_attachment')
             ? $this->storeUpload($request->file('invoice_attachment'), 'ledger_attachments')
             : null;
+
+        /** @var string|null $paymentAttachmentPath */
+        $paymentAttachmentPath = $request->hasFile('payment_attachment')
+            ? $this->storeUpload($request->file('payment_attachment'), 'ledger_attachments')
+            : null;
+
         $docNumber = $this->generateDocumentNumber(LedgerSubType::SALES_INVOICE);
         $invoiceReferenceNumber = $docNumber;
         $invoiceDueDate = null;
@@ -1047,6 +594,7 @@ class SalesInvoiceController extends Controller
             $companyName,
             $docNumber,
             $invoiceAttachmentPath,
+            $paymentAttachmentPath,
             $invoiceDueDate,
             $invoiceReferenceNumber,
             $lines,
@@ -1072,6 +620,8 @@ class SalesInvoiceController extends Controller
                 'due_date' => $invoiceDueDate,
                 'status' => LedgerStatus::PENDING,
                 'attachment_path' => $invoiceAttachmentPath,
+                'payment_transfer_type' => $data->paymentTransferType,
+                'payment_attachment_path' => $paymentAttachmentPath,
                 'notes' => $data->invoiceNotes,
                 'subtotal' => '0.00',
                 'total_amount' => '0.00',
@@ -1149,7 +699,6 @@ class SalesInvoiceController extends Controller
         return redirect()
             ->route('sales.invoices.show', $docNumber)
             ->with('success', FlashMessage::created(FileResources::SALES_INVOICES));
-
     }
 
     /**
@@ -1221,18 +770,6 @@ class SalesInvoiceController extends Controller
                 );
             }
         );
-        $debitAccountId = $data->debitId ?? $chartSetting?->client_chart_uuid;
-        $creditAccountId = $data->creditId ?? $chartSetting?->income_chart_uuid;
-
-        if (empty($debitAccountId) || empty($creditAccountId)) {
-            throw ValidationException::withMessages([
-                'debit_id' => __('ledgers.validation.debit_account_or_default_required'),
-                'credit_id' => __('ledgers.validation.credit_account_or_default_required'),
-            ]);
-        }
-
-        $debitAccount = $this->accountSnapshot($debitAccountId, 'debit_id');
-        $creditAccount = $this->accountSnapshot($creditAccountId, 'credit_id');
 
         $companyName = filled($data->companyId ?? null)
             ? Company::query()->whereKey($data->companyId)->value('name')
@@ -1248,10 +785,16 @@ class SalesInvoiceController extends Controller
             ? $this->storeUpload($request->file('invoice_attachment'), 'ledger_attachments')
             : $invoice->attachment_path;
 
+        /** @var string|null $paymentAttachmentPath */
+        $paymentAttachmentPath = $request->hasFile('payment_attachment')
+            ? $this->storeUpload($request->file('payment_attachment'), 'ledger_attachments')
+            : $invoice->payment_attachment_path;
+
         DB::transaction(function () use (
             $invoice,
             $companyName,
             $invoiceAttachmentPath,
+            $paymentAttachmentPath,
             $lines,
             $productNames,
             $productWarranties,
@@ -1310,6 +853,7 @@ class SalesInvoiceController extends Controller
                     'tax_amount' => $amounts['tax'],
                     'tax_mode' => ($terms['tax_mode'] instanceof TaxMode ? $terms['tax_mode']->value : ''),
                     'line_total_amount' => $amounts['total'],
+                    'total_amount' => $amounts['total'],
                     'warranty_months' => filled($line['product_id'] ?? null)
                         ? (int) ($productWarranties->get($productKey) ?? 0)
                         : 0,
@@ -1328,6 +872,8 @@ class SalesInvoiceController extends Controller
                 'company_name' => $companyName,
                 'date' => $data->date,
                 'attachment_path' => $invoiceAttachmentPath,
+                'payment_transfer_type' => $data->paymentTransferType,
+                'payment_attachment_path' => $paymentAttachmentPath,
                 'notes' => $data->invoiceNotes,
                 'subtotal' => $subtotal,
                 'total_amount' => $totalAmount,
@@ -1339,7 +885,6 @@ class SalesInvoiceController extends Controller
         return redirect()
             ->route('sales.invoices.show', $documentNumber)
             ->with('success', FlashMessage::updated(FileResources::SALES_INVOICES));
-
     }
 
     /**
@@ -1413,21 +958,15 @@ class SalesInvoiceController extends Controller
                 ->first();
 
             abort_if($invoice === null, 404);
-            abort_if($invoice->status === LedgerStatus::POSTED, 409);
+            abort_if($invoice->isPosted(), 409);
 
-            /** @var Collection<int, SalesInvoiceLine> $lines */
-            $lines = $invoice->lines()->get();
+            $this->postInvoice($invoice);
 
-            abort_if($lines->isEmpty(), 404);
-
-            // Post to both ledgers - services handle chart queries and DTO building
-            $this->receivable->post($invoice, $lines);
-            $this->ledger->postSalesInvoice($invoice, $lines);
-
-            // Update invoice status to POSTED. Stock is not moved here: it moves
-            // when the deduct-inventory button is pressed or when a delivery
-            // order posts, so approving a document never minuses stock by itself.
-            $invoice->update(['status' => LedgerStatus::POSTED]);
+            // Stock is not moved here: it moves when the deduct-inventory button is
+            // pressed or when a delivery order posts, so approving a document never
+            // minuses stock by itself.
+            $invoice->forceFill(['status' => LedgerStatus::POSTED]);
+            $this->attributeApproved($invoice);
         });
 
         return redirect()
@@ -1438,20 +977,16 @@ class SalesInvoiceController extends Controller
     /**
      * Reverse a posted sales invoice by creating a new reversing journal entry.
      *
-     * @param  Request  $request  The HTTP request instance containing the reversal reason.
+     * @param  ReverseSalesInvoiceRequest  $request  The request containing the reversal reason.
      * @param  string  $documentNumber  The invoice document number.
      * @return RedirectResponse Redirects to the invoice detail page.
      *
      * @throws Throwable
      */
-    public function reverse(Request $request, string $documentNumber): RedirectResponse
+    public function reverse(ReverseSalesInvoiceRequest $request, string $documentNumber): RedirectResponse
     {
-        $this->allows(FileResources::SALES_INVOICES, FileAction::APPROVE);
-
         /** @var array{reason: string} $validated */
-        $validated = $request->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
         $reversalDate = now()->toDateString();
 
         DB::transaction(function () use ($documentNumber, $validated, $reversalDate): void {
@@ -1461,29 +996,122 @@ class SalesInvoiceController extends Controller
                 ->first();
 
             abort_if($invoice === null, 404);
-            abort_if($invoice->reversal_journal_id !== null, 409, __('journal_entries.reversal_already_exists'));
+            abort_if($invoice->reversal_id !== null, 409, __('journal_entries.reversal_already_exists'));
             abort_if($invoice->undone_at !== null, 409, __('journal_entries.reversal_already_exists'));
 
-            $postedLedgers = FinanceLedger::query()
-                ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::POSTED)
-                ->lockForUpdate()
-                ->get();
+            /** @var Collection<int, SalesInvoiceLine> $lines */
+            $lines = $invoice->lines()->get();
 
-            abort_if($postedLedgers->isEmpty(), 404);
+            abort_if($lines->isEmpty(), 404);
 
-            $sumCredit = $postedLedgers->sum('credit_amount');
-            $totalDebit = number_format(is_numeric($sumCredit) ? (float) $sumCredit : 0.0, 2, '.', '');
-            $sumDebit = $postedLedgers->sum('debit_amount');
-            $totalCredit = number_format(is_numeric($sumDebit) ? (float) $sumDebit : 0.0, 2, '.', '');
+            // Load chart configuration once
+            $chartConfig = ChartSetting::query()->first();
+            abort_if($chartConfig === null, 500, __('posting.chart_config_missing'));
 
-            abort_if(
-                bccomp($totalDebit, '0.00', 2) !== 1 || bccomp($totalDebit, $totalCredit, 2) !== 0,
-                422,
-                __('journal_entries.unbalanced_entry_error')
-            );
+            // Load all needed charts once
+            $chartIds = array_filter([
+                $chartConfig->client_chart_uuid,
+                $chartConfig->income_chart_uuid,
+                $chartConfig->output_tax_chart_uuid,
+            ]);
 
-            $sourceLedger = $postedLedgers->first();
+            /** @var Collection<string, Chart> $charts */
+            $charts = Chart::query()
+                ->whereIn('id', $chartIds)
+                ->get()
+                ->keyBy(fn (Chart $chart): string => (string) $chart->id);
+
+            /** @var string $currencyId */
+            $currencyId = Setting::query()->value('currency_id') ?? '';
+
+            // Aggregate per invoice exactly the way postInvoice() does, one pass over
+            // the stored line columns. The reversal is built from the same figures the
+            // approval was, so every reversed row nets against the row it reverses.
+            $grossTotal = '0.00';
+            $taxTotal = '0.00';
+            $discountTotal = '0.00';
+
+            foreach ($lines as $line) {
+                /** @var SalesInvoiceLine $line */
+                $grossTotal = bcadd($grossTotal, $line->subtotal_amount ?? '0.00', 2);
+                $taxTotal = bcadd($taxTotal, $line->tax_amount ?? '0.00', 2);
+                $discountTotal = bcadd($discountTotal, $line->discount_amount ?? '0.00', 2);
+            }
+
+            $invoiceTotal = $chartConfig->is_tax_enabled
+                ? bcsub(bcadd($grossTotal, $taxTotal, 2), $discountTotal, 2)
+                : bcsub($grossTotal, $discountTotal, 2);
+
+            // Build GL reversal DTOs with swapped amounts (CR→DR, DR→CR)
+            /** @var list<GeneralLedgerData> $glDtos */
+            $glDtos = [];
+            $firstLine = $lines->first();
+
+            // CR Accounts Receivable (reverses the DR from approve)
+            if ($chartConfig->client_chart_uuid !== null) {
+                $receivableChart = $charts->get($chartConfig->client_chart_uuid);
+                $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::RECEIVABLE,
+                    $receivableChart,
+                    '0.00',
+                    $invoiceTotal
+                );
+            }
+
+            // DR Sales Revenue (reverses the CR from approve)
+            if ($chartConfig->income_chart_uuid !== null && bccomp($grossTotal, '0.00', 2) !== 0) {
+                $revenueChart = $charts->get($chartConfig->income_chart_uuid);
+                $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::REVENUE,
+                    $revenueChart,
+                    $grossTotal,
+                    '0.00'
+                );
+            }
+
+            // DR Tax Payable - only while GST/VAT is enabled, because that is the
+            // only state in which approve() credited it
+            if ($chartConfig->is_tax_enabled && $chartConfig->output_tax_chart_uuid !== null && bccomp($taxTotal, '0.00', 2) !== 0) {
+                $taxChart = $charts->get($chartConfig->output_tax_chart_uuid);
+                $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::TAX,
+                    $taxChart,
+                    $taxTotal,
+                    '0.00'
+                );
+            }
+
+            // CR Sales Discounts (reverses the DR from approve)
+            $discountChart = $this->getDiscountChart();
+            if ($discountChart instanceof Chart && bccomp($discountTotal, '0.00', 2) !== 0) {
+                $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                    $invoice,
+                    $firstLine,
+                    $chartConfig,
+                    GeneralLedgerEntryType::DISCOUNT,
+                    $discountChart,
+                    '0.00',
+                    $discountTotal
+                );
+            }
+
+            // Calculate totals for the reversal journal entry. The tax is only part of
+            // the debits while GST/VAT is enabled, which is when its row is written.
+            $totalDebit = $chartConfig->is_tax_enabled
+                ? bcadd($grossTotal, $taxTotal, 2)
+                : $grossTotal;
+            $totalCredit = bcadd($invoiceTotal, $discountTotal, 2);
+
+            // Create the reversal journal entry header
             $reversalEntry = JournalEntry::query()->create([
                 'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
@@ -1496,231 +1124,106 @@ class SalesInvoiceController extends Controller
             ]);
 
             $now = now();
-            $itemRows = $postedLedgers->values()->map(function (FinanceLedger $ledger) use ($reversalEntry, $documentNumber, $now): array {
-                return [
+
+            // Build JournalEntryChart rows from DTOs
+            $chartRows = array_map(
+                fn (GeneralLedgerData $dto): array => [
                     'id' => (string) Str::uuid7(),
                     'journal_entry_id' => $reversalEntry->id,
-                    'debit_id' => $ledger->credit_id,
-                    'credit_id' => $ledger->debit_id,
-                    'debit_acc' => $ledger->credit_acc,
-                    'credit_acc' => $ledger->debit_acc,
-                    'debit_acc_desc' => $ledger->credit_acc_desc,
-                    'credit_acc_desc' => $ledger->debit_acc_desc,
-                    'document_number' => $reversalEntry->document_number,
-                    'reference_number' => $documentNumber,
-                    'date' => $reversalEntry->date,
-                    'description' => __('journal_entries.reversal_line_description', [
-                        'document_number' => $ledger->document_number,
-                        'description' => $ledger->description ?? '-',
-                    ]),
-                    'debit_amount' => $ledger->credit_amount,
-                    'credit_amount' => $ledger->debit_amount,
-                    'total_amount' => $ledger->total_amount,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'deleted_at' => null,
-                ];
-            })->all();
-
-            JournalEntryChart::query()->insert($itemRows);
-
-            $sourceType = $sourceLedger->type;
-            $ledgerRows = collect($itemRows)->map(function (array $item, int $index) use ($postedLedgers, $now, $sourceType, $validated): array {
-                $postedLedger = $postedLedgers[$index] ?? abort(500);
-
-                return [
-                    'id' => $item['id'],
-                    'source_id' => $item['id'],
-                    'source_type' => null,
-                    'company_id' => $postedLedger->company_id,
-                    'contact_id' => $postedLedger->contact_id,
-                    'debit_id' => $item['debit_id'],
-                    'credit_id' => $item['credit_id'],
-                    'debit_acc' => $item['debit_acc'],
-                    'credit_acc' => $item['credit_acc'],
-                    'debit_acc_desc' => $item['debit_acc_desc'],
-                    'credit_acc_desc' => $item['credit_acc_desc'],
-                    'company_name' => $postedLedger->company_name,
-                    'document_number' => $item['document_number'],
-                    'reference_number' => $item['reference_number'],
-                    'type' => $sourceType,
+                    'chart_id' => $dto->chartId,
+                    'company_id' => $dto->companyId,
+                    'currency_id' => $dto->currencyId,
+                    'type' => LedgerType::JOURNAL->value,
                     'subtype' => LedgerSubType::JOURNAL->value,
-                    'date' => $item['date'],
-                    'debit_amount' => $item['debit_amount'],
-                    'credit_amount' => $item['credit_amount'],
-                    'total_amount' => $item['total_amount'],
-                    'status' => LedgerStatus::POSTED->value,
-                    'notes' => $validated['reason'],
-                    'description' => $item['description'],
+                    'document_number' => $dto->documentNumber,
+                    'reference_number' => $dto->referenceNumber,
+                    'date' => $dto->date,
+                    'chart_code' => $dto->chartCode,
+                    'chart_name' => $dto->chartName,
+                    'company_name' => $dto->companyName,
+                    'description' => null,
+                    'line_description' => __('journal_entries.reversal_line_description', [
+                        'document_number' => $documentNumber,
+                        'description' => $dto->lineDescription ?? $dto->description ?? '-',
+                    ]),
+                    'debit_amount' => $dto->debitAmount,
+                    'credit_amount' => $dto->creditAmount,
                     'created_at' => $now,
                     'updated_at' => $now,
                     'deleted_at' => null,
-                ];
-            })->all();
+                ],
+                $glDtos,
+            );
 
-            FinanceLedger::query()->insert($ledgerRows);
+            JournalEntryChart::query()->insert($chartRows);
 
-            // Reverse the AR ledger entries by soft-deleting them. The reversal
-            // journal already reversed the GL entries, so we just need to remove
-            // the AR entries from the customer's statement.
-            ArLedger::query()
+            // Post reversal to general ledger via Posting class
+            $this->posting->generalLedger(array_map(
+                fn (GeneralLedgerData $dto): LedgerData => new LedgerData(
+                    id: (string) Str::uuid7(),
+                    chartId: $dto->chartId,
+                    companyId: $dto->companyId,
+                    currencyId: $dto->currencyId,
+                    type: LedgerType::JOURNAL,
+                    subtype: LedgerSubType::JOURNAL,
+                    documentNumber: $dto->documentNumber,
+                    referenceNumber: $dto->referenceNumber,
+                    date: $dto->date,
+                    chartCode: $dto->chartCode,
+                    chartName: $dto->chartName,
+                    companyName: $dto->companyName,
+                    description: $dto->description,
+                    lineDescription: $dto->lineDescription,
+                    debitAmount: $dto->debitAmount,
+                    creditAmount: $dto->creditAmount,
+                    createdAt: $now,
+                    updatedAt: $now,
+                ),
+                $glDtos,
+            ));
+
+            // Reverse AR ledger: create new rows with swapped amounts (ledgers are immutable)
+            /** @var Collection<int, ArLedger> $arEntries */
+            $arEntries = ArLedger::query()
                 ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::POSTED)
-                ->update(['deleted_at' => now()]);
+                ->get();
 
-            // Create credit notes and product movements for items not yet returned.
-            // This ensures full undo behaves like a full return.
-            $lines = $invoice->lines()->whereNotNull('product_id')->get();
-            $location = $this->resolveStockLocation(null);
-            $chartSetting = ChartSetting::query()->first();
-            $receivableChart = filled($chartSetting?->client_chart_uuid)
-                ? Chart::query()->whereKey($chartSetting->client_chart_uuid)->first()
-                : null;
-            $revenueChart = filled($chartSetting?->income_chart_uuid)
-                ? Chart::query()->whereKey($chartSetting->income_chart_uuid)->first()
-                : null;
-            $cogsChart = filled($chartSetting?->cogs_chart_uuid)
-                ? Chart::query()->whereKey($chartSetting->cogs_chart_uuid)->first()
-                : null;
-            $inventoryChart = filled($chartSetting?->inventory_chart_uuid)
-                ? Chart::query()->whereKey($chartSetting->inventory_chart_uuid)->first()
-                : null;
+            if ($arEntries->isNotEmpty()) {
+                /** @var list<ArLedgerData> $arReversalDtos */
+                $arReversalDtos = $arEntries
+                    ->map(function (ArLedger $ar) use ($reversalEntry, $documentNumber, $currencyId, $now): ArLedgerData {
+                        return new ArLedgerData(
+                            id: (string) Str::uuid7(),
+                            chartId: $ar->chart_id,
+                            companyId: $ar->company_id,
+                            currencyId: $currencyId,
+                            type: LedgerType::JOURNAL->value,
+                            subtype: LedgerSubType::JOURNAL->value,
+                            documentNumber: $reversalEntry->document_number,
+                            date: $reversalEntry->date->format('Y-m-d'),
+                            referenceNumber: $documentNumber,
+                            chartCode: $ar->chart_code,
+                            chartName: $ar->chart_name,
+                            chartDescription: $ar->chart_description,
+                            companyName: $ar->company_name,
+                            description: __('journal_entries.reversal_line_description', [
+                                'document_number' => $ar->document_number,
+                                'description' => $ar->description ?? '-',
+                            ]),
+                            debitAmount: (string) $ar->credit_amount,
+                            creditAmount: (string) $ar->debit_amount,
+                            createdAt: $now,
+                            updatedAt: $now,
+                            deletedAt: null,
+                        );
+                    })
+                    ->values()
+                    ->all();
 
-            if ($receivableChart !== null && $revenueChart !== null) {
-                foreach ($lines as $line) {
-                    /** @var SalesInvoiceLine $line */
-                    $remaining = bcsub(
-                        DecimalService::normalize((string) ($line->quantity ?? 0)),
-                        DecimalService::normalize((string) ($line->returned_quantity ?? 0)),
-                        4
-                    );
-
-                    if (bccomp($remaining, '0.0000', 4) !== 1) {
-                        continue;
-                    }
-
-                    $product = Product::query()->whereKey($line->product_id)->first();
-                    if ($product === null || $receivableChart === null || $revenueChart === null || $cogsChart === null || $inventoryChart === null) {
-                        continue;
-                    }
-
-                    $creditAmount = bcmul($remaining, DecimalService::normalize((string) $line->unit_price), 2);
-                    $costAmount = bcmul($remaining, DecimalService::normalize((string) $product->base_price), 2);
-                    $adjustmentNumber = $this->generateDocumentNumber(LedgerSubType::DECREASE_ADJUSTMENT);
-                    $movementId = (string) Str::uuid7();
-
-                    // Create product movement (IN) to return stock
-                    ProductLedger::query()->insert([
-                        'id' => $movementId,
-                        'product_id' => $product->id,
-                        'stock_location_id' => $location->id,
-                        'stock_location_name' => $location->name,
-                        'company_id' => $invoice->company_id,
-                        'source_entry_id' => $line->id,
-                        'cogs_ledger_id' => null,
-                        'inventory_ledger_id' => null,
-                        'product_sku' => $product->sku,
-                        'product_name' => $line->product_name ?? $product->name,
-                        'company_name' => $invoice->company_name,
-                        'document_number' => $adjustmentNumber,
-                        'reference_number' => $documentNumber,
-                        'source_type' => ProductMovementSource::SALES_RETURN->value,
-                        'direction' => ProductMovementDirection::IN->value,
-                        'date' => $reversalDate,
-                        'quantity' => $remaining,
-                        'unit_cost' => DecimalService::normalize((string) $product->base_price),
-                        'total_cost' => $costAmount,
-                        'status' => ProductMovementStatus::ACTIVE->value,
-                        'activated_at' => $now,
-                        'notes' => __('sales_returns.undo_note', ['document' => $documentNumber]),
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ]);
-
-                    // Create credit note
-                    $adjustment = SalesAdjustment::query()->create([
-                        'id' => (string) Str::uuid7(),
-                        'company_id' => $invoice->company_id,
-                        'contact_id' => $invoice->contact_id,
-                        'subtype' => LedgerSubType::DECREASE_ADJUSTMENT,
-                        'document_number' => $adjustmentNumber,
-                        'reference_number' => $documentNumber,
-                        'company_name' => $invoice->company_name,
-                        'contact_name' => $invoice->contact_name,
-                        'date' => $reversalDate,
-                        'status' => LedgerStatus::POSTED,
-                        'subtotal' => $creditAmount,
-                        'total_amount' => $creditAmount,
-                        'notes' => __('sales_returns.undo_note', ['document' => $documentNumber]),
-                    ]);
-
-                    $adjustment->lines()->create([
-                        'product_id' => $product->id,
-                        'product_name' => $line->product_name ?? $product->name,
-                        'quantity' => $remaining,
-                        'unit_price' => DecimalService::normalize((string) $line->unit_price),
-                        'subtotal_amount' => $creditAmount,
-                        'line_total_amount' => $creditAmount,
-                        'total_amount' => $creditAmount,
-                        'description' => __('sales_returns.undo_note', ['document' => $documentNumber]),
-                    ]);
-
-                    $adjustment->charts()->create([
-                        'debit_id' => $revenueChart->id,
-                        'debit_acc' => $revenueChart->code,
-                        'debit_acc_desc' => $revenueChart->name,
-                        'document_number' => $adjustmentNumber,
-                        'reference_number' => $documentNumber,
-                        'date' => $reversalDate,
-                        'description' => __('sales_returns.undo_note', ['document' => $documentNumber]),
-                        'debit_amount' => $creditAmount,
-                        'credit_amount' => '0.00',
-                        'total_amount' => $creditAmount,
-                    ]);
-
-                    $adjustment->charts()->create([
-                        'credit_id' => $receivableChart->id,
-                        'credit_acc' => $receivableChart->code,
-                        'credit_acc_desc' => $receivableChart->name,
-                        'document_number' => $adjustmentNumber,
-                        'reference_number' => $documentNumber,
-                        'date' => $reversalDate,
-                        'description' => __('sales_returns.undo_note', ['document' => $documentNumber]),
-                        'debit_amount' => '0.00',
-                        'credit_amount' => $creditAmount,
-                        'total_amount' => $creditAmount,
-                    ]);
-
-                    // Build general ledger rows from the charts, same as receiveReturn does.
-                    $chartsById = Chart::query()
-                        ->whereIn('id', [$revenueChart->id, $receivableChart->id])
-                        ->get(['id', 'name'])
-                        ->mapWithKeys(fn (Chart $chart): array => [(string) $chart->id => (string) $chart->name]);
-                    $generalRows = [];
-                    foreach ($adjustment->charts()->get() as $chart) {
-                        $generalRows[] = GeneralLedgerData::fromSalesAdjustmentLine($adjustment, $chart, $chartsById);
-                    }
-
-                    // Post to AR ledger
-                    $this->invoicePoster->post(
-                        $adjustment,
-                        $adjustmentNumber,
-                        Carbon::parse($reversalDate),
-                        LedgerType::INVOICE,
-                        LedgerSubType::DECREASE_ADJUSTMENT,
-                        $generalRows,
-                        companyId: $adjustment->company_id,
-                        contactId: $adjustment->contact_id,
-                        companyName: $adjustment->company_name,
-                        referenceNumber: $documentNumber,
-                    );
-
-                    // Update line's returned_quantity
-                    $line->update(['returned_quantity' => $line->quantity]);
-                }
+                $this->posting->accountReceivableLedger($arReversalDtos);
             }
 
-            $invoice->update(['reversal_journal_id' => $reversalEntry->id]);
+            $invoice->update(['reversal_id' => $reversalEntry->id]);
             $this->attributeUndone($invoice);
         });
 
@@ -1732,29 +1235,22 @@ class SalesInvoiceController extends Controller
     /**
      * Approve multiple sales invoices and post them to the general ledger.
      *
-     * @param  Request  $request  The HTTP request instance containing document numbers to approve.
+     * @param  BatchApproveSalesInvoiceRequest  $request  The request containing document numbers to approve.
      * @return RedirectResponse Redirects to the sales invoices history page.
      *
      * @throws Throwable
      */
-    public function batchApprove(Request $request): RedirectResponse
+    public function batchApprove(BatchApproveSalesInvoiceRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::SALES_INVOICES, FileAction::APPROVE);
-
-        $request->validate([
-            'document_numbers' => 'required|array|min:1',
-            'document_numbers.*' => 'required|string',
-        ]);
+        /** @var array{document_numbers: array<int, string>} $validated */
+        $validated = $request->validated();
 
         $count = 0;
 
-        DB::transaction(function () use ($request, &$count): void {
-            /** @var array<int, mixed> $documentNumbers */
-            $documentNumbers = $request->input('document_numbers') ?? [];
+        DB::transaction(function () use ($validated, &$count): void {
+            /** @var array<int, string> $documentNumbers */
+            $documentNumbers = $validated['document_numbers'];
             foreach ($documentNumbers as $documentNumber) {
-                if (! is_string($documentNumber)) {
-                    continue;
-                }
 
                 /** @var SalesInvoice|null $invoice */
                 $invoice = SalesInvoice::query()
@@ -1783,11 +1279,10 @@ class SalesInvoiceController extends Controller
                     ]);
                 }
 
-                // Post to both ledgers - services handle chart queries and DTO building
-                $this->receivable->post($invoice, $lines);
-                $this->ledger->postSalesInvoice($invoice, $lines);
+                $this->postInvoice($invoice);
 
-                $invoice->update(['status' => LedgerStatus::POSTED]);
+                $invoice->forceFill(['status' => LedgerStatus::POSTED]);
+                $this->attributeApproved($invoice);
 
                 $count++;
             }
@@ -1801,20 +1296,16 @@ class SalesInvoiceController extends Controller
     /**
      * Cancel multiple pending sales invoices.
      *
-     * @param  Request  $request  The HTTP request instance containing document numbers to cancel.
+     * @param  BatchCancelSalesInvoiceRequest  $request  The request containing document numbers to cancel.
      * @return RedirectResponse Redirects to the sales invoices index page.
      */
-    public function batchCancel(Request $request): RedirectResponse
+    public function batchCancel(BatchCancelSalesInvoiceRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::SALES_INVOICES, FileAction::CANCEL);
-
-        $request->validate([
-            'document_numbers' => 'required|array|min:1',
-            'document_numbers.*' => 'required|string',
-        ]);
+        /** @var array{document_numbers: array<int, string>} $validated */
+        $validated = $request->validated();
 
         $affected = SalesInvoice::query()
-            ->whereIn('document_number', $request->input('document_numbers') ?? [])
+            ->whereIn('document_number', $validated['document_numbers'])
             ->where('status', LedgerStatus::PENDING)
             ->update(['status' => LedgerStatus::CANCELLED]);
 
@@ -1824,55 +1315,170 @@ class SalesInvoiceController extends Controller
     }
 
     /**
-     * Convert a chart UUID into immutable code and description history fields.
+     * Post one sales invoice to its receivable sub-ledger and the general ledger.
      *
-     * @param  mixed  $chartId  The selected or configured chart UUID.
-     * @param  string  $attribute  The form field receiving a validation error.
-     * @return array{code: string, description: string|null} The account history snapshot.
+     * Every entry is written to both ledgers from the same figure, so the general
+     * ledger holds exactly what the receivable ledger holds.
      *
-     * @throws ValidationException If the configured chart no longer exists.
+     * @param  SalesInvoice  $invoice  The invoice being posted.
+     *
+     * @throws Throwable
      */
-    private function accountSnapshot(mixed $chartId, string $attribute): array
+    private function postInvoice(SalesInvoice $invoice): void
     {
-        $chart = Chart::query()->whereKey($chartId)->first();
+        /** @var list<GeneralLedgerData> $glDtos */
+        $glDtos = [];
 
-        if ($chart === null) {
-            throw ValidationException::withMessages([
-                $attribute => __('common.labels.not_found_record'),
-            ]);
+        /** @var list<ArLedgerData> $arDtos */
+        $arDtos = [];
+
+        // Aggregate per invoice - one pass, no per-line rows
+        $grossTotal = '0.00';
+        $taxTotal = '0.00';
+        $discountTotal = '0.00';
+
+        [$chartConfig, $clientChart, $incomeChart, $outputTaxChart, $currencyId] = $this->getSalesInvoiceConfig();
+
+        /** @var Collection<int, SalesInvoiceLine> $lines */
+        $lines = $invoice->lines;
+        abort_if($lines->isEmpty(), 404);
+
+        foreach ($lines as $line) {
+            /** @var SalesInvoiceLine $line */
+            $grossTotal = bcadd($grossTotal, $line->subtotal_amount ?? '0.00', 2);
+            $taxTotal = bcadd($taxTotal, $line->tax_amount ?? '0.00', 2);
+            $discountTotal = bcadd($discountTotal, $line->discount_amount ?? '0.00', 2);
         }
 
-        $accountCode = trim((string) $chart->code);
+        $invoiceTotal = $chartConfig->is_tax_enabled
+            ? bcsub(bcadd($grossTotal, $taxTotal, 2), $discountTotal, 2)
+            : bcsub($grossTotal, $discountTotal, 2);
 
-        if ($accountCode === '') {
-            throw ValidationException::withMessages([
-                $attribute => __('common.labels.not_found_record'),
-            ]);
+        // $firstLine is only for the DTO's line reference - amounts are invoice-level
+        /** @var SalesInvoiceLine $firstLine */
+        $firstLine = $lines->first();
+
+        // CR Revenue
+        if ($incomeChart instanceof Chart && bccomp($grossTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::REVENUE, $incomeChart,
+                '0.00', $grossTotal
+            );
+            $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $clientChart, $currencyId,
+                '0.00', $grossTotal
+            );
         }
 
-        return [
-            'code' => $accountCode,
-            'description' => filled($chart->name) ? (string) $chart->name : null,
-        ];
+        // CR Tax - only while GST/VAT is enabled
+        if ($chartConfig->is_tax_enabled && $outputTaxChart instanceof Chart && bccomp($taxTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::TAX, $outputTaxChart,
+                '0.00', $taxTotal
+            );
+            $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $clientChart, $currencyId,
+                '0.00', $taxTotal
+            );
+        }
+
+        // DR Discount
+        $discountChart = $this->getDiscountChart();
+        if ($discountChart instanceof Chart && bccomp($discountTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::DISCOUNT, $discountChart,
+                $discountTotal, '0.00'
+            );
+            $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $clientChart, $currencyId,
+                $discountTotal, '0.00'
+            );
+        }
+
+        // DR Receivable = invoice total
+        if (bccomp($invoiceTotal, '0.00', 2) !== 0) {
+            $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $chartConfig,
+                GeneralLedgerEntryType::RECEIVABLE, $clientChart,
+                $invoiceTotal, '0.00'
+            );
+            $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
+                $invoice, $firstLine, $clientChart, $currencyId,
+                $invoiceTotal, '0.00'
+            );
+        }
+
+        if (! empty($arDtos)) {
+            $this->posting->accountReceivableLedger($arDtos);
+        }
+        if (! empty($glDtos)) {
+            $this->posting->generalLedger($glDtos);
+        }
     }
 
     /**
-     * Resolve and validate the output-tax control account used by sales invoice posting.
+     * The configuration a sales invoice posts against.
      *
-     * @param  mixed  $chartId  The chart id value.
-     * @return array{code: string, description: string|null}
+     * The chart accounts and the posting currency are read here once, so posting
+     * only ever sees the accounts and the currency it writes. A missing
+     * configuration or a missing customer account is a setup failure, not a
+     * posting with a blank receivable, so both stop the request.
+     *
+     * @return array{0: ChartSetting, 1: Chart, 2: Chart|null, 3: Chart|null, 4: string} The chart configuration, the client, income and output tax accounts, then the currency id.
      */
-    private function taxAccountSnapshot(mixed $chartId): array
+    private function getSalesInvoiceConfig(): array
     {
-        $chart = Chart::query()->with('chartType')->whereKey($chartId)->first();
+        /** @var ChartSetting|null $chartConfig */
+        $chartConfig = ChartSetting::query()->first();
+        abort_if($chartConfig === null, 500, __('posting.chart_config_missing'));
 
-        if ($chart?->chartType?->isLiability !== true) {
-            throw ValidationException::withMessages([
-                'tax_rate' => __('ledgers.validation.output_tax_must_be_liability'),
-            ]);
-        }
+        $chartIds = array_filter([
+            $chartConfig->client_chart_uuid,
+            $chartConfig->income_chart_uuid,
+            $chartConfig->output_tax_chart_uuid,
+        ]);
 
-        return $this->accountSnapshot($chartId, 'tax_rate');
+        /** @var Collection<string, Chart> $charts */
+        $charts = Chart::query()
+            ->whereIn('id', $chartIds)
+            ->get()
+            ->keyBy(fn (Chart $chart): string => (string) $chart->id);
+
+        /** @var Chart|null $clientChart */
+        $clientChart = $charts->get((string) $chartConfig->client_chart_uuid);
+        abort_if(! $clientChart instanceof Chart, 500, __('posting.chart_config_missing'));
+
+        /** @var Chart|null $incomeChart */
+        $incomeChart = $charts->get((string) $chartConfig->income_chart_uuid);
+
+        /** @var Chart|null $outputTaxChart */
+        $outputTaxChart = $charts->get((string) $chartConfig->output_tax_chart_uuid);
+
+        /** @var string $currencyId */
+        $currencyId = Setting::query()->value('currency_id') ?? '';
+
+        return [$chartConfig, $clientChart, $incomeChart, $outputTaxChart, $currencyId];
+    }
+
+    /**
+     * The account a sales discount is charged to.
+     *
+     * The discount is a contra-income, so the account chosen in the chart
+     * settings comes from the income block of the chart of accounts. When none is
+     * configured there is no account to debit, and the caller leaves the discount
+     * row out rather than writing a debit against nothing.
+     *
+     * @return Chart|null The discount account, or null when chart settings holds none.
+     */
+    private function getDiscountChart(): ?Chart
+    {
+        /** @var Chart|null $discountChart */
+        $discountChart = ChartSetting::query()->first()?->discountChart;
+
+        return $discountChart;
     }
 
     /**
@@ -1903,9 +1509,11 @@ class SalesInvoiceController extends Controller
                 "lines.$lineNumber.discount_option" => __('discounts.messages.inactive'),
             ]);
         }
-        if ($discount instanceof Discount
+        if (
+            $discount instanceof Discount
             && (($discount->starts_at !== null && $invoiceDate < $discount->starts_at->format('Y-m-d'))
-                || ($discount->ends_at !== null && $invoiceDate > $discount->ends_at->format('Y-m-d')))) {
+                || ($discount->ends_at !== null && $invoiceDate > $discount->ends_at->format('Y-m-d')))
+        ) {
             throw ValidationException::withMessages([
                 "lines.$lineNumber.discount_option" => __('discounts.messages.outside_date_range'),
             ]);

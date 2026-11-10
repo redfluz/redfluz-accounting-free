@@ -33,7 +33,6 @@ use App\Models\Bank\CashAccount;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Services\DecimalService;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -115,10 +114,7 @@ trait HandlesTransfers
     {
         $balance = DB::table('ledgers')
             ->whereNull('deleted_at')
-            ->where(function (Builder $query) use ($chart): void {
-                $query->where('debit_id', $chart->id)
-                    ->orWhere('credit_id', $chart->id);
-            })
+            ->where('chart_id', $chart->id)
             ->selectRaw('COALESCE(SUM(debit_amount), 0) - COALESCE(SUM(credit_amount), 0) as balance')
             ->value('balance');
 

@@ -58,6 +58,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $company_id
  * @property string $currency_id
  * @property string $document_number
+ * @property string $date
  * @property string|null $reference_number
  * @property string|null $chart_code
  * @property string|null $chart_name
@@ -76,6 +77,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'company_id',
     'currency_id',
     'document_number',
+    'date',
     'reference_number',
     'chart_code',
     'chart_name',

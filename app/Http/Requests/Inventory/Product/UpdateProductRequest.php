@@ -28,9 +28,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Inventory\Product;
 
-use App\Enums\Inventory\AcquisitionType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Inventory\AcquisitionType;
 use App\Enums\UploadType;
 use App\Models\Inventory\Product;
 use Illuminate\Database\Query\Builder;

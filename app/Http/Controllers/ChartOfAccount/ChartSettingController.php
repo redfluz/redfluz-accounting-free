@@ -58,6 +58,7 @@ class ChartSettingController extends Controller
             ->with([
                 'cogsChart',
                 'incomeChart',
+                'discountChart',
                 'bankChart',
                 'cashChart',
                 'cashInTransitChart',
@@ -111,6 +112,15 @@ class ChartSettingController extends Controller
             ->values();
 
         $incomeCharts = $charts
+            ->filter(
+                fn (Chart $chart) => $chart->chartType?->isIncome === true
+            )
+            ->values();
+
+        // A sales discount is a contra-income: the invoice reduces what the
+        // customer pays out of the revenue the invoice earned, so the account it
+        // is charged to sits in the income block of the chart of accounts.
+        $discountCharts = $charts
             ->filter(
                 fn (Chart $chart) => $chart->chartType?->isIncome === true
             )
@@ -240,6 +250,7 @@ class ChartSettingController extends Controller
                 'chartSetting',
                 'cogsCharts',
                 'incomeCharts',
+                'discountCharts',
                 'bankCharts',
                 'cashCharts',
                 'cashInTransitCharts',
@@ -277,6 +288,7 @@ class ChartSettingController extends Controller
         $chartSetting->update([
             'cogs_chart_uuid' => $data->cogsChartUuid,
             'income_chart_uuid' => $data->incomeChartUuid,
+            'discount_chart_uuid' => $data->discountChartUuid,
             'bank_chart_uuid' => $data->bankChartUuid,
             'cash_chart_uuid' => $data->cashChartUuid,
             'cash_in_transit_chart_uuid' => $data->cashInTransitChartUuid,
@@ -296,6 +308,7 @@ class ChartSettingController extends Controller
             'closing_date' => $data->closingDate?->format('Y-m-d'),
             'start_finance_period_month' => $data->startFinancePeriodMonth,
             'strict_journal_posting' => $data->strictJournalPosting ?? false,
+            'is_tax_enabled' => $data->isTaxEnabled ?? false,
         ]);
 
         return redirect()

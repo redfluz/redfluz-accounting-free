@@ -100,7 +100,7 @@ class SupplierHistoryController extends Controller
         $refund = SupplierRefund::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('apLedgers')
             ->firstOrFail();
 
         return view('bank.supplier-refund.history.show', compact('refund', 'documentNumber'));
@@ -120,7 +120,7 @@ class SupplierHistoryController extends Controller
         $refund = SupplierRefund::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('apLedgers')
             ->firstOrFail();
 
         return Pdf::loadView('bank.supplier-refund.pdf', [

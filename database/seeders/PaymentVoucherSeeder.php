@@ -37,8 +37,7 @@ use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\ChartOfAccount\Chart;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -69,7 +68,7 @@ class PaymentVoucherSeeder extends Seeder
      * The poster that writes a seeded document's double entry to every ledger it
      * belongs in, injected so the trait does not have to reach for the container.
      */
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Seed the vouchers.
@@ -99,18 +98,16 @@ class PaymentVoucherSeeder extends Seeder
                 throw new LogicException('Voucher names a company that does not exist: '.$voucher['party']);
             }
 
-            $debitId = Chart::query()->where('name', $debitChart)->value('id');
-            $creditId = Chart::query()->where('name', $creditChart)->value('id');
+            $debitChartId = Chart::query()->where('name', $debitChart)->value('id');
+            $creditChartId = Chart::query()->where('name', $creditChart)->value('id');
 
-            DB::transaction(function () use ($voucher, $company, $debitId, $creditId, $debitChart, $creditChart): void {
+            DB::transaction(function () use ($voucher, $company, $debitChartId, $creditChartId): void {
                 $existing = PaymentVoucher::query()
                     ->where('document_number', $voucher['number'])
                     ->first();
 
                 if ($existing !== null) {
                     $this->purgePostedRows($voucher['number']);
-
-                    $existing->lines()->delete();
                     $existing->forceDelete();
                 }
 
@@ -121,6 +118,7 @@ class PaymentVoucherSeeder extends Seeder
                     'date' => $voucher['date'],
                     'status' => $voucher['status'],
                     'payment_transfer_type' => $voucher['transfer_type'],
+                    ...$this->moneyAccountColumns($creditChartId),
                     'reference_number' => $voucher['reference_number'],
                     'notes' => $voucher['notes'],
                     'total_amount' => $voucher['amount'],
@@ -135,27 +133,14 @@ class PaymentVoucherSeeder extends Seeder
                     'cancelled_at' => $voucher['status'] === LedgerStatus::CANCELLED ? $voucher['date'] : null,
                 ]);
 
-                $model->lines()->create([
-                    'amount' => $voucher['amount'],
-                    'description' => $voucher['notes'],
-                ]);
-
-                $model->lines()->create([
-                    'amount' => $voucher['amount'],
-                    'description' => $voucher['notes'],
-                ]);
-
-                $legs = [
-                    PostingLeg::debit($debitId, (string) $voucher['amount'], $voucher['notes']),
-                    PostingLeg::credit($creditId, (string) $voucher['amount'], $voucher['notes']),
-                ];
-
                 $this->postSeededDocument(
                     $model,
                     LedgerSubType::PAYMENT_VOUCHER,
                     'document_number',
-                    $this->poster,
-                    $legs,
+                    $this->posting,
+                    $debitChartId,
+                    $creditChartId,
+                    (string) $voucher['amount'],
                 );
             });
         }

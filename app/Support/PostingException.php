@@ -123,4 +123,21 @@ final class PostingException extends RuntimeException
             .'company cannot be filed.'
         );
     }
+
+    /**
+     * A posting named a reference that does not exist.
+     *
+     * @param  string  $kind  The reference kind: bank account, chart, company, product,
+     *                        stock location, etc.
+     * @param  string  $id  The id that was not found.
+     * @param  string  $documentNumber  The document number of the posting.
+     */
+    public static function unknownReference(string $kind, string $id, string $documentNumber): self
+    {
+        return new self(
+            "The posting for [{$documentNumber}] names a {$kind} [{$id}] that does "
+            .'not exist. A posting must reference a real account, company or product '
+            .'before it can be written.'
+        );
+    }
 }

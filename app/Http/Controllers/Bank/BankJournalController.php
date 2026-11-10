@@ -42,8 +42,7 @@ use App\Models\Bank\CashAccount;
 use App\Models\Bank\EWalletAccount;
 use App\Models\ChartOfAccount\Chart;
 use App\Services\DecimalService;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -71,7 +70,7 @@ use Throwable;
  * payment vouchers: each of those is a different document with different rules
  * about which accounts may face each other.
  *
- * What a bank journal writes on approval is decided by {@see PaymentLedgerPoster}
+ * What a bank journal writes on approval is decided by {@see Posting}
  * from the accounts it names, not from anything here. A journal into a drawer
  * and one into a bank account are the same document to this controller; the
  * money ledger each produces follows from the kind of the account the money
@@ -81,15 +80,7 @@ class BankJournalController extends Controller
 {
     use GeneratesDocumentNumber;
 
-    /**
-     * The poster that writes a document's double entry to every ledger it
-     * belongs in.
-     *
-     * Injected rather than resolved through the container at the point of use, so
-     * what this controller depends on is declared where it can be read and so a
-     * test can hand it a poster of its own.
-     */
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Display a listing of bank journals in one status.
@@ -332,23 +323,19 @@ class BankJournalController extends Controller
                 ]);
             }
 
-            $legs = $this->legs($journal, $moneyChartId, $journal->offset_chart_id, $amount);
+            [$debitChartId, $creditChartId] = $this->postingAccountsFor($journal, $moneyChartId, (string) $journal->offset_chart_id);
 
-            // A journal that does not balance cannot be posted, because posting
-            // it would write an entry the general ledger cannot accept.
-            if (bccomp(PostingLeg::sumDebit($legs), PostingLeg::sumCredit($legs), 2) !== 0) {
-                throw ValidationException::withMessages([
-                    'document_number' => __('journal_entries.unbalanced_entry_error'),
-                ]);
-            }
-
-            $this->poster->post(
+            $this->posting->postPayment(
                 $journal,
                 $journal->document_number,
                 $journal->date,
                 LedgerType::PAYMENT,
                 LedgerSubType::BANK_JOURNAL,
-                $legs,
+                $debitChartId,
+                $creditChartId,
+                $amount,
+                referenceNumber: $journal->reference_number,
+                description: $journal->description,
             );
 
             $journal->update(['status' => LedgerStatus::POSTED]);
@@ -677,33 +664,18 @@ class BankJournalController extends Controller
     }
 
     /**
-     * Turn a journal into the double entry the poster expects.
+     * Resolve debit/credit chart IDs for a bank journal (direct, no legs).
+     * Money in debits the money account and credits the offset; money out is the mirror.
      *
-     * Money in debits the money account and credits the offset; money out is the
-     * mirror. Two legs for a straight journal, one per side, which is why the
-     * two sides always add to the same figure.
-     *
-     * @param  BankJournal  $journal  The journal being posted.
-     * @param  string  $moneyChartId  The money account's chart id.
-     * @param  string  $offsetChartId  The offsetting chart id.
-     * @param  numeric-string  $amount  The movement, normalised to an exact decimal.
-     * @return list<PostingLeg> The double entry, one leg per side.
+     * @return array{0: string, 1: string}
      */
-    private function legs(BankJournal $journal, string $moneyChartId, string $offsetChartId, string $amount): array
+    private function postingAccountsFor(BankJournal $journal, string $moneyChartId, string $offsetChartId): array
     {
-        $description = $journal->description;
-
         if ($journal->direction === 'in') {
-            return [
-                PostingLeg::debit($moneyChartId, $amount, $description),
-                PostingLeg::credit($offsetChartId, $amount, $description),
-            ];
+            return [$moneyChartId, $offsetChartId];
         }
 
-        return [
-            PostingLeg::debit($offsetChartId, $amount, $description),
-            PostingLeg::credit($moneyChartId, $amount, $description),
-        ];
+        return [$offsetChartId, $moneyChartId];
     }
 
     /**

@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
+use App\Enums\Finance\PaymentTransferType;
 use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
@@ -51,23 +52,17 @@ class SalesInvoiceData extends Data
         #[MapName('contact_id')]
         public ?string $contactId = null,
 
-        #[MapName('debit_id')]
-        public ?string $debitId = null,
-
-        #[MapName('credit_id')]
-        public ?string $creditId = null,
-
         #[MapName('date')]
         public ?CarbonImmutable $date = null,
 
         #[MapName('amount')]
         public ?string $amount = null,
 
-        #[MapName('payment_debit_id')]
-        public ?string $paymentDebitId = null,
+        #[MapName('payment_transfer_type')]
+        public ?PaymentTransferType $paymentTransferType = null,
 
-        #[MapName('payment_credit_id')]
-        public ?string $paymentCreditId = null,
+        #[MapName('payment_attachment')]
+        public mixed $paymentAttachment = null,
 
         #[MapName('invoice_attachment')]
         public mixed $invoiceAttachment = null,

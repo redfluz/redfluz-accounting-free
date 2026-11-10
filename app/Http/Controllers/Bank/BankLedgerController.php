@@ -56,10 +56,10 @@ class BankLedgerController extends Controller
     use ReadsMoneyLedger;
 
     /** The table every bank movement is filed in. */
-    private const TABLE = 'bank_ledgers';
+    private const string TABLE = 'bank_ledgers';
 
     /** The column on that table naming which bank account moved. */
-    private const ACCOUNT_COLUMN = 'bank_account_id';
+    private const string ACCOUNT_COLUMN = 'bank_account_id';
 
     /**
      * Show the bank ledger.

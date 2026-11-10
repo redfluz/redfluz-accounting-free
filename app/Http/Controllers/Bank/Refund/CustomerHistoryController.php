@@ -98,7 +98,7 @@ class CustomerHistoryController extends Controller
         $refund = CustomerRefund::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('arLedgers')
             ->firstOrFail();
 
         return view('bank.customer-refund.history.show', compact('refund', 'documentNumber'));
@@ -118,7 +118,7 @@ class CustomerHistoryController extends Controller
         $refund = CustomerRefund::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('lines')
+            ->with('arLedgers')
             ->firstOrFail();
 
         return Pdf::loadView('bank.customer-refund.pdf', [

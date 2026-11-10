@@ -52,8 +52,6 @@
                 </div>
             @else
                 <div class="alert alert theme-info">{{ __('purchase_returns.next') }}</div>
-                <a class="btn btn-solid theme-primary" href="{{ route('purchase.adjustments.create') }}"
-                    ><i class="me-1" data-lucide="sliders-horizontal"></i>{{ __('purchase_returns.adjustment') }}</a>
                 <a class="btn btn-solid theme-primary" href="{{ route('bank.supplier-refunds.create') }}"
                     ><i class="me-1" data-lucide="hand-coins"></i>{{ __('purchase_returns.refund') }}</a>
             @endif

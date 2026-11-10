@@ -26,7 +26,6 @@
 
 namespace App\Models\Crm;
 
-use App\Enums\Finance\LedgerLineType;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\Finance\Ledger;
@@ -168,10 +167,10 @@ class Company extends Model
     public function outstandingSummary(): array
     {
         $receiptTotals = Ledger::query()
-            ->selectRaw('reference_number, SUM(total_amount) as received_amount')
+            ->selectRaw('reference_number, SUM(debit_amount) as received_amount')
             ->where('type', LedgerType::PAYMENT)
             ->where('subtype', LedgerSubType::RECEIPT)
-            ->whereNotNull('credit_acc')
+            ->whereNotNull('chart_code')
             ->whereNotNull('reference_number')
             ->groupBy('reference_number');
 
@@ -180,15 +179,14 @@ class Company extends Model
             ->leftJoinSub($receiptTotals, 'receipt_totals', fn (JoinClause $join) => $join
                 ->on('receipt_totals.reference_number', '=', 'invoices.document_number'))
             ->selectRaw('
-                SUM(CASE WHEN invoices.line_total_amount > 0 THEN invoices.line_total_amount ELSE invoices.total_amount END)
+                SUM(CASE WHEN invoices.credit_amount > 0 THEN invoices.credit_amount ELSE 0 END)
                 - COALESCE(MAX(receipt_totals.received_amount), 0) as outstanding_amount,
-                MIN(invoices.due_date) as due_date
+                MIN(invoices.date) as due_date
             ')
             ->where('invoices.company_id', $this->id)
             ->where('invoices.type', LedgerType::INVOICE->value)
             ->where('invoices.subtype', LedgerSubType::SALES_INVOICE->value)
-            ->where('invoices.line_type', LedgerLineType::ITEM->value)
-            ->whereNotNull('invoices.debit_acc')
+            ->whereNotNull('invoices.chart_code')
             ->groupBy('invoices.company_id')
             ->first();
 

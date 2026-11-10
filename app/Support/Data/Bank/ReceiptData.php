@@ -96,14 +96,6 @@ class ReceiptData extends Data
         #[MapName('payment_transfer_type')]
         public ?PaymentTransferType $paymentTransferType = null,
 
-        // The two accounts the figure is booked between. They belong to the lines
-        // rather than to this table, but they arrive on the same form.
-        #[MapName('debit_id')]
-        public ?string $debitAccountId = null,
-
-        #[MapName('credit_id')]
-        public ?string $creditAccountId = null,
-
         #[MapName('attachment')]
         public mixed $attachment = null,
 

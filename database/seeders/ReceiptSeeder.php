@@ -37,8 +37,7 @@ use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\Chart;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -69,7 +68,7 @@ class ReceiptSeeder extends Seeder
      * The poster that writes a seeded document's double entry to every ledger it
      * belongs in, injected so the trait does not have to reach for the container.
      */
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Seed the receipts.
@@ -99,18 +98,16 @@ class ReceiptSeeder extends Seeder
                 throw new LogicException('Receipt names a company that does not exist: '.$receipt['party']);
             }
 
-            $debitId = Chart::query()->where('name', $debitChart)->value('id');
-            $creditId = Chart::query()->where('name', $creditChart)->value('id');
+            $debitChartId = Chart::query()->where('name', $debitChart)->value('id');
+            $creditChartId = Chart::query()->where('name', $creditChart)->value('id');
 
-            DB::transaction(function () use ($receipt, $company, $debitId, $creditId, $debitChart, $creditChart): void {
+            DB::transaction(function () use ($receipt, $company, $debitChartId, $creditChartId): void {
                 $existing = Receipt::query()
                     ->where('document_number', $receipt['number'])
                     ->first();
 
                 if ($existing !== null) {
                     $this->purgePostedRows($receipt['number']);
-
-                    $existing->lines()->delete();
                     $existing->forceDelete();
                 }
 
@@ -135,27 +132,14 @@ class ReceiptSeeder extends Seeder
                     'cancelled_at' => $receipt['status'] === LedgerStatus::CANCELLED ? $receipt['date'] : null,
                 ]);
 
-                $model->lines()->create([
-                    'amount' => $receipt['amount'],
-                    'description' => $receipt['notes'],
-                ]);
-
-                $model->lines()->create([
-                    'amount' => $receipt['amount'],
-                    'description' => $receipt['notes'],
-                ]);
-
-                $legs = [
-                    PostingLeg::debit($debitId, (string) $receipt['amount'], $receipt['notes']),
-                    PostingLeg::credit($creditId, (string) $receipt['amount'], $receipt['notes']),
-                ];
-
                 $this->postSeededDocument(
                     $model,
                     LedgerSubType::RECEIPT,
                     'document_number',
-                    $this->poster,
-                    $legs,
+                    $this->posting,
+                    $debitChartId,
+                    $creditChartId,
+                    (string) $receipt['amount'],
                 );
             });
         }

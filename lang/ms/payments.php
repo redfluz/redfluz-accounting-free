@@ -52,8 +52,13 @@ return [
         'linked_sales_invoice' => 'Invois Jualan Berkaitan',
         'direct_payment' => 'Bayaran terus (tiada invois berkaitan)',
         'linked_invoice_hint' => 'Pilihan. Resit menyenaraikan invois jualan; baucar bayaran menyenaraikan invois belian bagi syarikat yang dipilih.',
-        'accounting_hint' => 'Biarkan akaun kosong untuk menggunakan tetapan carta. Resit: debit bank dan kredit penghutang. Baucar bayaran: debit pemiutang dan kredit bank.',
         'payment_transfer' => 'Cara Bayaran',
+        'bank_account' => 'Akaun Bank',
+        'cash_account' => 'Akaun Tunai',
+        'e_wallet_account' => 'Akaun E-Wallet',
+        'paid_from' => 'Dibayar Dari',
+        'received_into' => 'Diterima Masuk',
+        'refundable_balance' => 'Baki Boleh Dibayar Balik',
     ],
     'transfer_types' => [
         'cheque' => 'Cek',
@@ -64,6 +69,8 @@ return [
     'sub_type' => [
         'receipt' => 'Resit',
         'payment_voucher' => 'Baucar Bayaran',
+        'customer_refund' => 'Bayaran Balik Pelanggan',
+        'supplier_refund' => 'Bayaran Balik Pembekal',
     ],
     'actions' => [
         'save' => 'Simpan Bayaran',

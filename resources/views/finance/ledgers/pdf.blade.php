@@ -131,7 +131,7 @@
                             </div>
                         @endif
                         <div class="text-muted">
-                            {{ $ledger->debit_acc ?? '' }} {{ $ledger->credit_acc ?? '' }} {{ $ledger->debit_acc_desc ?? '' }} {{ $ledger->credit_acc_desc ?? '' }}
+                            {{ $ledger->chart_code ?? '' }} {{ $ledger->chart_name ?? '' }}
                         </div>
                     </td>
                     <td>{{ $ledger->date->format(Setting::getDefaultDate()) ?? '-' }}</td>

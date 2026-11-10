@@ -41,7 +41,7 @@ $canRestore = auth()->user()->hasFilePermission(FileResources::RECEIPTS_CANCELLE
         <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
             <div>
                 <h4 class="fw-bold mb-0">{{ __('ledgers.cancelled_title') }}</h4>
-                <p class="fg-secondary small mb-0">{{ __('refunds.title') }}</p>
+                <p class="fg-secondary small mb-0">{{ __('payments.workflow.supplier_refund.title') }}</p>
             </div>
             <div class="d-flex gap-2">
                 <a class="btn btn-outline border btn-sm" href="{{ route('bank.supplier-refunds.index') }}">

@@ -128,18 +128,6 @@ enum FileResources: string
     case PRODUCT_PACKAGES = 'sales.product-packages.index';
     case SALES_ORDERS = 'sales.sales-orders.index';
     case SALES_DELIVERY_ORDERS = 'sales.delivery-orders.index';
-    case SALES_ADJUSTMENTS = 'sales.adjustments.index';
-    case SALES_ADJUSTMENTS_CANCELLED = 'sales.adjustments.cancelled.index';
-    case SALES_ADJUSTMENTS_HISTORY = 'sales.adjustments.history.index';
-    case MANUAL_SALES_ADJUSTMENTS = 'sales.manual-adjustments.index';
-    case MANUAL_SALES_ADJUSTMENTS_CANCELLED = 'sales.manual-adjustments.cancelled.index';
-    case MANUAL_SALES_ADJUSTMENTS_HISTORY = 'sales.manual-adjustments.history.index';
-    case PURCHASE_ADJUSTMENTS = 'purchase.adjustments.index';
-    case PURCHASE_ADJUSTMENTS_CANCELLED = 'purchase.adjustments.cancelled.index';
-    case PURCHASE_ADJUSTMENTS_HISTORY = 'purchase.adjustments.history.index';
-    case MANUAL_PURCHASE_ADJUSTMENTS = 'purchase.manual-adjustments.index';
-    case MANUAL_PURCHASE_ADJUSTMENTS_CANCELLED = 'purchase.manual-adjustments.cancelled.index';
-    case MANUAL_PURCHASE_ADJUSTMENTS_HISTORY = 'purchase.manual-adjustments.history.index';
     case PURCHASE_RETURNS = 'purchase.returns.index';
     case INVOICE_DESIGNS = 'design.invoice-designs.index';
     case INVOICES = 'invoice.invoices.index';
@@ -147,6 +135,9 @@ enum FileResources: string
     case SALES_INVOICES = 'sales.invoices.index';
     case SALES_INVOICES_CANCELLED = 'sales.invoices.cancelled.index';
     case SALES_INVOICES_HISTORY = 'sales.invoices.history.index';
+    case MANUAL_SALES_ADJUSTMENTS = 'sales.manual-adjustments.index';
+    case MANUAL_SALES_ADJUSTMENTS_CANCELLED = 'sales.manual-adjustments.cancelled.index';
+    case MANUAL_SALES_ADJUSTMENTS_HISTORY = 'sales.manual-adjustments.history.index';
     case MANUAL_SALES_INVOICES = 'sales.manual-invoices.index';
     case MANUAL_SALES_INVOICES_CANCELLED = 'sales.manual-invoices.cancelled.index';
     case MANUAL_SALES_INVOICES_HISTORY = 'sales.manual-invoices.history.index';
@@ -157,6 +148,9 @@ enum FileResources: string
     case PURCHASE_INVOICES = 'purchase.invoices.index';
     case PURCHASE_INVOICES_CANCELLED = 'purchase.invoices.cancelled.index';
     case PURCHASE_INVOICES_HISTORY = 'purchase.invoices.history.index';
+    case MANUAL_PURCHASE_ADJUSTMENTS = 'purchase.manual-adjustments.index';
+    case MANUAL_PURCHASE_ADJUSTMENTS_CANCELLED = 'purchase.manual-adjustments.cancelled.index';
+    case MANUAL_PURCHASE_ADJUSTMENTS_HISTORY = 'purchase.manual-adjustments.history.index';
     case SUPPLIER_OUTSTANDING = 'purchase.supplier-outstanding.index';
     case CRM_SUPPLIER_OUTSTANDING = 'crm.supplier-outstanding.index';
     case GRN_OUTSTANDING = 'purchase.grn-outstanding.index';
@@ -308,6 +302,9 @@ enum FileResources: string
             self::SALES_INVOICES => 'Sales Invoice',
             self::SALES_INVOICES_CANCELLED => 'Cancelled Sales Invoice',
             self::SALES_INVOICES_HISTORY => 'Sales Invoice History',
+            self::MANUAL_SALES_ADJUSTMENTS => 'Manual Sales Adjustment',
+            self::MANUAL_SALES_ADJUSTMENTS_CANCELLED => 'Cancelled Manual Sales Adjustment',
+            self::MANUAL_SALES_ADJUSTMENTS_HISTORY => 'Manual Sales Adjustment History',
             self::MANUAL_SALES_INVOICES => 'Manual Sales Invoice',
             self::MANUAL_SALES_INVOICES_CANCELLED => 'Cancelled Manual Sales Invoice',
             self::MANUAL_SALES_INVOICES_HISTORY => 'Manual Sales Invoice History',
@@ -383,23 +380,14 @@ enum FileResources: string
             self::PRODUCT_PACKAGES => 'Product Package',
             self::SALES_ORDERS => 'Sales Order',
             self::SALES_DELIVERY_ORDERS => 'Delivery Order',
-            self::SALES_ADJUSTMENTS => 'Adjustment',
-            self::SALES_ADJUSTMENTS_CANCELLED => 'Cancelled Adjustment',
-            self::SALES_ADJUSTMENTS_HISTORY => 'Adjustment History',
-            self::MANUAL_SALES_ADJUSTMENTS => 'Manual Sales Adjustment',
-            self::MANUAL_SALES_ADJUSTMENTS_CANCELLED => 'Cancelled Manual Sales Adjustment',
-            self::MANUAL_SALES_ADJUSTMENTS_HISTORY => 'Manual Sales Adjustment History',
-            self::PURCHASE_ADJUSTMENTS => 'Purchase Adjustment',
-            self::PURCHASE_ADJUSTMENTS_CANCELLED => 'Cancelled Purchase Adjustment',
-            self::PURCHASE_ADJUSTMENTS_HISTORY => 'Purchase Adjustment History',
-            self::MANUAL_PURCHASE_ADJUSTMENTS => 'Manual Purchase Adjustment',
-            self::MANUAL_PURCHASE_ADJUSTMENTS_CANCELLED => 'Cancelled Manual Purchase Adjustment',
-            self::MANUAL_PURCHASE_ADJUSTMENTS_HISTORY => 'Manual Purchase Adjustment History',
             self::PURCHASE_RETURNS => 'Purchase Return',
             self::INVOICE_DESIGNS => 'Invoice Design',
             self::PURCHASE_INVOICES => 'Purchase Invoice',
             self::PURCHASE_INVOICES_CANCELLED => 'Cancelled Purchase Invoice',
             self::PURCHASE_INVOICES_HISTORY => 'Purchase Invoice History',
+            self::MANUAL_PURCHASE_ADJUSTMENTS => 'Manual Purchase Adjustment',
+            self::MANUAL_PURCHASE_ADJUSTMENTS_CANCELLED => 'Cancelled Manual Purchase Adjustment',
+            self::MANUAL_PURCHASE_ADJUSTMENTS_HISTORY => 'Manual Purchase Adjustment History',
 
             // Bank
             self::BANK_DASHBOARD => 'Bank Dashboard',

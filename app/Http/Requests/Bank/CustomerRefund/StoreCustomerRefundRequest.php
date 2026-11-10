@@ -75,14 +75,15 @@ class StoreCustomerRefundRequest extends CustomerRefundRequest
             'company_id' => ['required', 'uuid', 'exists:companies,id'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'amount' => ['required', 'numeric', 'min:0.01', $this->refundableCap()],
             'attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:5120'],
             'notes' => ['nullable', 'string'],
             'payment_transfer_type' => [
                 'nullable',
                 'string',
-                Rule::in(array_column(PaymentTransferType::cases(), 'value')),
+                Rule::in(PaymentTransferType::refundableValues()),
             ],
+            ...$this->moneyAccountRules(),
         ];
     }
 }

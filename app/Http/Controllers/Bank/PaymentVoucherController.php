@@ -38,17 +38,21 @@ use App\Http\Requests\Bank\PaymentVoucher\BatchApprovePaymentVoucherRequest;
 use App\Http\Requests\Bank\PaymentVoucher\BatchCancelPaymentVoucherRequest;
 use App\Http\Requests\Bank\PaymentVoucher\StorePaymentVoucherRequest;
 use App\Http\Requests\Bank\PaymentVoucher\UpdatePaymentVoucherRequest;
+use App\Models\Bank\Bank;
+use App\Models\Bank\CashAccount;
+use App\Models\Bank\EWalletAccount;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
+use App\Models\Purchase\PurchaseInvoice;
 use App\Services\DecimalService;
 use App\Support\Data\Bank\PaymentVoucherData;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -59,7 +63,7 @@ class PaymentVoucherController extends Controller
 {
     use GeneratesDocumentNumber;
 
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Display a listing of the resource.
@@ -83,6 +87,7 @@ class PaymentVoucherController extends Controller
             ->when($endDate !== '', fn ($q) => $q->whereDate('date', '<=', $endDate))
             ->latest('date')->latest('created_at')
             ->paginate(static::PER_PAGE_GRID_STANDARD)->withQueryString();
+
         return view('bank.voucher.index', compact('vouchers', 'search', 'startDate', 'endDate'));
     }
 
@@ -90,6 +95,7 @@ class PaymentVoucherController extends Controller
      * Show the form for creating a new resource.
      *
      * @return View Returns the rendered Blade view.
+     *
      * @throws Throwable
      */
     public function create(): View
@@ -97,6 +103,7 @@ class PaymentVoucherController extends Controller
         return view('bank.voucher.create', [
             'companies' => Company::query()->where('is_creditor', true)->whereNull('deleted_at')->orderBy('name')->get(),
             'documentNumber' => $this->generateDocumentNumber(LedgerSubType::PAYMENT_VOUCHER),
+            ...$this->moneyAccounts(),
         ]);
     }
 
@@ -108,8 +115,11 @@ class PaymentVoucherController extends Controller
      */
     public function show(string $documentNumber): View
     {
-        $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->firstOrFail();
-        $voucher->loadMissing('apLedgers.chart');
+        $voucher = PaymentVoucher::query()
+            ->with(['bankAccount', 'cashAccount', 'eWalletAccount'])
+            ->where('document_number', $documentNumber)
+            ->firstOrFail();
+
         return view('bank.voucher.show', compact('voucher', 'documentNumber'));
     }
 
@@ -125,7 +135,13 @@ class PaymentVoucherController extends Controller
         $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($voucher->isPosted(), 409);
         $companies = Company::query()->where('is_active', true)->orderBy('name')->get();
-        return view('bank.voucher.edit', compact('voucher', 'documentNumber', 'companies'));
+
+        return view('bank.voucher.edit', [
+            'voucher' => $voucher,
+            'documentNumber' => $documentNumber,
+            'companies' => $companies,
+            ...$this->moneyAccounts(),
+        ]);
     }
 
     /**
@@ -133,6 +149,7 @@ class PaymentVoucherController extends Controller
      *
      * @param  StorePaymentVoucherRequest  $request  The validated voucher.
      * @return RedirectResponse Redirect response.
+     *
      * @throws Throwable
      */
     public function store(StorePaymentVoucherRequest $request): RedirectResponse
@@ -141,18 +158,21 @@ class PaymentVoucherController extends Controller
         $data = PaymentVoucherData::from($request->validated());
         $documentNumber = $this->generateDocumentNumber(LedgerSubType::PAYMENT_VOUCHER);
         $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
-        DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath): void {
-            $voucher = PaymentVoucher::query()->create([
+        $transferType = $data->paymentTransferType ?? PaymentTransferType::CHEQUE;
+        DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
+            PaymentVoucher::query()->create([
                 'id' => (string) Str::uuid(), 'document_number' => $documentNumber,
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
                 'status' => $data->status ?? LedgerStatus::PENDING,
-                'payment_transfer_type' => $data->paymentTransferType ?? PaymentTransferType::CHEQUE,
+                'payment_transfer_type' => $transferType,
+                ...$this->moneyAccountColumns($transferType, $data),
                 'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
                 'notes' => $data->notes, 'total_amount' => $amount,
             ]);
         });
+
         return redirect()->route('bank.payment-vouchers.show', $documentNumber)->with('success', FlashMessage::created(FileResources::PAYMENT_VOUCHERS));
     }
 
@@ -162,6 +182,7 @@ class PaymentVoucherController extends Controller
      * @param  UpdatePaymentVoucherRequest  $request  The validated voucher.
      * @param  string  $documentNumber  The document number.
      * @return RedirectResponse Redirect response.
+     *
      * @throws Throwable
      */
     public function update(UpdatePaymentVoucherRequest $request, string $documentNumber): RedirectResponse
@@ -171,15 +192,18 @@ class PaymentVoucherController extends Controller
         abort_if($voucher->isPosted(), 409);
         $data = PaymentVoucherData::from($request->validated());
         $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
-        DB::transaction(function () use ($voucher, $data, $amount): void {
+        $transferType = $data->paymentTransferType ?? $voucher->payment_transfer_type;
+        DB::transaction(function () use ($voucher, $data, $amount, $transferType): void {
             $voucher->update([
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? (string) $voucher->company_name,
                 'date' => $data->date?->format('Y-m-d'),
-                'payment_transfer_type' => $data->paymentTransferType ?? $voucher->payment_transfer_type,
+                'payment_transfer_type' => $transferType,
+                ...$this->moneyAccountColumns($transferType, $data),
                 'reference_number' => $data->referenceNumber, 'notes' => $data->notes, 'total_amount' => $amount,
             ]);
         });
+
         return redirect()->route('bank.payment-vouchers.show', $documentNumber)->with('success', FlashMessage::updated(FileResources::PAYMENT_VOUCHERS));
     }
 
@@ -195,6 +219,7 @@ class PaymentVoucherController extends Controller
         $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($voucher->isPosted(), 409);
         $voucher->delete();
+
         return redirect()->route('bank.payment-vouchers.index')->with('success', FlashMessage::deleted(FileResources::PAYMENT_VOUCHERS));
     }
 
@@ -204,6 +229,7 @@ class PaymentVoucherController extends Controller
      *
      * @param  string  $documentNumber  The document number.
      * @return RedirectResponse Redirect response.
+     *
      * @throws Throwable
      */
     public function approve(string $documentNumber): RedirectResponse
@@ -211,11 +237,16 @@ class PaymentVoucherController extends Controller
         DB::transaction(function () use ($documentNumber): void {
             $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->lockForUpdate()->firstOrFail();
             abort_if($voucher->status === LedgerStatus::POSTED, 409);
-            $legs = $this->legsFor($voucher);
-            $this->poster->post($voucher, $voucher->document_number, $voucher->date, LedgerType::PAYMENT, LedgerSubType::PAYMENT_VOUCHER, $legs, companyId: $voucher->company_id, contactId: $voucher->contact_id, referenceNumber: $voucher->reference_number);
+            [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($voucher);
+            $this->posting->postPayment(
+                $voucher, $voucher->document_number, $voucher->date, LedgerType::PAYMENT, LedgerSubType::PAYMENT_VOUCHER,
+                $debitChartId, $creditChartId, $amount,
+                companyId: $voucher->company_id, companyName: $voucher->company_name, referenceNumber: $voucher->reference_number, description: $voucher->notes,
+            );
             $voucher->update(['status' => LedgerStatus::POSTED]);
             $this->attributeApproved($voucher);
         });
+
         return redirect()->route('bank.payment-vouchers.show', $documentNumber)->with('success', FlashMessage::approved(FileResources::PAYMENT_VOUCHERS));
     }
 
@@ -224,49 +255,150 @@ class PaymentVoucherController extends Controller
      *
      * @param  BatchApprovePaymentVoucherRequest  $request  The request.
      * @return RedirectResponse Redirect response.
+     *
      * @throws Throwable
      */
     public function batchApprove(BatchApprovePaymentVoucherRequest $request): RedirectResponse
     {
         $this->allows(FileResources::PAYMENT_VOUCHERS, FileAction::APPROVE);
-        $documentNumbers = $request->validatedDocumentNumbers();
-        $approved = 0; $failed = [];
+        $documentNumbers = $request->documentNumbers();
+        $approved = 0;
+        $failed = [];
         DB::transaction(function () use ($documentNumbers, &$approved, &$failed): void {
             foreach ($documentNumbers as $documentNumber) {
                 $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->lockForUpdate()->first();
-                if (! $voucher || $voucher->status === LedgerStatus::POSTED) { $failed[] = $documentNumber; continue; }
+                if (! $voucher || $voucher->status === LedgerStatus::POSTED) {
+                    $failed[] = $documentNumber;
+
+                    continue;
+                }
                 try {
-                    $legs = $this->legsFor($voucher);
-                    $this->poster->post($voucher, $voucher->document_number, $voucher->date, LedgerType::PAYMENT, LedgerSubType::PAYMENT_VOUCHER, $legs, companyId: $voucher->company_id, contactId: $voucher->contact_id, referenceNumber: $voucher->reference_number);
+                    [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($voucher);
+                    $this->posting->postPayment(
+                        $voucher, $voucher->document_number, $voucher->date, LedgerType::PAYMENT, LedgerSubType::PAYMENT_VOUCHER,
+                        $debitChartId, $creditChartId, $amount,
+                        companyId: $voucher->company_id, companyName: $voucher->company_name, referenceNumber: $voucher->reference_number, description: $voucher->notes,
+                    );
                     $voucher->update(['status' => LedgerStatus::POSTED]);
-                    $this->attributeApproved($voucher); $approved++;
-                } catch (Throwable) { $failed[] = $documentNumber; }
+                    $this->attributeApproved($voucher);
+                    $approved++;
+                } catch (Throwable) {
+                    $failed[] = $documentNumber;
+                }
             }
         });
         $redirect = redirect()->route('bank.payment-vouchers.index');
-        if ($approved > 0) $redirect->with('success', __('common.messages.batch_approved', ['count' => $approved]));
-        if ($failed !== []) $redirect->with('warning', __('common.messages.batch_approve_failed', ['numbers' => implode(', ', $failed)]));
+        if ($approved > 0) {
+            $redirect->with('success', __('common.messages.batch_approved', ['count' => $approved]));
+        }
+        if ($failed !== []) {
+            $redirect->with('warning', __('common.messages.batch_approve_failed', ['numbers' => implode(', ', $failed)]));
+        }
+
         return $redirect;
     }
 
     /**
-     * Build posting legs at approval time from chart settings.
-     * Payment voucher: debit vendor/AP, credit money (by transfer type).
+     * The money accounts a voucher may be paid from, one list per kind.
      *
-     * @param  PaymentVoucher  $voucher  The voucher being posted.
-     * @return list<PostingLeg>
+     * Split by kind rather than merged into one collection, because the form shows
+     * the list the transfer type allows: a cheque is drawn on a bank, a cash
+     * payment leaves a register and a wallet payment leaves a wallet. Each account
+     * has to be live and have a chart behind it, since the chart is what the money
+     * posts against.
+     *
+     * @return array{banks: Collection<int, Bank>, cashAccounts: Collection<int, CashAccount>, eWalletAccounts: Collection<int, EWalletAccount>}
      */
-    private function legsFor(PaymentVoucher $voucher): array
+    private function moneyAccounts(): array
+    {
+        return [
+            'banks' => Bank::query()
+                ->with('chart')
+                ->where('is_active', true)
+                ->whereNotNull('chart_id')
+                ->orderBy('name')
+                ->get(),
+            'cashAccounts' => CashAccount::query()
+                ->with('chart')
+                ->where('is_active', true)
+                ->whereNotNull('chart_id')
+                ->orderBy('name')
+                ->get(),
+            'eWalletAccounts' => EWalletAccount::query()
+                ->with('chart')
+                ->where('is_active', true)
+                ->whereNotNull('chart_id')
+                ->orderBy('name')
+                ->get(),
+        ];
+    }
+
+    /**
+     * The three account columns of a voucher, with only one of them filled.
+     *
+     * Which one is filled follows from the transfer type, and the other two are
+     * written as null rather than left alone: an edit that changes a payment from
+     * cash to a bank transfer has to let go of the drawer it named, or the voucher
+     * would carry two accounts and the money ledger would be a matter of which one
+     * the reader looked at first.
+     *
+     * @param  PaymentTransferType|null  $transferType  The type the voucher is saved with, or null when it never said.
+     * @param  PaymentVoucherData  $data  The voucher as the form supplied it.
+     * @return array{bank_account_id: string|null, cash_account_id: string|null, e_wallet_account_id: string|null} The three account columns.
+     */
+    private function moneyAccountColumns(?PaymentTransferType $transferType, PaymentVoucherData $data): array
+    {
+        $columns = [
+            'bank_account_id' => null,
+            'cash_account_id' => null,
+            'e_wallet_account_id' => null,
+        ];
+
+        if ($transferType === null) {
+            return $columns;
+        }
+
+        $column = $transferType->accountColumn();
+
+        $columns[$column] = match ($column) {
+            'cash_account_id' => $data->cashAccountId,
+            'e_wallet_account_id' => $data->eWalletAccountId,
+            default => $data->bankAccountId,
+        };
+
+        return $columns;
+    }
+
+    /**
+     * Resolve posting accounts (direct from chart settings). Debit vendor/AP, credit money.
+     *
+     * The money side is the chart of the account the voucher names, because every
+     * account owns exactly one chart: posting against that chart is what lands the
+     * movement in that account's own money ledger instead of whichever one the
+     * settings happen to name. A voucher that never named an account, which is every
+     * voucher raised before the account became a field, falls back to the settings
+     * chart for its transfer type so it still posts.
+     *
+     * @return array{0: string, 1: string, 2: numeric-string}
+     */
+    private function postingAccountsFor(PaymentVoucher $voucher): array
     {
         $setting = ChartSetting::query()->first();
         $transferType = $voucher->payment_transfer_type ?? PaymentTransferType::CHEQUE;
-        $creditId = $transferType === PaymentTransferType::CASH ? ($setting?->cash_chart_uuid ?? $setting?->bank_chart_uuid) : ($transferType === PaymentTransferType::E_WALLET ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid) : $setting?->bank_chart_uuid);
-        $debitId = $setting?->vendor_chart_uuid;
-        if (blank($debitId) || blank($creditId)) throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
+        $moneyChartId = $voucher->moneyAccount()?->chart_id;
+        $creditChartId = $moneyChartId ?? ($transferType === PaymentTransferType::CASH
+            ? ($setting?->cash_chart_uuid ?? $setting?->bank_chart_uuid)
+            : ($transferType === PaymentTransferType::E_WALLET
+                ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid)
+                : $setting?->bank_chart_uuid));
+        $debitChartId = $setting?->vendor_chart_uuid;
+        if (blank($debitChartId) || blank($creditChartId)) {
+            throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
+        }
         $amount = bcadd(DecimalService::normalize((string) $voucher->total_amount), '0', 2);
-        return [PostingLeg::debit((string) $debitId, $amount, $voucher->notes, $voucher->reference_number), PostingLeg::credit((string) $creditId, $amount, $voucher->notes, $voucher->reference_number)];
-    }
 
+        return [(string) $debitChartId, (string) $creditChartId, $amount];
+    }
 
     public function batchCancel(BatchCancelPaymentVoucherRequest $request): RedirectResponse
     {

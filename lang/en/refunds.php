@@ -26,6 +26,7 @@
 
 return [
     'title' => 'Refund',
+    'history_title' => 'Posted Refunds',
 
     'messages' => [
         'no_paid_balance' => 'No posted payment balance is available for this invoice.',
@@ -33,7 +34,7 @@ return [
 
     'validation' => [
         'lines_required' => 'A refund must carry at least one accounting line before it can be posted.',
-        'amount_exceeds_paid' => 'The refund cannot exceed the available paid balance of RM :amount.',
+        'amount_exceeds_paid' => 'The refund cannot exceed the available paid balance of :currency :amount.',
     ],
 
     /*

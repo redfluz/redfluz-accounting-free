@@ -59,12 +59,6 @@ class PurchaseInvoiceData extends Data
         #[MapName('contact_id')]
         public ?string $contactId = null,
 
-        #[MapName('debit_id')]
-        public ?string $debitId = null,
-
-        #[MapName('credit_id')]
-        public ?string $creditId = null,
-
         #[MapName('date')]
         public ?CarbonImmutable $date = null,
 
@@ -77,20 +71,8 @@ class PurchaseInvoiceData extends Data
         #[MapName('due_date')]
         public ?CarbonImmutable $dueDate = null,
 
-        #[MapName('amount')]
-        public ?string $amount = null,
-
-        #[MapName('payment_debit_id')]
-        public ?string $paymentDebitId = null,
-
-        #[MapName('payment_credit_id')]
-        public ?string $paymentCreditId = null,
-
         #[MapName('invoice_notes')]
         public ?string $invoiceNotes = null,
-
-        #[MapName('payment_notes')]
-        public ?string $paymentNotes = null,
 
         #[MapName('document_number')]
         public ?string $documentNumber = null,
@@ -175,8 +157,6 @@ class PurchaseInvoiceData extends Data
         return [
             'company_id' => $this->companyId,
             'contact_id' => $this->contactId,
-            'debit_id' => $this->debitId,
-            'credit_id' => $this->creditId,
             'purchase_type' => $this->purchaseType?->value,
             'date' => $this->date?->format('Y-m-d'),
             'credit_term_days' => $this->creditTermDays,
@@ -200,8 +180,6 @@ class PurchaseInvoiceData extends Data
             'id' => $this->id,
             'company_id' => $this->companyId,
             'contact_id' => $this->contactId,
-            'debit_id' => $this->debitId,
-            'credit_id' => $this->creditId,
             'purchase_type' => $this->purchaseType?->value,
             'date' => $this->date?->format('Y-m-d'),
             'due_date' => $this->dueDate?->format('Y-m-d'),

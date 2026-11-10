@@ -144,12 +144,10 @@ class BankController extends Controller
                     return;
                 }
 
-                $query->where('debit_id', $bank->chart_id)
-                    ->orWhere('credit_id', $bank->chart_id);
+                $query->where('chart_id', $bank->chart_id);
 
                 if (filled($chartCode)) {
-                    $query->orWhere('debit_acc', $chartCode)
-                        ->orWhere('credit_acc', $chartCode);
+                    $query->orWhere('chart_code', $chartCode);
                 }
             });
 
@@ -273,9 +271,8 @@ class BankController extends Controller
         $entries = $code === null
             ? 0
             : Ledger::query()
-                ->whereNull('deleted_at')
                 ->where(function (Builder $query) use ($code): void {
-                    $query->where('debit_acc', $code)->orWhere('credit_acc', $code);
+                    $query->where('chart_code', $code);
                 })
                 ->count();
 

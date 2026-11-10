@@ -28,13 +28,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Sales\SalesInvoice;
 
-use App\Enums\Finance\DiscountType;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Finance\DiscountType;
 use App\Enums\Finance\TaxMode;
 use App\Enums\UploadType;
-use App\Models\ChartOfAccount\Chart;
-use Closure;
 use Illuminate\Validation\Rule;
 
 /**
@@ -72,46 +70,8 @@ class StoreSalesInvoiceRequest extends SalesInvoiceRequest
         return [
             'company_id' => ['nullable', 'uuid', Rule::exists('companies', 'id')->where('is_debtor', true)],
             'contact_id' => ['nullable', 'uuid', 'exists:contacts,id'],
-            'debit_id' => [
-                'nullable',
-                'exists:charts,id',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $value) {
-                        return;
-                    }
-
-                    $chart = Chart::query()->with('chartType')->whereKey($value)->first();
-                    if ($chart === null) {
-                        return;
-                    }
-
-                    if (! $chart->chartType?->isAsset || ! $chart->isDebtor) {
-                        $fail(__('ledgers.validation.debit_sales_must_be_asset'));
-                    }
-                },
-            ],
-            'credit_id' => [
-                'nullable',
-                'exists:charts,id',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $value) {
-                        return;
-                    }
-
-                    $chart = Chart::query()->with('chartType')->whereKey($value)->first();
-                    if ($chart === null) {
-                        return;
-                    }
-
-                    if ($chart->chartType?->isIncome !== true) {
-                        $fail(__('ledgers.validation.credit_sales_must_be_income'));
-                    }
-                },
-            ],
             'date' => ['required', 'date'],
             'amount' => ['nullable', 'numeric', 'min:0.01'],
-            'payment_debit_id' => ['nullable', 'exists:charts,id'],
-            'payment_credit_id' => ['nullable', 'exists:charts,id'],
             'invoice_attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:5120'],
             'invoice_notes' => ['nullable', 'string'],
             'payment_notes' => ['nullable', 'string'],

@@ -39,8 +39,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Bank\Transfer\UpdateBankTransferRequest;
 use App\Models\Bank\Bank;
 use App\Models\Bank\Transfer;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -72,7 +71,7 @@ class BankTransferController extends Controller
 {
     use GeneratesDocumentNumber, HandlesTransfers;
 
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Display the transfers waiting to be approved, or another status.
@@ -316,25 +315,17 @@ class BankTransferController extends Controller
 
             // The bank is debited, transit credited: the money has reached the
             // bank and has left the account that was holding it meanwhile.
-            $legs = [
-                PostingLeg::debit($moneyChartId, $amount, $transfer->description, $transfer->reference_number),
-                PostingLeg::credit($transitChart->id, $amount, $transfer->description, $transfer->reference_number),
-            ];
-
-            if (bccomp(PostingLeg::sumDebit($legs), PostingLeg::sumCredit($legs), 2) !== 0) {
-                throw ValidationException::withMessages([
-                    'document_number' => __('journal_entries.unbalanced_entry_error'),
-                ]);
-            }
-
-            $this->poster->post(
+            $this->posting->postPayment(
                 $transfer,
                 $transfer->document_number,
                 $transfer->date,
                 LedgerType::PAYMENT,
                 LedgerSubType::TRANSFER,
-                $legs,
+                $moneyChartId,
+                (string) $transitChart->id,
+                $amount,
                 referenceNumber: $transfer->reference_number,
+                description: $transfer->description,
             );
 
             $transfer->update(['status' => LedgerStatus::POSTED]);

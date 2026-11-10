@@ -165,6 +165,7 @@ class FinanceConfigurationSeeder extends Seeder
             22 => '2800',
             25 => '3100',
             28 => '4000',
+            67 => '4050',
             33 => '5000',
             75 => '5050',
             34 => '5100',
@@ -303,6 +304,7 @@ class FinanceConfigurationSeeder extends Seeder
                 'id' => $chartSettingId,
                 'cogs_chart_uuid' => $chartUuidMap[75],
                 'income_chart_uuid' => $chartUuidMap[28],
+                'discount_chart_uuid' => $chartUuidMap[67],
                 'bank_chart_uuid' => $chartUuidMap[2],
                 'cash_chart_uuid' => $chartUuidMap[1],
                 'cash_in_transit_chart_uuid' => $chartUuidMap[76],
@@ -323,6 +325,7 @@ class FinanceConfigurationSeeder extends Seeder
                 'closing_date' => '2025-12-31',
                 'start_finance_period_month' => 1,
                 'strict_journal_posting' => 0,
+                'is_tax_enabled' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]

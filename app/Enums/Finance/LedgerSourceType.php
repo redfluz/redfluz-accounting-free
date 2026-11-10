@@ -26,6 +26,8 @@
 
 namespace App\Enums\Finance;
 
+use function in_array;
+
 /**
  * What a row in a sub ledger was raised by.
  *
@@ -47,7 +49,7 @@ enum LedgerSourceType: string
     case SALES_INVOICE = 'sales_invoice';
     case SALES_ADJUSTMENT = 'sales_adjustment';
     case RECEIPT = 'receipt';
-    case RECEIPT_REFUND = 'receipt_refund';
+    case CUSTOMER_REFUND = 'customer_refund';
 
     // Payable sources. Money owed to the supplier.
     case PURCHASE_INVOICE = 'purchase_invoice';
@@ -69,7 +71,7 @@ enum LedgerSourceType: string
             self::SALES_INVOICE,
             self::SALES_ADJUSTMENT,
             self::RECEIPT,
-            self::RECEIPT_REFUND,
+            self::CUSTOMER_REFUND,
         ], true);
     }
 

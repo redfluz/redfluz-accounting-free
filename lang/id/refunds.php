@@ -26,7 +26,7 @@
 
 return [
     'workflow' => [
-        'receipt_refund' => [
+        'customer_refund' => [
             'title' => 'Pengembalian Dana Pelanggan',
             'subtitle' => 'Refund pembayaran pelanggan yang terkait dengan faktur penjualan.',
             'create_title' => 'Buat Pengembalian Dana Pelanggan',
@@ -38,6 +38,7 @@ return [
         ],
     ],
     'title' => 'Pengembalian Dana',
+    'history_title' => 'Pengembalian Dana Terposting',
     'subtitle' => 'Buat dan cetak pengembalian dana pelanggan dan pemasok yang terkait dengan faktur asli mereka.',
     'table' => [
         'column_entry' => 'Entri',
@@ -49,7 +50,7 @@ return [
         'accounting_hint' => 'Pengembalian penerimaan: debit debitur dan kredit bank. Pengembalian pemasok: debit bank dan kredit kreditur. Transfer: antar bank. Penarikan: kredit bank.',
     ],
     'sub_type' => [
-        'receipt_refund' => 'Pengembalian Dana Pelanggan',
+        'customer_refund' => 'Pengembalian Dana Pelanggan',
         'supplier_refund' => 'Pengembalian Dana Pemasok',
         'refund' => 'Pengembalian Dana',
         'transfer' => 'Transfer Dana',
@@ -67,10 +68,10 @@ return [
         'linked_document_invalid' => 'Pilih faktur penjualan atau pembelian terposting yang valid milik perusahaan terpilih.',
         'debit_account_invalid' => 'Akun debit terpilih tidak valid untuk jenis pengembalian dana ini.',
         'credit_account_invalid' => 'Akun kredit terpilih tidak valid untuk jenis pengembalian dana ini.',
-        'amount_exceeds_paid' => 'Pengembalian dana tidak boleh melebihi saldo terbayar yang tersedia sebesar RM :amount.',
+        'amount_exceeds_paid' => 'Pengembalian dana tidak boleh melebihi saldo terbayar yang tersedia sebesar :currency :amount.',
     ],
     'pdf' => [
-        'receipt_refund_title' => 'PENGEMBALIAN PENERIMAAN',
+        'customer_refund_title' => 'PENGEMBALIAN PENERIMAAN',
         'supplier_refund_title' => 'PENGEMBALIAN PEMASOK',
         'refund_title' => 'PENGEMBALIAN DANA',
         'transfer_title' => 'TRANSFER DANA',

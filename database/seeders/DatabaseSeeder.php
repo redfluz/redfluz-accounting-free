@@ -126,8 +126,6 @@ class DatabaseSeeder extends Seeder
             // Last: needs the purchase orders, receipts and products to exist.
             AttachmentSeeder::class,
             PurchaseDocumentSeeder::class,
-            PurchaseAdjustmentSeeder::class,
-            SalesAdjustmentSeeder::class,
         ]);
     }
 }

@@ -83,6 +83,12 @@ class UpdateChartSettingRequest extends ChartSettingRequest
                 Rule::exists($chartTable, 'id'),
             ],
 
+            'discount_chart_uuid' => [
+                'nullable',
+                'uuid',
+                Rule::exists($chartTable, 'id'),
+            ],
+
             'bank_chart_uuid' => [
                 'nullable',
                 'uuid',
@@ -192,6 +198,11 @@ class UpdateChartSettingRequest extends ChartSettingRequest
             ],
 
             'strict_journal_posting' => [
+                'nullable',
+                'boolean',
+            ],
+
+            'is_tax_enabled' => [
                 'nullable',
                 'boolean',
             ],

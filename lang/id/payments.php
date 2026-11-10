@@ -52,8 +52,13 @@ return [
         'linked_sales_invoice' => 'Faktur Penjualan Terkait',
         'direct_payment' => 'Pembayaran langsung (tanpa faktur terkait)',
         'linked_invoice_hint' => 'Opsional. Kuitansi mencantumkan faktur penjualan; bukti pembayaran mencantumkan faktur pembelian untuk perusahaan terpilih.',
-        'accounting_hint' => 'Kosongkan akun untuk menggunakan pengaturan bagan akun. Kuitansi: debit bank dan kredit debitur. Bukti pembayaran: debit kreditur dan kredit bank.',
         'payment_transfer' => 'Transfer Pembayaran',
+        'bank_account' => 'Rekening Bank',
+        'cash_account' => 'Rekening Tunai',
+        'e_wallet_account' => 'Rekening E-Wallet',
+        'paid_from' => 'Dibayar Dari',
+        'received_into' => 'Diterima Masuk',
+        'refundable_balance' => 'Saldo Dapat Dikembalikan',
     ],
     'transfer_types' => [
         'cheque' => 'Cek',
@@ -64,6 +69,8 @@ return [
     'sub_type' => [
         'receipt' => 'Kuitansi',
         'payment_voucher' => 'Bukti Pembayaran',
+        'customer_refund' => 'Pengembalian Dana Pelanggan',
+        'supplier_refund' => 'Pengembalian Dana Pemasok',
     ],
     'actions' => [
         'save' => 'Simpan Pembayaran',

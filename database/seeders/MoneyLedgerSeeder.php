@@ -32,7 +32,7 @@ use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\Chart;
-use App\Support\Posting\PaymentLedgerPoster;
+use App\Support\Posting\Posting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -63,7 +63,7 @@ class MoneyLedgerSeeder extends Seeder
     use Concerns\PostsSeededDocuments;
     use Concerns\SeedsDocumentSequences;
 
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Seed the money ledger movements.
@@ -260,7 +260,10 @@ class MoneyLedgerSeeder extends Seeder
                 'credit_code' => '1140',
                 'amount' => '400.00',
                 'party' => 'Horizon Wealth Management',
-                'transfer_type' => PaymentTransferType::BANK_TRANSFER,
+                // Typed as cash because that is what left the drawer. The voucher
+                // names the account the money came out of, so the transfer type has
+                // to agree with it: bank transfer would offer only bank accounts.
+                'transfer_type' => PaymentTransferType::CASH,
                 // Cash banked up: money leaves the drawer and arrives in the
                 // bank, which is the only movement that touches both money
                 // ledgers at once and so is the one that proves both agree.
@@ -274,7 +277,7 @@ class MoneyLedgerSeeder extends Seeder
                 'credit_code' => '1151',
                 'amount' => '250.00',
                 'party' => 'DHL Express Malaysia',
-                'transfer_type' => PaymentTransferType::BANK_TRANSFER,
+                'transfer_type' => PaymentTransferType::E_WALLET,
                 'notes' => 'Office supplies paid through GrabPay.',
             ],
         ];
@@ -289,11 +292,11 @@ class MoneyLedgerSeeder extends Seeder
      */
     private function seedReceipt(array $receipt): void
     {
-        $debitId = $this->chartId($receipt['debit_code'], $receipt['number']);
-        $creditId = $this->chartId($receipt['credit_code'], $receipt['number']);
+        $debitChartId = $this->chartId($receipt['debit_code'], $receipt['number']);
+        $creditChartId = $this->chartId($receipt['credit_code'], $receipt['number']);
         $company = $this->company($receipt['party'], $receipt['number']);
 
-        DB::transaction(function () use ($receipt, $company, $debitId, $creditId): void {
+        DB::transaction(function () use ($receipt, $company, $debitChartId, $creditChartId): void {
             $existing = Receipt::query()->where('document_number', $receipt['number'])->first();
 
             if ($existing !== null) {
@@ -303,7 +306,6 @@ class MoneyLedgerSeeder extends Seeder
                 // every drawer balance instead of replacing it.
                 $this->purgePostedRows($receipt['number']);
 
-                $existing->lines()->delete();
                 $existing->forceDelete();
             }
 
@@ -315,7 +317,6 @@ class MoneyLedgerSeeder extends Seeder
                 'status' => $receipt['status'] ?? LedgerStatus::POSTED,
                 'payment_transfer_type' => $receipt['transfer_type'],
                 'reference_number' => $receipt['reference_number'],
-                'description' => $receipt['notes'],
                 'notes' => $receipt['notes'],
                 'total_amount' => $receipt['amount'],
                 'created_name' => 'System Seeder',
@@ -324,21 +325,7 @@ class MoneyLedgerSeeder extends Seeder
                 'approved_at' => ($receipt['status'] ?? LedgerStatus::POSTED) === LedgerStatus::POSTED ? $receipt['date'] : null,
             ]);
 
-            $model->lines()->create([
-                'debit_id' => $debitId,
-                'debit_acc' => $receipt['debit_code'],
-                'amount' => $receipt['amount'],
-                'description' => $receipt['notes'],
-            ]);
-
-            $model->lines()->create([
-                'credit_id' => $creditId,
-                'credit_acc' => $receipt['credit_code'],
-                'amount' => $receipt['amount'],
-                'description' => $receipt['notes'],
-            ]);
-
-            $this->postSeededDocument($model, LedgerSubType::RECEIPT, 'document_number', $this->poster);
+            $this->postSeededDocument($model, LedgerSubType::RECEIPT, 'document_number', $this->posting, $debitChartId, $creditChartId, (string) $receipt['amount']);
         });
     }
 
@@ -351,11 +338,11 @@ class MoneyLedgerSeeder extends Seeder
      */
     private function seedVoucher(array $voucher): void
     {
-        $debitId = $this->chartId($voucher['debit_code'], $voucher['number']);
-        $creditId = $this->chartId($voucher['credit_code'], $voucher['number']);
+        $debitChartId = $this->chartId($voucher['debit_code'], $voucher['number']);
+        $creditChartId = $this->chartId($voucher['credit_code'], $voucher['number']);
         $company = $this->company($voucher['party'], $voucher['number']);
 
-        DB::transaction(function () use ($voucher, $company, $debitId, $creditId): void {
+        DB::transaction(function () use ($voucher, $company, $debitChartId, $creditChartId): void {
             $existing = PaymentVoucher::query()
                 ->where('document_number', $voucher['number'])
                 ->first();
@@ -365,7 +352,6 @@ class MoneyLedgerSeeder extends Seeder
                 // leaves behind, its postings are.
                 $this->purgePostedRows($voucher['number']);
 
-                $existing->lines()->delete();
                 $existing->forceDelete();
             }
 
@@ -376,8 +362,8 @@ class MoneyLedgerSeeder extends Seeder
                 'date' => $voucher['date'],
                 'status' => LedgerStatus::POSTED,
                 'payment_transfer_type' => $voucher['transfer_type'],
+                ...$this->moneyAccountColumns($creditChartId),
                 'reference_number' => $voucher['reference_number'],
-                'description' => $voucher['notes'],
                 'notes' => $voucher['notes'],
                 'total_amount' => $voucher['amount'],
                 'created_name' => 'System Seeder',
@@ -386,25 +372,14 @@ class MoneyLedgerSeeder extends Seeder
                 'approved_at' => $voucher['date'],
             ]);
 
-            $model->lines()->create([
-                'debit_id' => $debitId,
-                'debit_acc' => $voucher['debit_code'],
-                'amount' => $voucher['amount'],
-                'description' => $voucher['notes'],
-            ]);
-
-            $model->lines()->create([
-                'credit_id' => $creditId,
-                'credit_acc' => $voucher['credit_code'],
-                'amount' => $voucher['amount'],
-                'description' => $voucher['notes'],
-            ]);
-
             $this->postSeededDocument(
                 $model,
                 LedgerSubType::PAYMENT_VOUCHER,
                 'document_number',
-                $this->poster,
+                $this->posting,
+                $debitChartId,
+                $creditChartId,
+                (string) $voucher['amount'],
             );
         });
     }
@@ -415,7 +390,7 @@ class MoneyLedgerSeeder extends Seeder
      * @param  string  $code  The chart code.
      * @param  string  $number  The document, for the failure message.
      */
-    private function chartId(string $code, string $number): ?string
+    private function chartId(string $code, string $number): string
     {
         $id = Chart::query()->where('code', $code)->value('id');
 

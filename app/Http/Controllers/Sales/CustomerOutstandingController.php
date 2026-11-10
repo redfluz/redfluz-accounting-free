@@ -74,15 +74,25 @@ class CustomerOutstandingController extends Controller
                 .'SUM(order_lines.ordered_quantity) as ordered_quantity'
             )
             ->groupBy('orders.document_number');
-        $receivedQuantities = ProductLedger::query()
+        $deliveryQuantities = ProductLedger::query()
             ->selectRaw('reference_number, SUM(quantity) as delivered_quantity')
             ->where('source_type', ProductMovementSource::DELIVERY_ORDER)
             ->where('direction', ProductMovementDirection::OUT->value)
             ->where('status', ProductMovementStatus::ACTIVE->value)
             ->whereNotNull('reference_number')
             ->groupBy('reference_number');
+        // An invoice may deduct its own stock instead of waiting for a delivery
+        // order, and that movement is keyed by the invoice document number
+        // rather than the sales order it came from.
+        $invoiceQuantities = ProductLedger::query()
+            ->selectRaw('document_number, SUM(quantity) as delivered_quantity')
+            ->where('source_type', ProductMovementSource::SALES_INVOICE)
+            ->where('direction', ProductMovementDirection::OUT->value)
+            ->where('status', ProductMovementStatus::ACTIVE->value)
+            ->whereNotNull('document_number')
+            ->groupBy('document_number');
         $paymentTotals = ArLedger::query()
-            ->selectRaw('reference_number, SUM(debit_amount) as paid_amount')
+            ->selectRaw('reference_number, SUM(credit_amount) as paid_amount')
             ->where('type', LedgerType::PAYMENT->value)
             ->where('subtype', LedgerSubType::RECEIPT->value)
             ->whereNotNull('reference_number')
@@ -98,9 +108,13 @@ class CustomerOutstandingController extends Controller
                 /** @var JoinClause $join */
                 $join->on('ordered_quantities.reference_number', '=', 'invoices.reference_number');
             })
-            ->leftJoinSub($receivedQuantities, 'received_quantities', function ($join) {
+            ->leftJoinSub($deliveryQuantities, 'delivery_quantities', function ($join) {
                 /** @var JoinClause $join */
-                $join->on('received_quantities.reference_number', '=', 'invoices.reference_number');
+                $join->on('delivery_quantities.reference_number', '=', 'invoices.reference_number');
+            })
+            ->leftJoinSub($invoiceQuantities, 'invoice_quantities', function ($join) {
+                /** @var JoinClause $join */
+                $join->on('invoice_quantities.document_number', '=', 'invoices.document_number');
             })
             ->selectRaw(
                 'invoices.id, invoices.document_number, '
@@ -109,7 +123,7 @@ class CustomerOutstandingController extends Controller
                 .'invoices.total_amount as invoice_amount, '
                 .'COALESCE(payment_totals.paid_amount, 0) as paid_amount, '
                 .'COALESCE(ordered_quantities.ordered_quantity, 0) as ordered_quantity, '
-                .'COALESCE(received_quantities.delivered_quantity, 0) as delivered_quantity'
+                .'COALESCE(delivery_quantities.delivered_quantity, 0) + COALESCE(invoice_quantities.delivered_quantity, 0) as delivered_quantity'
             )
             ->where('invoices.status', 'posted')
             ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search): void {
@@ -188,7 +202,7 @@ class CustomerOutstandingController extends Controller
     private function decorateInvoices(Collection $invoices, Carbon $asOfDate): void
     {
         $invoices->each(function (SalesInvoice $invoice) use ($asOfDate): void {
-            $totalRaw = $invoice->getAttribute('total_amount');
+            $totalRaw = $invoice->getAttribute('invoice_amount');
             $invoiceAmount = is_numeric($totalRaw) ? (float) $totalRaw : 0.0;
             $paidRaw = $invoice->getAttribute('paid_amount');
             $paidAmount = is_numeric($paidRaw) ? (float) $paidRaw : 0.0;
@@ -209,7 +223,7 @@ class CustomerOutstandingController extends Controller
      */
     private function totals(Collection $invoices): array
     {
-        $invoiceRaw = $invoices->sum('total_amount');
+        $invoiceRaw = $invoices->sum('invoice_amount');
         $paidRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('paid_amount'));
         $balanceRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('balance_amount'));
         $orderedRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('ordered_quantity'));
@@ -244,12 +258,16 @@ class CustomerOutstandingController extends Controller
             $orderedQty = is_numeric($orderedQtyRaw) ? (string) $orderedQtyRaw : '';
             $completionRaw = $invoice->getAttribute('delivery_completion');
             $deliveryCompletionStr = is_numeric($completionRaw) ? (string) $completionRaw.'%' : '-';
-            $invoiceDate = $invoice->date;
+            // The report selects the invoice date under its own alias, so the
+            // export reads that alias instead of the model's date attribute.
+            $invoiceDateRaw = $invoice->getAttribute('invoice_date');
+            /** @var Carbon|null $invoiceDate */
+            $invoiceDate = is_string($invoiceDateRaw) && $invoiceDateRaw !== '' ? Carbon::parse($invoiceDateRaw) : null;
             $invoiceDateStr = $invoiceDate instanceof Carbon ? $invoiceDate->format('d/m/Y') : '-';
             $dueDate = $invoice->due_date;
             $daysDiff = ($dueDate instanceof Carbon && $invoiceDate instanceof Carbon) ? $invoiceDate->diffInDays($dueDate).' days' : '-';
             $dueDateStr = $dueDate instanceof Carbon ? $dueDate->format('d/m/Y') : '-';
-            $totalRaw = $invoice->getAttribute('total_amount');
+            $totalRaw = $invoice->getAttribute('invoice_amount');
             $invoiceAmount = is_numeric($totalRaw) ? (float) $totalRaw : 0.0;
             $paidExcelRaw = $invoice->getAttribute('paid_amount');
             $paidAmount = is_numeric($paidExcelRaw) ? (float) $paidExcelRaw : 0.0;

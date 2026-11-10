@@ -106,47 +106,14 @@
                         <strong>{{ $voucher->payment_transfer_type?->label() ?? '-' }}</strong>
                     </div>
                 </div>
-            </div>
-
-            {{-- The double entry. Each line carries one side only, which is why
-                 the debit and credit columns are never both filled on a row. --}}
-            <div class="table-responsive rounded border">
-                <table class="table-hover table-striped mb-0 table align-middle">
-                    <thead class="bg-1">
-                        <tr>
-                            <th scope="col">{{ __('payments.table.column_entry') }}</th>
-                            <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
-                            <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
-                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $displayEntries = $voucher->relationLoaded('apLedgers') ? $voucher->apLedgers : collect(); @endphp
-                        @forelse ($displayEntries as $line)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ (float)($line->debit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td>{{ (float)($line->credit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td class="text-end">{{ (float)($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
-                                <td class="text-end">{{ (float)($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="text-center fg-secondary">{{ $voucher->status?->value === 'posted' ? '-' : __('common.messages.no_data') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                    <tfoot class="bg-1 fw-bold border-top">
-                        <tr>
-                            <td colspan="3" class="text-end">{{ __('common.labels.total') }}:</td>
-                            <td class="text-end">
-                                {{ number_format((float) $voucher->total_amount, 2) }}
-                            </td>
-                            <td class="text-end">
-                                {{ number_format((float) $voucher->total_amount, 2) }}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                {{-- The account the money left, named on the document rather than
+                     inferred: the transfer type only says how it travelled. --}}
+                <div class="md:col-3">
+                    <div class="h-100 rounded border p-3">
+                        <span class="fg-secondary small d-block">{{ __('payments.form.paid_from') }}</span>
+                        <strong>{{ $voucher->moneyAccount()?->name ?? '-' }}</strong>
+                    </div>
+                </div>
             </div>
 
             @if ($voucher->notes)

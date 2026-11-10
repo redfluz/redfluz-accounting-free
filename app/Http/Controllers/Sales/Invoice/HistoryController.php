@@ -29,8 +29,6 @@ namespace App\Http\Controllers\Sales\Invoice;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\LedgerStatus;
-use App\Enums\Inventory\ProductMovementDirection;
-use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
@@ -38,7 +36,6 @@ use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
-use App\Services\DecimalService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -145,51 +142,7 @@ class HistoryController extends Controller
                 ->where('status', ProductMovementStatus::ACTIVE->value)
                 ->exists();
 
-        // Per-line return audit: what was invoiced, how much already came
-        // back, and what is still returnable for every product line.
-        /** @var array<string, array{id: string, product_name: string|null, quantity: string, returned: string, remaining: numeric-string, unit_price: string}> $lineReturns */
-        $lineReturns = [];
-
-        foreach ($lines as $line) {
-            /** @var SalesInvoiceLine $line */
-            if ($line->product_id === null) {
-                continue;
-            }
-
-            $returnedIn = (string) ProductLedger::query()
-                ->whereIn('source_type', [ProductMovementSource::SALES_INVOICE, ProductMovementSource::SALES_RETURN])
-                ->where('direction', ProductMovementDirection::IN)
-                ->whereNull('deleted_at')
-                ->where('source_entry_id', $line->id)
-                ->where('status', ProductMovementStatus::ACTIVE->value)
-                ->sum('quantity');
-
-            $quantity = DecimalService::normalize($line->quantity !== null ? (string) $line->quantity : '0');
-            $returned = DecimalService::normalize($returnedIn);
-
-            $lineReturns[$line->id] = [
-                'id' => $line->id,
-                'product_name' => $line->product_name,
-                'quantity' => $quantity,
-                'returned' => $returned,
-                'remaining' => bcsub($quantity, $returned, 4),
-                'unit_price' => DecimalService::normalize((string) ($line->unit_price ?? 0)),
-            ];
-        }
-
-        /** @var list<array{id: string, product_name: string|null, quantity: string, returned: string, remaining: numeric-string, unit_price: string}> $returnableItems */
-        $returnableItems = [];
-
-        foreach ($lineReturns as $lineReturn) {
-            if (bccomp($lineReturn['remaining'], '0.0000', 4) === 1) {
-                $returnableItems[] = $lineReturn;
-            }
-        }
-
-        /** @var \Illuminate\Support\Collection<int, array{id: string, product_name: string|null, quantity: string, returned: string, remaining: numeric-string, unit_price: string}> $returnableLines */
-        $returnableLines = new \Illuminate\Support\Collection($returnableItems);
-
-        return view('sales.invoices.history.show', compact('documentNumber', 'lines', 'invoice', 'canDeductInventory', 'lineReturns', 'returnableLines'));
+        return view('sales.invoices.history.show', compact('documentNumber', 'lines', 'invoice', 'canDeductInventory'));
     }
 
     /**

@@ -36,6 +36,7 @@ return [
         'search' => 'Cari',
         'reset' => 'Atur Ulang',
         'view' => 'Lihat',
+        'view_attachment' => 'Lihat Lampiran',
         'send' => 'Kirim',
         'back' => 'Kembali',
         'views' => 'Tampilan',

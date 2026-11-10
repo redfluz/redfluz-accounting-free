@@ -61,10 +61,10 @@ class CashLedgerController extends Controller
     use ReadsMoneyLedger;
 
     /** The table every cash movement is filed in. */
-    private const TABLE = 'cash_ledgers';
+    private const string TABLE = 'cash_ledgers';
 
     /** The column on that table naming which cash account moved. */
-    private const ACCOUNT_COLUMN = 'cash_account_id';
+    private const string ACCOUNT_COLUMN = 'cash_account_id';
 
     /**
      * Show the cash ledger.

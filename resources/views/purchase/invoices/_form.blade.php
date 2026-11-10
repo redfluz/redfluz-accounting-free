@@ -24,11 +24,6 @@
             {{ __('ledgers.attachment') }}
         </button>
     </li>
-    <li class="nav-item">
-        <button class="nav-link" data-entry-mode="payment" data-purchase-tab="payment" type="button">
-            {{ __('ledgers.type.payment') }}
-        </button>
-    </li>
 </ul>
 
 <div id="invoice-common-section" data-purchase-panel="general" style="order: 2">
@@ -149,27 +144,6 @@
     </div>
 </div>
 
-<div class="bg-2 mb-4 rounded border p-3" id="payment-details-section" data-purchase-panel="payment" style="order: 2">
-    <div class="row g-3">
-        <div class="col-12">
-            <label class="form-label fw-bold" for="amount">{{ __('ledgers.table.column_amount') }}</label>
-            <div class="form-control form-adorn">
-                <input class="form-ghost @error('amount') is-invalid @enderror" id="amount" name="amount" type="number"
-                    value="{{ old('amount') }}" min="0.01" step="0.01" />
-            </div>
-            <div class="form-text">{{ __('ledgers.optional_payment_hint') }}</div>
-            @error('amount')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-            @enderror
-        </div>
-        <div class="col-12">
-            <label class="form-label fw-bold" for="payment_notes">{{ __('ledgers.table.column_notes') }}</label>
-            <textarea class="form-control @error('payment_notes') is-invalid @enderror" id="payment_notes"
-                name="payment_notes" rows="2">{{ old('payment_notes') }}</textarea>
-        </div>
-    </div>
-</div>
-
 <div class="purchase-lines-heading" id="invoice-lines-section" style="order: 3">
     <div class="d-flex align-items-center justify-content-between mb-2">
         <h6 class="fw-bold mb-0">{{ __('ledgers.invoice_lines') }}</h6>
@@ -284,11 +258,8 @@
 
 <script>
     const allContacts = @json($contacts);
-    const allCharts = @json($charts);
     const selectText = @json(__('common.actions.select_option'));
     const selectedContactId = @json(old('contact_id'));
-    const selectedDebitAcc = @json(old('debit_id'));
-    const selectedCreditAcc = @json(old('credit_id'));
 
     function previewPurchaseInvoiceAttachment(event) {
         const input = event.target;
@@ -349,52 +320,8 @@
             });
     }
 
-    function filterChartOfAccounts() {
-        const debitSelect = document.getElementById('debit_id');
-        const creditSelect = document.getElementById('credit_id');
-        const paymentDebitSelect = document.getElementById('payment_debit_id');
-        const paymentCreditSelect = document.getElementById('payment_credit_id');
-        debitSelect.innerHTML = `<option value="">${selectText}</option>`;
-        creditSelect.innerHTML = `<option value="">${selectText}</option>`;
-        paymentDebitSelect.innerHTML = `<option value="">${selectText}</option>`;
-        paymentCreditSelect.innerHTML = `<option value="">${selectText}</option>`;
-
-        allCharts.forEach((chart) => {
-            const type = chart.chart_type;
-            if (!type) return;
-
-            const label = `${chart.code ? `${chart.code} - ` : ''}${chart.name}`;
-            const canDebit = type.isExpenses === true || (type.isAsset === true && chart.isBank === false);
-            const canCredit = type.isLiability === true && chart.isCreditor === true;
-
-            if (canDebit)
-                debitSelect.add(new Option(label, chart.id, false, String(chart.id) === String(
-                    selectedDebitAcc)));
-            if (canCredit)
-                creditSelect.add(new Option(label, chart.id, false, String(chart.id) === String(
-                    selectedCreditAcc)));
-            if (type.isLiability === true && chart.isCreditor === true) paymentDebitSelect.add(new Option(label,
-                chart.id));
-            if (chart.isBank === true) paymentCreditSelect.add(new Option(label, chart.id));
-        });
-
-        refreshAccountSelects();
-    }
-
-    function refreshAccountSelects() {
-        if (typeof window.initCombobox !== 'function') {
-            return;
-        }
-
-        document.querySelectorAll('.js-account-select').forEach((element) => {
-            window.initCombobox(element, {
-                placeholder: selectText,
-            });
-        });
-    }
-
     function refreshEntryForm() {
-        filterChartOfAccounts();
+        // No-op: account selection removed, charts come from ChartSetting config only
     }
 
     function refreshLineTotals() {

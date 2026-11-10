@@ -24,7 +24,7 @@
                     <i class="me-1" data-lucide="x-circle"></i>{{ __('ledgers.cancelled_title') }}
                 </a>
                 <a class="btn btn-solid theme-info btn-sm" href="{{ route('bank.customer-refunds.history.index') }}">
-                    <i class="me-1" data-lucide="history"></i>{{ __('ledgers.history_title') }}
+                    <i class="me-1" data-lucide="history"></i>{{ __('refunds.history_title') }}
                 </a>
                 <a class="btn btn-solid theme-success btn-sm" href="{{ route('bank.customer-refunds.create') }}">
                     <i class="me-1" data-lucide="plus"></i>
@@ -247,7 +247,12 @@
                         text: button.dataset.confirmMessage,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: @json(__('common.actions.approve')),
+                        // The button repeats the act being confirmed, so a cancel
+                        // dialog never asks to be approved.
+                        confirmButtonText:
+                            action === 'approve' ?
+                            @json(__('common.actions.approve')) :
+                            @json(__('common.actions.cancel')),
                     }).then(function(result) {
                         if (result.isConfirmed) {
                             const form = document.getElementById('batch-form');

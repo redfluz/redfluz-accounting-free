@@ -29,6 +29,7 @@
  *
  * @phpstan-ignore-file
  */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -47,8 +48,8 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'receipt_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund', 'bank_journal') NULL");
-            DB::statement("ALTER TABLE ledgers MODIFY subtype ENUM('sales_invoice', 'manual_sales_invoice', 'purchase_invoice', 'receipt', 'payment_voucher', 'journal', 'stock_variance', 'increase_adjustment', 'decrease_adjustment', 'purchase_debit_note', 'purchase_credit_note', 'receipt_refund', 'supplier_refund', 'refund', 'transfer', 'withdrawal', 'bank_journal') NOT NULL");
+            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'customer_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund', 'bank_journal') NULL");
+            DB::statement("ALTER TABLE ledgers MODIFY subtype ENUM('sales_invoice', 'manual_sales_invoice', 'purchase_invoice', 'receipt', 'payment_voucher', 'journal', 'stock_variance', 'increase_adjustment', 'decrease_adjustment', 'purchase_debit_note', 'purchase_credit_note', 'customer_refund', 'supplier_refund', 'refund', 'transfer', 'withdrawal', 'bank_journal') NOT NULL");
 
             return;
         }
@@ -65,8 +66,8 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'receipt_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund') NULL");
-            DB::statement("ALTER TABLE ledgers MODIFY subtype ENUM('sales_invoice', 'manual_sales_invoice', 'purchase_invoice', 'receipt', 'payment_voucher', 'journal', 'stock_variance', 'increase_adjustment', 'decrease_adjustment', 'purchase_debit_note', 'purchase_credit_note', 'receipt_refund', 'supplier_refund', 'refund', 'transfer', 'withdrawal') NOT NULL");
+            DB::statement("ALTER TABLE ledgers MODIFY source_type ENUM('sales_invoice', 'sales_adjustment', 'receipt', 'customer_refund', 'purchase_invoice', 'purchase_adjustment', 'payment_voucher', 'supplier_refund') NULL");
+            DB::statement("ALTER TABLE ledgers MODIFY subtype ENUM('sales_invoice', 'manual_sales_invoice', 'purchase_invoice', 'receipt', 'payment_voucher', 'journal', 'stock_variance', 'increase_adjustment', 'decrease_adjustment', 'purchase_debit_note', 'purchase_credit_note', 'customer_refund', 'supplier_refund', 'refund', 'transfer', 'withdrawal') NOT NULL");
 
             return;
         }

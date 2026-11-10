@@ -1,12 +1,35 @@
 @php
+    use App\Enums\Bank\BankAccountKind;
     use App\Enums\Finance\PaymentTransferType;
     use App\Models\Bank\Refund\SupplierRefund;
+
+    // Which transfer types each account picker serves, read from the enum rather
+    // than repeated in JavaScript, so a new transfer type only has to say what kind
+    // of account it moves and both the page and the server follow. Only the types a
+    // refund can travel by are offered here: cash is not one of them, because money
+    // taken back has to arrive in an account the document can name.
+    $transferTypesFor = static function (BankAccountKind $kind): string {
+        return collect(PaymentTransferType::refundable())
+            ->filter(static fn (PaymentTransferType $type): bool => $type->accountKind() === $kind)
+            ->pluck('value')
+            ->implode(' ');
+    };
+
+    $bankTransferTypes = $transferTypesFor(BankAccountKind::BANK);
+    $eWalletTransferTypes = $transferTypesFor(BankAccountKind::E_WALLET);
+
+    $activeTransferType = PaymentTransferType::tryFrom((string) old(
+        'payment_transfer_type',
+        $refund?->payment_transfer_type?->value ?? PaymentTransferType::CHEQUE->value,
+    ));
+    $activeAccountColumn = $activeTransferType?->accountColumn();
 @endphp
 @props([
     /** @var SupplierRefund|null */
     'refund' => null,
     'companies',
-    'charts',
+    'banks' => collect(),
+    'eWalletAccounts' => collect(),
 ])
 
 <ul class="nav nav-tabs mb-4" role="tablist">
@@ -22,13 +45,6 @@
                 data-bs-target="#attachment-pane" role="tab" type="button">
             <i class="me-1" data-lucide="paperclip"></i>
             {{ __('ledgers.attachment') }}
-        </button>
-    </li>
-    <li class="nav-item">
-        <button aria-controls="accounting-pane" aria-selected="false" class="nav-link" data-bs-toggle="tab"
-                data-bs-target="#accounting-pane" role="tab" type="button">
-            <i class="me-1" data-lucide="book-open"></i>
-            {{ __('ledgers.accounting') }}
         </button>
     </li>
 </ul>
@@ -67,6 +83,16 @@
                         </option>
                     @endif
                 </select>
+
+                {{-- What is still refundable on the invoice chosen, spelled out rather
+                     than left inside the dropdown label: this is the figure the amount
+                     is measured against, and a refund raised without seeing it is a
+                     refund that will be refused. --}}
+                <p class="small mb-0 mt-2 d-none" id="refundable-balance-message">
+                    <span class="fg-secondary">{{ __('payments.form.refundable_balance') }}:</span>
+                    <strong class="fg-primary" id="refundable-balance-amount"></strong>
+                </p>
+
                 <div class="alert alert-warning d-none mb-0 mt-2 py-2" id="no-paid-balance-message">
                     <i class="me-1" data-lucide="info"></i>
                     {{ __('refunds.messages.no_paid_balance') }}
@@ -110,13 +136,65 @@
                 <label class="form-label fw-bold" for="payment_transfer_type">
                     {{ __('payments.form.payment_transfer') }}
                 </label>
-                <select class="form-control" id="payment_transfer_type" name="payment_transfer_type">
-                    @foreach (PaymentTransferType::cases() as $transferType)
+                <select class="form-control @error('payment_transfer_type') is-invalid @enderror"
+                        id="payment_transfer_type" name="payment_transfer_type">
+                    @foreach (PaymentTransferType::refundable() as $transferType)
                         <option value="{{ $transferType->value }}" @selected(old('payment_transfer_type', $refund?->payment_transfer_type?->value) === $transferType->value)>
                             {{ $transferType->label() }}
                         </option>
                     @endforeach
                 </select>
+                @error('payment_transfer_type')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            {{-- Which account the money comes back into, and it is a different question
+                 for every transfer type: a cheque is drawn on a bank and a wallet
+                 payment lands in a wallet. Only the picker the transfer type allows is
+                 shown, and the other is disabled so it cannot be sent along with it. --}}
+            <div class="md:col-6 mb-3 {{ $activeAccountColumn === 'bank_account_id' ? '' : 'd-none' }}"
+                 data-account-field="bank_account_id"
+                 data-transfer-types="{{ $bankTransferTypes }}">
+                <label class="form-label fw-bold" for="bank_account_id">
+                    {{ __('payments.form.bank_account') }} <span class="fg-danger">*</span>
+                </label>
+                <select class="form-control @error('bank_account_id') is-invalid @enderror" id="bank_account_id"
+                        name="bank_account_id"
+                        @required($activeAccountColumn === 'bank_account_id')
+                        @disabled($activeAccountColumn !== 'bank_account_id')>
+                    <option value="" disabled selected>{{ __('common.actions.select_option') }}</option>
+                    @foreach ($banks as $account)
+                        <option value="{{ $account->id }}" @selected(old('bank_account_id', $refund?->bank_account_id) === $account->id)>
+                            {{ $account->name }}@if ($account->chart) ({{ $account->chart->code }} - {{ $account->chart->name }})@endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('bank_account_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="md:col-6 mb-3 {{ $activeAccountColumn === 'e_wallet_account_id' ? '' : 'd-none' }}"
+                 data-account-field="e_wallet_account_id"
+                 data-transfer-types="{{ $eWalletTransferTypes }}">
+                <label class="form-label fw-bold" for="e_wallet_account_id">
+                    {{ __('payments.form.e_wallet_account') }} <span class="fg-danger">*</span>
+                </label>
+                <select class="form-control @error('e_wallet_account_id') is-invalid @enderror" id="e_wallet_account_id"
+                        name="e_wallet_account_id"
+                        @required($activeAccountColumn === 'e_wallet_account_id')
+                        @disabled($activeAccountColumn !== 'e_wallet_account_id')>
+                    <option value="" disabled selected>{{ __('common.actions.select_option') }}</option>
+                    @foreach ($eWalletAccounts as $account)
+                        <option value="{{ $account->id }}" @selected(old('e_wallet_account_id', $refund?->e_wallet_account_id) === $account->id)>
+                            {{ $account->name }}@if ($account->chart) ({{ $account->chart->code }} - {{ $account->chart->name }})@endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('e_wallet_account_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="col-12 mb-3">
@@ -141,59 +219,13 @@
             @enderror
         </div>
     </div>
-
-    <div class="fade tab-pane" id="accounting-pane" role="tabpanel">
-        <div class="alert fg-secondary small mb-3 border">
-            <i class="me-1" data-lucide="info"></i>
-            {{ __('payments.form.accounting_hint') }}
-        </div>
-
-        <div class="row">
-            <div class="md:col-6 mb-3">
-                <label class="form-label fw-bold" for="debit_id">
-                    {{ __('ledgers.table.column_debit_acc') }}
-                </label>
-                <select class="form-control js-account-select @error('debit_id') is-invalid @enderror" id="debit_id"
-                        name="debit_id" data-filter="bank">
-                    <option value="">{{ __('common.actions.select_option') }}</option>
-                    @foreach ($charts->where('isBank', true) as $chart)
-                        <option value="{{ $chart->id }}" @selected(old('debit_id', $refund?->debit_id) === $chart->id)>
-                            {{ $chart->code }} - {{ $chart->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <div class="form-text">{{ __('ledgers.default_account_hint') }}</div>
-                @error('debit_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="md:col-6 mb-3">
-                <label class="form-label fw-bold" for="credit_id">
-                    {{ __('ledgers.table.column_credit_acc') }}
-                </label>
-                <select class="form-control js-account-select @error('credit_id') is-invalid @enderror" id="credit_id"
-                        name="credit_id" data-filter="debtor">
-                    <option value="">{{ __('common.actions.select_option') }}</option>
-                    @foreach ($charts->where('isDebtor', true) as $chart)
-                        <option value="{{ $chart->id }}" @selected(old('credit_id', $refund?->credit_id) === $chart->id)>
-                            {{ $chart->code }} - {{ $chart->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <div class="form-text">{{ __('ledgers.default_account_hint') }}</div>
-                @error('credit_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-        </div>
-    </div>
 </div>
 
 @section('script')
     <script>
         const invoiceOptionsUrl = @json(route('bank.supplier-refunds.invoices'));
         const selectText = @json(__('common.actions.select_option'));
+        const currencySymbol = @json($currencySymbol);
 
         // The available balance is carried on each option by the server, but the
         // combobox renders only its label, so the figures are kept here keyed by
@@ -262,21 +294,25 @@
             const amountInput = document.getElementById('amount');
             const submitButton = document.getElementById('refund-submit');
             const warning = document.getElementById('no-paid-balance-message');
+            const balanceMessage = document.getElementById('refundable-balance-message');
+            const balanceAmount = document.getElementById('refundable-balance-amount');
             const selectedValue = referenceSelect.value;
             const availableAmount = Number.parseFloat(availableByInvoice[selectedValue]);
 
             // An invoice chosen but not yet loaded reports no balance, so the
-            // form refuses it rather than guessing that money was received.
+            // form refuses it rather than guessing that money was paid away.
             const hasUnavailableSelection =
                 selectedValue !== '' && (!Number.isFinite(availableAmount) || availableAmount <= 0);
 
             warning.classList.toggle('d-none', !hasUnavailableSelection);
+            balanceMessage.classList.toggle('d-none', selectedValue === '' || hasUnavailableSelection);
             amountInput.disabled = hasUnavailableSelection;
 
             if (hasUnavailableSelection) {
                 amountInput.value = '';
                 amountInput.removeAttribute('max');
             } else if (Number.isFinite(availableAmount)) {
+                balanceAmount.textContent = currencySymbol + ' ' + availableAmount.toFixed(2);
                 amountInput.max = availableAmount.toFixed(2);
             } else {
                 amountInput.removeAttribute('max');
@@ -302,10 +338,31 @@
             }
         }
 
+        const accountFields = Array.from(document.querySelectorAll('[data-account-field]'));
+
+        // Show only the account picker the transfer type allows. Each field lists
+        // the types it serves on itself, which the page took from the enum, so
+        // nothing here has to know that a cheque means a bank.
+        function syncAccountFields() {
+            const transferType = document.getElementById('payment_transfer_type').value;
+
+            accountFields.forEach((field) => {
+                const types = (field.dataset.transferTypes || '').split(' ');
+                const matches = types.indexOf(transferType) !== -1;
+                const select = field.querySelector('select');
+
+                field.classList.toggle('d-none', !matches);
+                select.disabled = !matches;
+                select.required = matches;
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             initializeInvoiceSelect();
+            syncAccountFields();
 
             document.getElementById('company_id').addEventListener('change', resetInvoiceSelect);
+            document.getElementById('payment_transfer_type').addEventListener('change', syncAccountFields);
         });
     </script>
 @endsection

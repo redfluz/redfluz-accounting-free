@@ -1,12 +1,36 @@
 @php
+    use App\Enums\Bank\BankAccountKind;
     use App\Enums\Finance\PaymentTransferType;
     use App\Models\Bank\PaymentVoucher;
+
+    // Which transfer types each account picker serves. Read from the enum rather
+    // than repeated in JavaScript, so a fifth transfer type only has to say what
+    // kind of account it moves and both the page and the server follow.
+    $transferTypesFor = static function (BankAccountKind $kind): string {
+        return collect(PaymentTransferType::cases())
+            ->filter(static fn (PaymentTransferType $type): bool => $type->accountKind() === $kind)
+            ->pluck('value')
+            ->implode(' ');
+    };
+
+    $bankTransferTypes = $transferTypesFor(BankAccountKind::BANK);
+    $cashTransferTypes = $transferTypesFor(BankAccountKind::CASH);
+    $eWalletTransferTypes = $transferTypesFor(BankAccountKind::E_WALLET);
+
+    $activeTransferType = PaymentTransferType::tryFrom((string) old(
+        'payment_transfer_type',
+        $voucher?->payment_transfer_type?->value ?? PaymentTransferType::CHEQUE->value,
+    ));
+    $activeAccountColumn = $activeTransferType?->accountColumn();
 @endphp
 @props([
     /** @var PaymentVoucher|null */
     'voucher' => null,
     'companies',
     'charts',
+    'banks' => collect(),
+    'cashAccounts' => collect(),
+    'eWalletAccounts' => collect(),
 ])
 
 <ul class="nav nav-tabs mb-4" role="tablist">
@@ -108,6 +132,77 @@
                 </select>
             </div>
 
+            {{-- Which account the money leaves, and it is a different question for
+                 every transfer type: a cheque is drawn on a bank, a cash payment
+                 comes out of a register and a wallet payment out of a wallet. Only
+                 the picker the transfer type allows is shown, and the others are
+                 disabled so they cannot be sent along with it. --}}
+            <div class="md:col-6 mb-3 {{ $activeAccountColumn === 'bank_account_id' ? '' : 'd-none' }}"
+                 data-account-field="bank_account_id"
+                 data-transfer-types="{{ $bankTransferTypes }}">
+                <label class="form-label fw-bold" for="bank_account_id">
+                    {{ __('payments.form.bank_account') }} <span class="fg-danger">*</span>
+                </label>
+                <select class="form-control @error('bank_account_id') is-invalid @enderror" id="bank_account_id"
+                        name="bank_account_id"
+                        @required($activeAccountColumn === 'bank_account_id')
+                        @disabled($activeAccountColumn !== 'bank_account_id')>
+                    <option value="" disabled selected>{{ __('common.actions.select_option') }}</option>
+                    @foreach ($banks as $account)
+                        <option value="{{ $account->id }}" @selected(old('bank_account_id', $voucher?->bank_account_id) === $account->id)>
+                            {{ $account->name }}@if ($account->chart) ({{ $account->chart->code }} - {{ $account->chart->name }})@endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('bank_account_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="md:col-6 mb-3 {{ $activeAccountColumn === 'cash_account_id' ? '' : 'd-none' }}"
+                 data-account-field="cash_account_id"
+                 data-transfer-types="{{ $cashTransferTypes }}">
+                <label class="form-label fw-bold" for="cash_account_id">
+                    {{ __('payments.form.cash_account') }} <span class="fg-danger">*</span>
+                </label>
+                <select class="form-control @error('cash_account_id') is-invalid @enderror" id="cash_account_id"
+                        name="cash_account_id"
+                        @required($activeAccountColumn === 'cash_account_id')
+                        @disabled($activeAccountColumn !== 'cash_account_id')>
+                    <option value="" disabled selected>{{ __('common.actions.select_option') }}</option>
+                    @foreach ($cashAccounts as $account)
+                        <option value="{{ $account->id }}" @selected(old('cash_account_id', $voucher?->cash_account_id) === $account->id)>
+                            {{ $account->name }}@if ($account->chart) ({{ $account->chart->code }} - {{ $account->chart->name }})@endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('cash_account_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="md:col-6 mb-3 {{ $activeAccountColumn === 'e_wallet_account_id' ? '' : 'd-none' }}"
+                 data-account-field="e_wallet_account_id"
+                 data-transfer-types="{{ $eWalletTransferTypes }}">
+                <label class="form-label fw-bold" for="e_wallet_account_id">
+                    {{ __('payments.form.e_wallet_account') }} <span class="fg-danger">*</span>
+                </label>
+                <select class="form-control @error('e_wallet_account_id') is-invalid @enderror" id="e_wallet_account_id"
+                        name="e_wallet_account_id"
+                        @required($activeAccountColumn === 'e_wallet_account_id')
+                        @disabled($activeAccountColumn !== 'e_wallet_account_id')>
+                    <option value="" disabled selected>{{ __('common.actions.select_option') }}</option>
+                    @foreach ($eWalletAccounts as $account)
+                        <option value="{{ $account->id }}" @selected(old('e_wallet_account_id', $voucher?->e_wallet_account_id) === $account->id)>
+                            {{ $account->name }}@if ($account->chart) ({{ $account->chart->code }} - {{ $account->chart->name }})@endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('e_wallet_account_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="col-12 mb-3">
                 <label class="form-label fw-bold" for="notes">
                     {{ __('ledgers.table.column_notes') }}
@@ -196,10 +291,31 @@
             }
         }
 
+        const accountFields = Array.from(document.querySelectorAll('[data-account-field]'));
+
+        // Show only the account picker the transfer type allows. Each field lists
+        // the types it serves on itself, which the page took from the enum, so
+        // nothing here has to know that a cheque means a bank.
+        function syncAccountFields() {
+            const transferType = document.getElementById('payment_transfer_type').value;
+
+            accountFields.forEach((field) => {
+                const types = (field.dataset.transferTypes || '').split(' ');
+                const matches = types.indexOf(transferType) !== -1;
+                const select = field.querySelector('select');
+
+                field.classList.toggle('d-none', !matches);
+                select.disabled = !matches;
+                select.required = matches;
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             initializeInvoiceSelect();
+            syncAccountFields();
 
             document.getElementById('company_id').addEventListener('change', handleCompanyChange);
+            document.getElementById('payment_transfer_type').addEventListener('change', syncAccountFields);
         });
     </script>
 @endsection

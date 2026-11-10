@@ -31,10 +31,10 @@ namespace App\Support\Posting;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\ChartOfAccount\Chart;
-use App\Models\ChartOfAccount\ChartSetting;
+use App\Models\Finance\ManualSalesAdjustment;
+use App\Models\Finance\ManualSalesAdjustmentChart;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
-use App\Models\System\Setting;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Attributes\MapName;
@@ -159,120 +159,91 @@ class ArLedgerData extends Data
         public string $creditAmount,
 
         #[MapName('created_at')]
-        public ?CarbonInterface $createdAt,
+        public ?CarbonInterface $createdAt = null,
 
         #[MapName('updated_at')]
-        public ?CarbonInterface $updatedAt,
+        public ?CarbonInterface $updatedAt = null,
 
         #[MapName('deleted_at')]
-        public ?CarbonInterface $deletedAt,
+        public ?CarbonInterface $deletedAt = null,
     ) {}
 
     /**
-     * Build the receivable row for one movement against a receivable account.
+     * Build an AR row for one sales invoice entry.
      *
-     * The row is built from a single-sided leg, so which side carries the amount
-     * is the leg's own fact rather than a guess from the amounts, and both
-     * amount columns are written from the leg exactly as it stands — one of
-     * them is always zero, and bcmath has already made both exact.
-     *
-     * @param  PostingLeg  $leg  The movement, already single-sided and exact.
-     * @param  array{code: string|null, name: string|null, description: string|null}  $chart  The
-     *                                                                                        chart account's code, name and description, snapshotted at posting time.
-     * @param  string  $companyId  The customer the figure belongs to.
-     * @param  string  $currencyId  The currency the figure is in.
-     * @param  LedgerType  $type  The kind of posting the row was raised by.
-     * @param  LedgerSubType  $subtype  The finer kind, recorded as its value.
-     * @param  string  $documentNumber  The document's number.
-     * @param  string|null  $date  The document's own date, so the statement reads
-     *                             in the order the documents happened.
-     * @param  string|null  $referenceNumber  What the document settles or corrects.
-     * @param  string|null  $companyName  The customer's name, snapshotted at posting
-     *                                    time.
-     */
-    public static function fromLeg(
-        PostingLeg $leg,
-        array $chart,
-        string $companyId,
-        string $currencyId,
-        LedgerType $type,
-        LedgerSubType $subtype,
-        string $documentNumber,
-        ?string $date,
-        ?string $referenceNumber,
-        ?string $companyName,
-    ): self {
-        return new self(
-            id: (string) Str::uuid7(),
-            chartId: $leg->chartId,
-            companyId: $companyId,
-            currencyId: $currencyId,
-            type: $type->value,
-            subtype: $subtype->value,
-            documentNumber: $documentNumber,
-            date: $date,
-            referenceNumber: $referenceNumber,
-            chartCode: $chart['code'],
-            chartName: $chart['name'],
-            chartDescription: $chart['description'],
-            companyName: $companyName,
-            description: $leg->description,
-            debitAmount: $leg->debit,
-            creditAmount: $leg->credit,
-            createdAt: now(),
-            updatedAt: now(),
-            deletedAt: null,
-        );
-    }
-
-    /**
-     * Build the receivable row from a sales invoice line.
-     *
-     * A sales invoice line carries both sides of its accounting entry. The
-     * receivable side is the debit to the customer's account. This method
-     * extracts that side and builds an ArLedgerData for it.
+     * The receivable is written per entry - gross, tax and discount - so the
+     * customer's debt shows the same figures the invoice lines add up to. Each
+     * row carries the amount its entry was built from, debit when the customer
+     * owes more and credit when the entry takes receivable back.
      *
      * @param  SalesInvoice  $invoice  The invoice being posted.
-     * @param  SalesInvoiceLine  $line  The invoice's line.
-     * @param  ChartSetting  $chartConfig  The chart configuration for default accounts.
-     * @param  Chart  $chart  The chart account's details.
+     * @param  SalesInvoiceLine  $line  The line whose description the row carries.
+     * @param  Chart  $clientChart  The receivable account the entry moves.
+     * @param  string  $currencyId  The currency the amount is expressed in.
+     * @param  numeric-string  $debitAmount  The amount the customer owes on this entry.
+     * @param  numeric-string  $creditAmount  The amount this entry takes back from the customer.
      */
     public static function fromSalesInvoiceLine(
         SalesInvoice $invoice,
         SalesInvoiceLine $line,
-        ChartSetting $chartConfig,
-        Chart $chart,
-    ): ?self {
-        // The receivable side is the debit to the customer's account.
-        // If there's no debit amount on the line, there's no receivable row.
-        if (bccomp($line->total_amount ?? '0.00', '0.00', 2) === 0) {
-            return null;
-        }
-
-        // Get the currency from settings
-        $currencyValue = Setting::query()->value('currency_id');
-        $currencyId = is_string($currencyValue) ? $currencyValue : '';
-
+        Chart $clientChart,
+        string $currencyId,
+        string $debitAmount,
+        string $creditAmount,
+    ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: $chartConfig->client_chart_uuid ?? '',
-            companyId: $invoice->company_id ?? '',
+            chartId: (string) $clientChart->id,
+            companyId: (string) ($invoice->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: LedgerSubType::SALES_INVOICE->value,
-            documentNumber: $invoice->document_number,
-            date: $invoice->date->format('Y-m-d'),
+            documentNumber: (string) $invoice->document_number,
+            date: $invoice->date?->format('Y-m-d'),
             referenceNumber: $invoice->reference_number,
-            chartCode: $chart->code,
-            chartName: $chart->name,
-            chartDescription: $chart->description,
+            chartCode: $clientChart->code,
+            chartName: $clientChart->name,
+            chartDescription: $clientChart->description,
             companyName: $invoice->company_name,
             description: $line->description,
-            debitAmount: $line->total_amount ?? '0.00',
-            creditAmount: '0.00',
-            createdAt: now(),
-            updatedAt: now(),
-            deletedAt: null,
+            debitAmount: $debitAmount,
+            creditAmount: $creditAmount,
+        );
+    }
+
+    /**
+     * Build an AR row directly from a manual sales adjustment chart line.
+     *
+     * Simple, no legs: the chart line's debit/credit amounts are the AR movement.
+     *
+     * @param  numeric-string  $debitAmount
+     * @param  numeric-string  $creditAmount
+     */
+    public static function fromManualSalesAdjustmentChartLine(
+        ManualSalesAdjustment $adjustment,
+        ManualSalesAdjustmentChart $line,
+        Chart $arChart,
+        string $currencyId,
+        string $debitAmount,
+        string $creditAmount,
+    ): self {
+        return new self(
+            id: (string) Str::uuid7(),
+            chartId: (string) $arChart->id,
+            companyId: (string) ($adjustment->company_id ?? ''),
+            currencyId: $currencyId,
+            type: LedgerType::INVOICE->value,
+            subtype: LedgerSubType::MANUAL_SALES_ADJUSTMENT->value,
+            documentNumber: (string) $adjustment->document_number,
+            date: $adjustment->date?->format('Y-m-d'),
+            referenceNumber: $adjustment->reference_number,
+            chartCode: $arChart->code,
+            chartName: $arChart->name,
+            chartDescription: $arChart->description,
+            companyName: $adjustment->company_name,
+            description: $line->line_description ?? $line->description ?? $adjustment->notes,
+            debitAmount: $debitAmount,
+            creditAmount: $creditAmount,
         );
     }
 

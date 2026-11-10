@@ -26,8 +26,8 @@
 
 namespace App\Models\Bank;
 
-use App\Enums\Finance\LedgerSourceType;
 use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Crm\ApLedger;
 use App\Models\Crm\Company;
@@ -56,12 +56,15 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  *
  * A posted voucher has written to the general ledger, to whichever money ledger
  * its account belongs to, and to the payable ledger for the
- * supplier side. Those rows point back here through source_id and
- * source_type, so the entries a voucher produced can always be found.
+ * supplier side. Those rows point back here through the document number and
+ * subtype, so the entries a voucher produced can always be found.
  *
  * @property string $id
  * @property string $company_id
  * @property string|null $contact_id
+ * @property string|null $bank_account_id
+ * @property string|null $cash_account_id
+ * @property string|null $e_wallet_account_id
  * @property LedgerStatus $status
  * @property PaymentTransferType|null $payment_transfer_type
  * @property string $document_number
@@ -92,11 +95,14 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  * @property CarbonInterface|null $undone_at
  * @property-read Collection<int, Activity> $activities
  *
+ * @method Bank|CashAccount|EWalletAccount|null moneyAccount()
+ *
  * @mixin Builder<self>
  */
 #[Table('payment_vouchers')]
 #[Fillable([
     'company_id', 'contact_id',
+    'bank_account_id', 'cash_account_id', 'e_wallet_account_id',
     'status', 'payment_transfer_type',
     'document_number', 'company_name', 'contact_name',
     'date', 'reference_number',
@@ -113,7 +119,23 @@ class PaymentVoucher extends Model
 {
     use AttributesDocuments, HasActivity, HasUuids, RecordsAuthor, SoftDeletes;
 
-
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => LedgerStatus::class,
+            'payment_transfer_type' => PaymentTransferType::class,
+            'date' => 'date',
+            'total_amount' => 'decimal:2',
+            'approved_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'undone_at' => 'datetime',
+        ];
+    }
 
     /**
      * The company this voucher is with.
@@ -126,20 +148,64 @@ class PaymentVoucher extends Model
     }
 
     /**
+     * The bank account the money left, when the transfer type named a bank.
+     *
+     * @return BelongsTo<Bank, $this>
+     */
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'bank_account_id');
+    }
+
+    /**
+     * The cash register the money left, when the transfer type named cash.
+     *
+     * @return BelongsTo<CashAccount, $this>
+     */
+    public function cashAccount(): BelongsTo
+    {
+        return $this->belongsTo(CashAccount::class, 'cash_account_id');
+    }
+
+    /**
+     * The e-wallet the money left, when the transfer type named a wallet.
+     *
+     * @return BelongsTo<EWalletAccount, $this>
+     */
+    public function eWalletAccount(): BelongsTo
+    {
+        return $this->belongsTo(EWalletAccount::class, 'e_wallet_account_id');
+    }
+
+    /**
+     * The account this voucher was paid from, whichever kind it is.
+     *
+     * Exactly one of the three account columns is ever filled, because the
+     * transfer type decides which one the form was allowed to set. Reading the
+     * account through here means a caller never has to repeat that choice, and
+     * the chart the money posts against comes off the account itself: every
+     * account row owns one chart, which is what puts the movement in that
+     * account's ledger rather than in whichever account the settings happen to
+     * name today.
+     */
+    public function moneyAccount(): Bank|CashAccount|EWalletAccount|null
+    {
+        return $this->bankAccount ?? $this->cashAccount ?? $this->eWalletAccount;
+    }
+
+    /**
      * The payable entries this voucher raised when it was posted.
      *
-     * Matched on the subtype rather than a polymorphic type, because the payable
-     * ledger stores the LedgerSourceType that raised the row, not the model class
-     * that did. Without the subtype half of the match every voucher would claim
-     * every other voucher's entries too, since they all share one source_id space
-     * only by coincidence.
+     * Matched on the document number plus the subtype: the payable ledger
+     * stores the LedgerSubType that raised the row, so a number raised by a
+     * different kind of document never matches here.
      *
      * @return HasMany<ApLedger, $this>
      */
-    public function payableEntries(): HasMany
+    public function apLedgers(): HasMany
     {
-        return $this->hasMany(ApLedger::class, 'source_id', 'id')
-            ->where('source_type', LedgerSourceType::PAYMENT_VOUCHER->value);
+        return $this->hasMany(ApLedger::class, 'document_number', 'document_number')
+            ->where('subtype', LedgerSubType::PAYMENT_VOUCHER->value);
     }
 
     /**

@@ -926,34 +926,21 @@ class FinancialReportService
         $unknownReferences = [];
 
         foreach ($ledgers as $ledger) {
-            $debitReference = $this->ledgerReference($ledger->debit_id, $ledger->debit_acc);
-            $creditReference = $this->ledgerReference($ledger->credit_id, $ledger->credit_acc);
+            $chartReference = $this->ledgerReference($ledger->chart_id, $ledger->chart_code);
 
-            $debitChartId = $this->resolveLedgerChartId(
-                $ledger->debit_id,
-                $ledger->debit_acc,
-                $chartIds,
-                $referenceLookup
-            );
-            $creditChartId = $this->resolveLedgerChartId(
-                $ledger->credit_id,
-                $ledger->credit_acc,
+            $chartId = $this->resolveLedgerChartId(
+                $ledger->chart_id,
+                $ledger->chart_code,
                 $chartIds,
                 $referenceLookup
             );
 
-            if ($debitChartId !== null) {
-                $movements[$debitChartId] ??= ['debit' => 0.0, 'credit' => 0.0];
-                $movements[$debitChartId]['debit'] += $this->ledgerSideAmount($ledger, 'debit');
-            } elseif ($debitReference !== null) {
-                $unknownReferences[] = $debitReference;
-            }
-
-            if ($creditChartId !== null) {
-                $movements[$creditChartId] ??= ['debit' => 0.0, 'credit' => 0.0];
-                $movements[$creditChartId]['credit'] += $this->ledgerSideAmount($ledger, 'credit');
-            } elseif ($creditReference !== null) {
-                $unknownReferences[] = $creditReference;
+            if ($chartId !== null) {
+                $movements[$chartId] ??= ['debit' => 0.0, 'credit' => 0.0];
+                $movements[$chartId]['debit'] += $this->ledgerSideAmount($ledger, 'debit');
+                $movements[$chartId]['credit'] += $this->ledgerSideAmount($ledger, 'credit');
+            } elseif ($chartReference !== null) {
+                $unknownReferences[] = $chartReference;
             }
         }
 

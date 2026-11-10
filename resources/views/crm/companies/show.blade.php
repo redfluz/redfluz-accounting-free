@@ -569,10 +569,6 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                     const date = this.getAttribute('data-date');
                     const color = this.getAttribute('data-color');
 
-                    let iconColor = '#9f1239';
-                    if (color === 'success') iconColor = '#198754';
-                    if (color === 'info') iconColor = '#0dcaf0';
-
                     if (typeof confirmDialog !== 'undefined') {
                         confirmDialog({
                             title: `<span style="font-size: 1.25rem;">${eventDetails.replace('__TYPE__', type)}</span>`,

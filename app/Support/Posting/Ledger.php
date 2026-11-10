@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Posting;
 
+use App\Enums\Finance\GeneralLedgerEntryType;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Purchase\PurchaseInvoice;
@@ -91,7 +92,7 @@ class Ledger
                 $invoice,
                 $lines->first(), // Use first line for header-level entries
                 $chartConfig,
-                'receivable',
+                GeneralLedgerEntryType::RECEIVABLE,
                 $receivableChart,
                 $invoiceTotal,
                 '0.00'
@@ -105,7 +106,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'revenue',
+                GeneralLedgerEntryType::REVENUE,
                 $revenueChart,
                 '0.00',
                 $grossTotal
@@ -119,7 +120,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'tax',
+                GeneralLedgerEntryType::TAX,
                 $taxChart,
                 '0.00',
                 $taxTotal
@@ -132,7 +133,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'discount',
+                GeneralLedgerEntryType::DISCOUNT,
                 null,
                 $discountTotal,
                 '0.00'
@@ -211,7 +212,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'inventory',
+                GeneralLedgerEntryType::INVENTORY,
                 $inventoryChart,
                 $grossTotal,
                 '0.00'
@@ -225,7 +226,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'payable',
+                GeneralLedgerEntryType::PAYABLE,
                 $payableChart,
                 '0.00',
                 $invoiceTotal
@@ -239,7 +240,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'tax',
+                GeneralLedgerEntryType::TAX,
                 $taxChart,
                 $taxTotal,
                 '0.00'
@@ -252,7 +253,7 @@ class Ledger
                 $invoice,
                 $lines->first(),
                 $chartConfig,
-                'discount',
+                GeneralLedgerEntryType::DISCOUNT,
                 null,
                 '0.00',
                 $discountTotal
@@ -268,5 +269,4 @@ class Ledger
 
         return $this->writeMany('ledgers', $rowArrays);
     }
-
 }

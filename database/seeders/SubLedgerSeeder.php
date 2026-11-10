@@ -297,10 +297,6 @@ class SubLedgerSeeder extends Seeder
         $owned = [
             LedgerSubType::SALES_INVOICE,
             LedgerSubType::PURCHASE_INVOICE,
-            LedgerSubType::INCREASE_ADJUSTMENT,
-            LedgerSubType::DECREASE_ADJUSTMENT,
-            LedgerSubType::PURCHASE_DEBIT_NOTE,
-            LedgerSubType::PURCHASE_CREDIT_NOTE,
             LedgerSubType::JOURNAL,
         ];
 
@@ -582,192 +578,6 @@ class SubLedgerSeeder extends Seeder
                 'party_name' => 'VSTECS Berhad',
                 'notes' => 'Cancelled purchase invoice — order never confirmed by supplier.',
             ],
-            [
-                'document_number' => 'DN-ADJ-0001',
-                'reference_number' => 'IV-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::INCREASE_ADJUSTMENT,
-                'date' => '2026-08-10',
-                'debit_code' => '1200',
-                'credit_code' => '4100',
-                'quantity' => 1,
-                'unit_price' => '750.00',
-                'amount' => '750.00',
-                'status' => LedgerStatus::POSTED,
-                'use_product' => true,
-                'notes' => 'Posted sales increase adjustment — additional charge for warranty upgrade.',
-            ],
-            [
-                'document_number' => 'CN-ADJ-0001',
-                'reference_number' => 'IV-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::DECREASE_ADJUSTMENT,
-                'date' => '2026-08-12',
-                'debit_code' => '4100',
-                'credit_code' => '1200',
-                'quantity' => 1,
-                'unit_price' => '350.00',
-                'amount' => '350.00',
-                'status' => LedgerStatus::POSTED,
-                'use_product' => true,
-                'notes' => 'Posted sales decrease adjustment — partial refund for damaged packaging.',
-            ],
-            [
-                'document_number' => 'DN-ADJ-0002',
-                'reference_number' => 'IV-RMA-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::INCREASE_ADJUSTMENT,
-                'date' => '2026-09-05',
-                'debit_code' => '1200',
-                'credit_code' => '4100',
-                'quantity' => 1,
-                'unit_price' => '1200.00',
-                'amount' => '1200.00',
-                'status' => LedgerStatus::CANCELLED,
-                'use_product' => true,
-                'notes' => 'Cancelled sales increase adjustment — approved then reversed.',
-            ],
-            [
-                'document_number' => 'CN-ADJ-0002',
-                'reference_number' => 'IV-RMA-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::DECREASE_ADJUSTMENT,
-                'date' => '2026-09-08',
-                'debit_code' => '4100',
-                'credit_code' => '1200',
-                'quantity' => 1,
-                'unit_price' => '480.00',
-                'amount' => '480.00',
-                'status' => LedgerStatus::CANCELLED,
-                'use_product' => true,
-                'notes' => 'Cancelled sales decrease adjustment — voided before posting.',
-            ],
-            [
-                'document_number' => 'PDN-ADJ-0001',
-                'reference_number' => 'PI-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::PURCHASE_DEBIT_NOTE,
-                'date' => '2026-08-18',
-                'debit_code' => '5000',
-                'credit_code' => '2000',
-                'quantity' => 1,
-                'unit_price' => '560.00',
-                'amount' => '560.00',
-                'status' => LedgerStatus::POSTED,
-                'use_product' => true,
-                'party_name' => 'Ingram Micro Malaysia Sdn Bhd',
-                'notes' => 'Posted purchase debit note — additional cost for expedited delivery.',
-            ],
-            [
-                'document_number' => 'PCN-ADJ-0001',
-                'reference_number' => 'PI-VSTECS-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::PURCHASE_CREDIT_NOTE,
-                'date' => '2026-08-20',
-                'debit_code' => '2000',
-                'credit_code' => '5000',
-                'quantity' => 1,
-                'unit_price' => '420.00',
-                'amount' => '420.00',
-                'status' => LedgerStatus::POSTED,
-                'use_product' => true,
-                'party_name' => 'VSTECS Berhad',
-                'notes' => 'Posted purchase credit note — supplier returned defective items.',
-            ],
-            [
-                'document_number' => 'PDN-ADJ-0002',
-                'reference_number' => 'PI-SNS-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::PURCHASE_DEBIT_NOTE,
-                'date' => '2026-09-10',
-                'debit_code' => '5000',
-                'credit_code' => '2000',
-                'quantity' => 1,
-                'unit_price' => '890.00',
-                'amount' => '890.00',
-                'status' => LedgerStatus::CANCELLED,
-                'use_product' => true,
-                'party_name' => 'SNS Network (M) Sdn Bhd',
-                'notes' => 'Cancelled purchase debit note — disputed charge not approved.',
-            ],
-            [
-                'document_number' => 'PCN-ADJ-0002',
-                'reference_number' => 'PI-INGRAM-DEMO-0002',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::PURCHASE_CREDIT_NOTE,
-                'date' => '2026-09-12',
-                'debit_code' => '2000',
-                'credit_code' => '5000',
-                'quantity' => 1,
-                'unit_price' => '310.00',
-                'amount' => '310.00',
-                'status' => LedgerStatus::CANCELLED,
-                'use_product' => true,
-                'party_name' => 'Ingram Micro Malaysia Sdn Bhd',
-                'notes' => 'Cancelled purchase credit note — supplier rejected return request.',
-            ],
-            [
-                'document_number' => 'PDN-ADJ-0003',
-                'reference_number' => 'PI-VSTECS-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::PURCHASE_DEBIT_NOTE,
-                'date' => '2026-09-18',
-                'debit_code' => '5000',
-                'credit_code' => '2000',
-                'quantity' => 1,
-                'unit_price' => '650.00',
-                'amount' => '650.00',
-                'status' => LedgerStatus::PENDING,
-                'use_product' => true,
-                'party_name' => 'VSTECS Berhad',
-                'notes' => 'Pending purchase debit note — awaiting approval before posting.',
-            ],
-            [
-                'document_number' => 'PCN-ADJ-0003',
-                'reference_number' => 'PI-SNS-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::PURCHASE_CREDIT_NOTE,
-                'date' => '2026-09-20',
-                'debit_code' => '2000',
-                'credit_code' => '5000',
-                'quantity' => 1,
-                'unit_price' => '280.00',
-                'amount' => '280.00',
-                'status' => LedgerStatus::PENDING,
-                'use_product' => true,
-                'party_name' => 'SNS Network (M) Sdn Bhd',
-                'notes' => 'Pending purchase credit note — awaiting approval before posting.',
-            ],
-            [
-                'document_number' => 'DN-ADJ-0003',
-                'reference_number' => 'IV-RMA-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::INCREASE_ADJUSTMENT,
-                'date' => '2026-09-22',
-                'debit_code' => '1200',
-                'credit_code' => '4100',
-                'quantity' => 1,
-                'unit_price' => '520.00',
-                'amount' => '520.00',
-                'status' => LedgerStatus::PENDING,
-                'use_product' => true,
-                'notes' => 'Pending sales increase adjustment — awaiting approval before posting.',
-            ],
-            [
-                'document_number' => 'CN-ADJ-0003',
-                'reference_number' => 'IV-RMA-DEMO-0001',
-                'type' => LedgerType::INVOICE,
-                'subtype' => LedgerSubType::DECREASE_ADJUSTMENT,
-                'date' => '2026-09-24',
-                'debit_code' => '4100',
-                'credit_code' => '1200',
-                'quantity' => 1,
-                'unit_price' => '390.00',
-                'amount' => '390.00',
-                'status' => LedgerStatus::PENDING,
-                'use_product' => true,
-                'notes' => 'Pending sales decrease adjustment — awaiting approval before posting.',
-            ],
         ];
     }
 
@@ -797,14 +607,10 @@ class SubLedgerSeeder extends Seeder
         $now = now();
         $subtype = $document['subtype'];
 
-        $isSales = in_array($subtype, [
-            LedgerSubType::SALES_INVOICE,
-            LedgerSubType::INCREASE_ADJUSTMENT,
-            LedgerSubType::DECREASE_ADJUSTMENT,
-        ], true);
+        $isSales = $subtype === LedgerSubType::SALES_INVOICE;
 
-        $debitId = $this->existingLineId($document['document_number'], $debitChart->id);
-        $creditId = $this->existingLineId($document['document_number'], $creditChart->id);
+        $debitLineId = $this->existingLineId($document['document_number'], $debitChart->id);
+        $creditLineId = $this->existingLineId($document['document_number'], $creditChart->id);
 
         $common = [
             'company_id' => $company->id,
@@ -822,7 +628,7 @@ class SubLedgerSeeder extends Seeder
 
         if ($document['status'] === LedgerStatus::POSTED) {
             $debitRow = $common + [
-                'id' => $debitId,
+                'id' => $debitLineId,
                 'chart_id' => $debitChart->id,
                 'currency_id' => $currencyId,
                 'chart_code' => $debitChart->code,
@@ -832,7 +638,7 @@ class SubLedgerSeeder extends Seeder
                 'credit_amount' => '0.00',
             ];
             $creditRow = $common + [
-                'id' => $creditId,
+                'id' => $creditLineId,
                 'chart_id' => $creditChart->id,
                 'currency_id' => $currencyId,
                 'chart_code' => $creditChart->code,
@@ -842,12 +648,12 @@ class SubLedgerSeeder extends Seeder
                 'credit_amount' => $document['amount'],
             ];
 
-            DB::table('ledgers')->updateOrInsert(['id' => $debitId], $debitRow);
-            DB::table('ledgers')->updateOrInsert(['id' => $creditId], $creditRow);
+            DB::table('ledgers')->updateOrInsert(['id' => $debitLineId], $debitRow);
+            DB::table('ledgers')->updateOrInsert(['id' => $creditLineId], $creditRow);
 
             if ($isSales) {
                 DB::table('ar_ledgers')->updateOrInsert(
-                    ['id' => $debitId],
+                    ['id' => $debitLineId],
                     [
                         'chart_id' => $debitChart->id,
                         'company_id' => $company->id,
@@ -874,7 +680,7 @@ class SubLedgerSeeder extends Seeder
                     ->delete();
             } else {
                 DB::table('ap_ledgers')->updateOrInsert(
-                    ['id' => $creditId],
+                    ['id' => $creditLineId],
                     [
                         'chart_id' => $creditChart->id,
                         'company_id' => $company->id,
@@ -901,7 +707,7 @@ class SubLedgerSeeder extends Seeder
                     ->delete();
             }
         } else {
-            DB::table('ledgers')->whereIn('id', [$debitId, $creditId])->delete();
+            DB::table('ledgers')->whereIn('id', [$debitLineId, $creditLineId])->delete();
             DB::table('ar_ledgers')
                 ->where('document_number', $document['document_number'])
                 ->delete();

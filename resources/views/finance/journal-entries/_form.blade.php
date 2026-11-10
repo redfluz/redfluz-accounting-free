@@ -75,7 +75,7 @@
                 @php
                     if ($isEditing) {
                         $item = $journalEntry->charts->get($i);
-                        $defaultChartId = $item?->debit_id ?? $item?->credit_id;
+                        $defaultChartId = $item?->chart_id;
                         $defaultDescription = $item?->description;
                         $defaultDebit = number_format((float) ($item?->debit_amount ?? 0), 2, '.', '');
                         $defaultCredit = number_format((float) ($item?->credit_amount ?? 0), 2, '.', '');

@@ -32,10 +32,12 @@ return [
     'banks_setup' => 'Pengaturan Bank',
     'system_references' => 'Referensi Sistem',
     'enable_strict_journal_posting' => 'Aktifkan posting jurnal ketat',
+    'enable_is_tax_enabled' => 'Aktifkan GST/VAT',
 
     'table' => [
         'column_cogs_chart_uuid' => 'Akun HPP',
         'column_income_chart_uuid' => 'Akun Pendapatan',
+        'column_discount_chart_uuid' => 'Akun Diskon',
         'column_bank_chart_uuid' => 'Akun Bank',
         'column_cash_chart_uuid' => 'Akun Kas',
         'column_cash_in_transit_chart_uuid' => 'Akun Kas Dalam Perjalanan',

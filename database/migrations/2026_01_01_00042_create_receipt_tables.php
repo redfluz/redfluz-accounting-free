@@ -110,32 +110,10 @@ return new class extends Migration
             $table->softDeletes();
             $table->index('date');
         });
-
-
-        Schema::create('receipt_charts', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('receipt_id')->constrained('receipts')->cascadeOnDelete();
-            $table->foreignUuid('debit_id')->nullable();
-            $table->foreignUuid('credit_id')->nullable();
-            $table->string('debit_acc')->nullable();
-            $table->string('credit_acc')->nullable();
-            $table->string('debit_acc_desc')->nullable();
-            $table->string('credit_acc_desc')->nullable();
-            $table->string('document_number')->nullable();
-            $table->string('reference_number')->nullable();
-            $table->date('date');
-            $table->string('description')->nullable();
-            $table->decimal('debit_amount', 15)->default(0.00);
-            $table->decimal('credit_amount', 15)->default(0.00);
-            $table->decimal('total_amount', 15)->default(0.00);
-            $table->timestamps();
-            $table->softDeletes();
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('receipt_charts');
         Schema::dropIfExists('receipts');
     }
 };

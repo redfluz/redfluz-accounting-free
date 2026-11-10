@@ -70,13 +70,14 @@ class UpdateCustomerRefundRequest extends CustomerRefundRequest
             'company_id' => ['required', 'uuid', 'exists:companies,id'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'date' => ['required', 'date'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'amount' => ['required', 'numeric', 'min:0.01', $this->refundableCap()],
             'notes' => ['nullable', 'string'],
             'payment_transfer_type' => [
                 'nullable',
                 'string',
-                Rule::in(array_column(PaymentTransferType::cases(), 'value')),
+                Rule::in(PaymentTransferType::refundableValues()),
             ],
+            ...$this->moneyAccountRules(),
         ];
     }
 }

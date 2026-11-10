@@ -280,16 +280,15 @@ class ChartController extends Controller
         // the trial balance, the profit and loss statement and the balance sheet.
         // Only an unused account may be removed.
         $entries = Ledger::query()
-            ->whereNull('deleted_at')
             ->where(function (Builder $query) use ($chart): void {
-                $query->where('debit_acc', $chart->code)->orWhere('credit_acc', $chart->code);
+                $query->where('chart_code', $chart->code);
             })
             ->count();
 
         $movements = ProductLedger::query()
             ->whereNull('deleted_at')
             ->where(function (Builder $query) use ($chart): void {
-                $query->where('debit_acc', $chart->code)->orWhere('credit_acc', $chart->code);
+                $query->where('chart_code', $chart->code);
             })
             ->count();
 

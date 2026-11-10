@@ -28,7 +28,6 @@ namespace App\Http\Controllers\Finance;
 
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
@@ -93,18 +92,11 @@ class LedgerController extends Controller
         $order = strtolower($orderInput) === 'asc' ? 'asc' : 'desc';
 
         $query = Ledger::query()
-            ->with(['company', 'contact'])
+            ->with(['company', 'chart'])
             ->when(is_string($type) && $type !== '', fn ($q) => $q->where('type', $type))
             ->when($account !== '', function (Builder $query) use ($account): void {
-                $query->where(function (Builder $query) use ($account): void {
-                    $query->where('debit_acc', $account)
-                        ->orWhere('credit_acc', $account);
-                });
+                $query->where('chart_code', $account);
             })
-            ->when(
-                $request->boolean('posted_only'),
-                fn (Builder $query) => $query->where('status', LedgerStatus::POSTED)
-            )
             ->when(
                 $request->boolean('exclude_year_end_closing'),
                 fn (Builder $query) => $query->where('document_number', 'not like', 'YEC%')
@@ -113,8 +105,8 @@ class LedgerController extends Controller
                 $q->where(function ($sq) use ($search) {
                     $sq->where('reference_number', 'like', "%$search%")
                         ->orWhere('document_number', 'like', "%$search%")
-                        ->orWhereHas('company', fn ($cq) => $cq->where('name', 'like', "%$search%"))
-                        ->orWhereHas('contact', fn ($ctq) => $ctq->where('name', 'like', "%$search%"));
+                        ->orWhere('chart_name', 'like', "%$search%")
+                        ->orWhereHas('company', fn ($cq) => $cq->where('name', 'like', "%$search%"));
                 });
             })
             ->when(is_string($startDate) && $startDate !== '', fn ($q) => $q->whereDate('date', '>=', $startDate))
@@ -133,12 +125,9 @@ class LedgerController extends Controller
             $cashDocuments = Ledger::query()
                 ->select('document_number')
                 ->whereNotNull('document_number')
-                ->where('status', LedgerStatus::POSTED)
                 ->where(function (Builder $query) use ($cashChartIds, $cashChartCodes): void {
-                    $query->whereIn('debit_id', $cashChartIds)
-                        ->orWhereIn('credit_id', $cashChartIds)
-                        ->orWhereIn('debit_acc', $cashChartCodes)
-                        ->orWhereIn('credit_acc', $cashChartCodes);
+                    $query->whereIn('chart_id', $cashChartIds)
+                        ->orWhereIn('chart_code', $cashChartCodes);
                 });
 
             $query->whereIn('document_number', $cashDocuments);
@@ -240,18 +229,11 @@ class LedgerController extends Controller
                         'bank.payment-vouchers.show',
                         $documentNumber
                     ),
-                    LedgerSubType::PURCHASE_DEBIT_NOTE,
-                    LedgerSubType::PURCHASE_CREDIT_NOTE => route('purchase.adjustments.show', $documentNumber),
-                    LedgerSubType::INCREASE_ADJUSTMENT,
-                    LedgerSubType::DECREASE_ADJUSTMENT => route(
-                        'sales.adjustments.show',
-                        $documentNumber
-                    ),
                     // A refund links to the grid for its own kind. The two kinds
                     // are separate document families now, so a supplier refund
                     // linking into the customer refund grid would land on a
                     // document that is not there.
-                    LedgerSubType::RECEIPT_REFUND,
+                    LedgerSubType::CUSTOMER_REFUND,
                     LedgerSubType::REFUND => route(
                         'bank.customer-refunds.show',
                         $documentNumber
@@ -266,6 +248,8 @@ class LedgerController extends Controller
                         'bank.bank-journals.show',
                         $documentNumber
                     ),
+                    LedgerSubType::MANUAL_SALES_ADJUSTMENT => route('sales.manual-adjustments.show', $documentNumber),
+                    LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT => route('purchase.manual-adjustments.show', $documentNumber),
                     // A transfer and a withdrawal are movements between money
                     // accounts rather than refunds. They have no document of
                     // their own yet, so there is nothing to link to.
@@ -352,10 +336,8 @@ class LedgerController extends Controller
             $type = $ledger->type->value;
             $subtype = $ledger->subtype->value;
             $account = trim(implode(' ', array_filter([
-                $ledger->debit_acc,
-                $ledger->credit_acc,
-                $ledger->debit_acc_desc,
-                $ledger->credit_acc_desc,
+                $ledger->chart_code,
+                $ledger->chart_name,
             ], fn ($value): bool => filled($value))));
             $company = $ledger->company_name ?? $ledger->company->name ?? '-';
             $contact = $ledger->contact->name ?? '';

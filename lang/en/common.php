@@ -38,6 +38,7 @@ return [
         'search' => 'Search',
         'reset' => 'Reset',
         'view' => 'View',
+        'view_attachment' => 'View Attachment',
         'send' => 'Send',
         'back' => 'Back',
         'views' => 'Views',

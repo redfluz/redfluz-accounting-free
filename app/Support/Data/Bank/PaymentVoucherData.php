@@ -96,13 +96,18 @@ class PaymentVoucherData extends Data
         #[MapName('payment_transfer_type')]
         public ?PaymentTransferType $paymentTransferType = null,
 
-        // The two accounts the figure is booked between. They belong to the lines
-        // rather than to this table, but they arrive on the same form.
-        #[MapName('debit_id')]
-        public ?string $debitAccountId = null,
+        // The account the money left. Which of the three is filled follows from the
+        // transfer type, so all three arrive on the form and the controller keeps
+        // only the one the type allows; these are columns of this table, unlike the
+        // account ids the old debit/credit pickers used to send.
+        #[MapName('bank_account_id')]
+        public ?string $bankAccountId = null,
 
-        #[MapName('credit_id')]
-        public ?string $creditAccountId = null,
+        #[MapName('cash_account_id')]
+        public ?string $cashAccountId = null,
+
+        #[MapName('e_wallet_account_id')]
+        public ?string $eWalletAccountId = null,
 
         #[MapName('attachment')]
         public mixed $attachment = null,
@@ -214,6 +219,9 @@ class PaymentVoucherData extends Data
         return new self(
             id: $model->id,
             companyId: $model->company_id,
+            bankAccountId: $model->bank_account_id,
+            cashAccountId: $model->cash_account_id,
+            eWalletAccountId: $model->e_wallet_account_id,
             date: CarbonImmutable::instance($model->date),
             referenceNumber: $model->reference_number,
             notes: $model->notes,
@@ -266,6 +274,9 @@ class PaymentVoucherData extends Data
             'id' => $this->id,
             'document_number' => $this->documentNumber,
             'company_id' => $this->companyId,
+            'bank_account_id' => $this->bankAccountId,
+            'cash_account_id' => $this->cashAccountId,
+            'e_wallet_account_id' => $this->eWalletAccountId,
             'company_name' => $this->companyName,
             'date' => $this->date?->format('Y-m-d'),
             'status' => $this->status->value,
@@ -289,6 +300,9 @@ class PaymentVoucherData extends Data
             'document_number' => $this->documentNumber,
             'company_id' => $this->companyId,
             'contact_id' => $this->contactId,
+            'bank_account_id' => $this->bankAccountId,
+            'cash_account_id' => $this->cashAccountId,
+            'e_wallet_account_id' => $this->eWalletAccountId,
             'company_name' => $this->companyName,
             'contact_name' => $this->contactName,
             'date' => $this->date?->format('Y-m-d'),

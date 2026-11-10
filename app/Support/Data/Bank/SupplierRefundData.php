@@ -96,13 +96,15 @@ class SupplierRefundData extends Data
         #[MapName('payment_transfer_type')]
         public ?PaymentTransferType $paymentTransferType = null,
 
-        // The two accounts the figure is booked between. They belong to the lines
-        // rather than to this table, but they arrive on the same form.
-        #[MapName('debit_id')]
-        public ?string $debitAccountId = null,
+        // The account the money came back into. Which of the two is filled follows
+        // from the transfer type, so both arrive on the form and the controller
+        // keeps only the one the type allows. A refund has no register column,
+        // because it cannot be taken back in cash.
+        #[MapName('bank_account_id')]
+        public ?string $bankAccountId = null,
 
-        #[MapName('credit_id')]
-        public ?string $creditAccountId = null,
+        #[MapName('e_wallet_account_id')]
+        public ?string $eWalletAccountId = null,
 
         #[MapName('attachment')]
         public mixed $attachment = null,
@@ -218,6 +220,8 @@ class SupplierRefundData extends Data
             referenceNumber: $model->reference_number,
             notes: $model->notes,
             paymentTransferType: $model->payment_transfer_type,
+            bankAccountId: $model->bank_account_id,
+            eWalletAccountId: $model->e_wallet_account_id,
             documentNumber: $model->document_number,
             status: $model->status,
             companyName: $model->company_name,
@@ -255,8 +259,8 @@ class SupplierRefundData extends Data
      * are simply absent from the array. What is left out is not forgotten; it is
      * the part that had not happened yet when this document was raised.
      *
-     * The two account ids are absent because they are not columns of this table.
-     * They become the document's lines, which the controller writes.
+     * The account the money came back into is written here as the two columns it
+     * can occupy, and the controller keeps only the one its transfer type allows.
      *
      * @return array<string, mixed>
      */
@@ -270,6 +274,8 @@ class SupplierRefundData extends Data
             'date' => $this->date?->format('Y-m-d'),
             'status' => $this->status->value,
             'payment_transfer_type' => $this->paymentTransferType?->value,
+            'bank_account_id' => $this->bankAccountId,
+            'e_wallet_account_id' => $this->eWalletAccountId,
             'reference_number' => $this->referenceNumber,
             'attachment_path' => $this->attachmentPath,
             'notes' => $this->notes,
@@ -278,7 +284,7 @@ class SupplierRefundData extends Data
     }
 
     /**
-     * The row as the customer_refunds table wants it.
+     * The row as the supplier_refunds table wants it.
      *
      * @return array<string, mixed>
      */
@@ -294,6 +300,8 @@ class SupplierRefundData extends Data
             'date' => $this->date?->format('Y-m-d'),
             'status' => $this->status->value,
             'payment_transfer_type' => $this->paymentTransferType?->value,
+            'bank_account_id' => $this->bankAccountId,
+            'e_wallet_account_id' => $this->eWalletAccountId,
             'reference_number' => $this->referenceNumber,
             'attachment_path' => $this->attachmentPath,
             'notes' => $this->notes,

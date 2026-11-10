@@ -62,22 +62,10 @@ return new class extends Migration
         Schema::create('supplier_refunds', function (Blueprint $table): void {
             $this->documentColumns($table);
         });
-
-
-
-        Schema::create('customer_refund_charts', function (Blueprint $table): void {
-            $this->chartColumns($table, 'customer_refunds');
-        });
-
-        Schema::create('supplier_refund_charts', function (Blueprint $table): void {
-            $this->chartColumns($table, 'supplier_refunds');
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('supplier_refund_charts');
-        Schema::dropIfExists('customer_refund_charts');
         Schema::dropIfExists('supplier_refunds');
         Schema::dropIfExists('customer_refunds');
     }
@@ -98,6 +86,25 @@ return new class extends Migration
             ->default(LedgerStatus::PENDING->value);
         $table->enum('payment_transfer_type', array_column(PaymentTransferType::cases(), 'value'))
             ->nullable();
+        // The account the money left, which is the one thing the transfer type
+        // cannot say: "bank transfer" names the route, not the account, and a
+        // business with three banks has to record which one paid the customer back.
+        //
+        // Only the two kinds a refund can travel by get a column, because a refund
+        // cannot be paid in cash: {@see PaymentTransferType::refundable()} is cheque,
+        // bank transfer and e-wallet. Stored the way a payment voucher stores it -
+        // one nullable column per account table, and which one is filled follows
+        // from the transfer type.
+        $table->foreignUuid('bank_account_id')
+            ->nullable()
+            ->constrained('banks')
+            ->restrictOnDelete()
+            ->index();
+        $table->foreignUuid('e_wallet_account_id')
+            ->nullable()
+            ->constrained('e_wallet_accounts')
+            ->restrictOnDelete()
+            ->index();
         // The receipt or payment being refunded. This is the refund's reason for
         // existing: without it a refund is just money leaving with no record of
         // which earlier document it undoes.
@@ -137,30 +144,6 @@ return new class extends Migration
         $table->foreignUuid('refund_id')->constrained($parent)->cascadeOnDelete();
         $table->decimal('amount', 15)->default(0);
         $table->text('description')->nullable();
-        $table->timestamps();
-        $table->softDeletes();
-    }
-
-    /**
-     * The chart of accounts a refund posts to, on whichever table holds it.
-     */
-    private function chartColumns(Blueprint $table, string $parent): void
-    {
-        $table->uuid('id')->primary();
-        $table->foreignUuid('refund_id')->constrained($parent)->cascadeOnDelete();
-        $table->foreignUuid('debit_id')->nullable();
-        $table->foreignUuid('credit_id')->nullable();
-        $table->string('debit_acc')->nullable();
-        $table->string('credit_acc')->nullable();
-        $table->string('debit_acc_desc')->nullable();
-        $table->string('credit_acc_desc')->nullable();
-        $table->string('document_number')->nullable();
-        $table->string('reference_number')->nullable();
-        $table->date('date');
-        $table->string('description')->nullable();
-        $table->decimal('debit_amount', 15)->default(0.00);
-        $table->decimal('credit_amount', 15)->default(0.00);
-        $table->decimal('total_amount', 15)->default(0.00);
         $table->timestamps();
         $table->softDeletes();
     }

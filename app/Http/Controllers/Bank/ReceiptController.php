@@ -32,7 +32,7 @@ use App\Enums\FileResources;
 use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
-use App\Enums\Inventory\PaymentTransferType;
+use App\Enums\Finance\PaymentTransferType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bank\Receipt\BatchApproveReceiptRequest;
 use App\Http\Requests\Bank\Receipt\BatchCancelReceiptRequest;
@@ -41,10 +41,10 @@ use App\Http\Requests\Bank\Receipt\UpdateReceiptRequest;
 use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
+use App\Models\Sales\SalesInvoice;
 use App\Services\DecimalService;
 use App\Support\Data\Bank\ReceiptData;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -59,7 +59,7 @@ class ReceiptController extends Controller
 {
     use GeneratesDocumentNumber;
 
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Display a listing of the resource.
@@ -112,7 +112,7 @@ class ReceiptController extends Controller
     public function show(string $documentNumber): View
     {
         $receipt = Receipt::query()->where('document_number', $documentNumber)->firstOrFail();
-        $receipt->loadMissing('arLedgers.chart');
+
         return view('bank.receipt.show', compact('receipt', 'documentNumber'));
     }
 
@@ -128,6 +128,7 @@ class ReceiptController extends Controller
         $receipt = Receipt::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($receipt->isPosted(), 409);
         $companies = Company::query()->where('is_active', true)->orderBy('name')->get();
+
         return view('bank.receipt.edit', compact('receipt', 'documentNumber', 'companies'));
     }
 
@@ -204,12 +205,14 @@ class ReceiptController extends Controller
         $receipt = Receipt::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($receipt->isPosted(), 409);
         $receipt->delete();
+
         return redirect()->route('bank.receipts.index')->with('success', FlashMessage::deleted(FileResources::PAYMENTS));
     }
 
     /**
      * Approve a receipt and post it to the ledgers.
      * Posting accounts are resolved at approval time from chart settings.
+     * Receipt: debit money (by transfer type), credit client/AR — direct from receipt.
      *
      * @param  string  $documentNumber  The receipt document number.
      * @return RedirectResponse Redirect response to the receipt detail page.
@@ -221,11 +224,25 @@ class ReceiptController extends Controller
         DB::transaction(function () use ($documentNumber): void {
             $receipt = Receipt::query()->where('document_number', $documentNumber)->lockForUpdate()->firstOrFail();
             abort_if($receipt->status === LedgerStatus::POSTED, 409);
-            $legs = $this->legsFor($receipt);
-            $this->poster->post($receipt, $receipt->document_number, $receipt->date, LedgerType::PAYMENT, LedgerSubType::RECEIPT, $legs, companyId: $receipt->company_id, contactId: $receipt->contact_id, referenceNumber: $receipt->reference_number);
+            [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($receipt);
+            $this->posting->postPayment(
+                $receipt,
+                $receipt->document_number,
+                $receipt->date,
+                LedgerType::PAYMENT,
+                LedgerSubType::RECEIPT,
+                $debitChartId,
+                $creditChartId,
+                $amount,
+                companyId: $receipt->company_id,
+                companyName: $receipt->company_name,
+                referenceNumber: $receipt->reference_number,
+                description: $receipt->notes,
+            );
             $receipt->update(['status' => LedgerStatus::POSTED]);
             $this->attributeApproved($receipt);
         });
+
         return redirect()->route('bank.receipts.show', $documentNumber)->with('success', FlashMessage::approved(FileResources::PAYMENTS));
     }
 
@@ -240,43 +257,74 @@ class ReceiptController extends Controller
     public function batchApprove(BatchApproveReceiptRequest $request): RedirectResponse
     {
         $this->allows(FileResources::PAYMENTS, FileAction::APPROVE);
-        $documentNumbers = $request->validatedDocumentNumbers();
-        $approved = 0; $failed = [];
+        $documentNumbers = $request->documentNumbers();
+        $approved = 0;
+        $failed = [];
         DB::transaction(function () use ($documentNumbers, &$approved, &$failed): void {
             foreach ($documentNumbers as $documentNumber) {
                 $receipt = Receipt::query()->where('document_number', $documentNumber)->lockForUpdate()->first();
-                if (! $receipt || $receipt->status === LedgerStatus::POSTED) { $failed[] = $documentNumber; continue; }
+                if (! $receipt || $receipt->status === LedgerStatus::POSTED) {
+                    $failed[] = $documentNumber;
+
+                    continue;
+                }
                 try {
-                    $legs = $this->legsFor($receipt);
-                    $this->poster->post($receipt, $receipt->document_number, $receipt->date, LedgerType::PAYMENT, LedgerSubType::RECEIPT, $legs, companyId: $receipt->company_id, contactId: $receipt->contact_id, referenceNumber: $receipt->reference_number);
+                    [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($receipt);
+                    $this->posting->postPayment(
+                        $receipt,
+                        $receipt->document_number,
+                        $receipt->date,
+                        LedgerType::PAYMENT,
+                        LedgerSubType::RECEIPT,
+                        $debitChartId,
+                        $creditChartId,
+                        $amount,
+                        companyId: $receipt->company_id,
+                        companyName: $receipt->company_name,
+                        referenceNumber: $receipt->reference_number,
+                        description: $receipt->notes,
+                    );
                     $receipt->update(['status' => LedgerStatus::POSTED]);
                     $this->attributeApproved($receipt);
                     $approved++;
-                } catch (Throwable) { $failed[] = $documentNumber; }
+                } catch (Throwable) {
+                    $failed[] = $documentNumber;
+                }
             }
         });
         $redirect = redirect()->route('bank.receipts.index');
-        if ($approved > 0) $redirect->with('success', __('common.messages.batch_approved', ['count' => $approved]));
-        if ($failed !== []) $redirect->with('warning', __('common.messages.batch_approve_failed', ['numbers' => implode(', ', $failed)]));
+        if ($approved > 0) {
+            $redirect->with('success', __('common.messages.batch_approved', ['count' => $approved]));
+        }
+        if ($failed !== []) {
+            $redirect->with('warning', __('common.messages.batch_approve_failed', ['numbers' => implode(', ', $failed)]));
+        }
+
         return $redirect;
     }
 
     /**
-     * Build posting legs at approval time from chart settings.
+     * Resolve posting accounts for a receipt at approval time (direct from chart settings).
      * Receipt: debit money (by transfer type), credit client/AR.
      *
-     * @param  Receipt  $receipt  The receipt being posted.
-     * @return list<PostingLeg> The double-entry legs.
+     * @return array{0: string, 1: string, 2: numeric-string}
      */
-    private function legsFor(Receipt $receipt): array
+    private function postingAccountsFor(Receipt $receipt): array
     {
         $setting = ChartSetting::query()->first();
         $transferType = $receipt->payment_transfer_type ?? PaymentTransferType::CHEQUE;
-        $debitId = $transferType === PaymentTransferType::CASH ? ($setting?->cash_chart_uuid ?? $setting?->bank_chart_uuid) : ($transferType === PaymentTransferType::E_WALLET ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid) : $setting?->bank_chart_uuid);
-        $creditId = $setting?->client_chart_uuid;
-        if (blank($debitId) || blank($creditId)) throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
+        $debitChartId = $transferType === PaymentTransferType::CASH
+            ? ($setting?->cash_chart_uuid ?? $setting?->bank_chart_uuid)
+            : ($transferType === PaymentTransferType::E_WALLET
+                ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid)
+                : $setting?->bank_chart_uuid);
+        $creditChartId = $setting?->client_chart_uuid;
+        if (blank($debitChartId) || blank($creditChartId)) {
+            throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
+        }
         $amount = bcadd(DecimalService::normalize((string) $receipt->total_amount), '0', 2);
-        return [PostingLeg::debit((string) $debitId, $amount, $receipt->notes, $receipt->reference_number), PostingLeg::credit((string) $creditId, $amount, $receipt->notes, $receipt->reference_number)];
+
+        return [(string) $debitChartId, (string) $creditChartId, $amount];
     }
 
     public function batchCancel(BatchCancelReceiptRequest $request): RedirectResponse
@@ -348,50 +396,5 @@ class ReceiptController extends Controller
             ->values();
 
         return response()->json(['results' => $results]);
-    }
-    /**
-     * Look up which money-account table holds the given chart and return its kind.
-     *
-     * The three money-account tables (banks, cash_accounts, e_wallet_accounts)
-     * each represent a different kind of account. This helper checks each table
-     * for an active row whose chart_id matches, returning the kind implied by
-     * the table it was found in, or null when no match exists.
-     *
-     * @param  string  $chartKey  The chart primary key to look up.
-     * @return BankAccountKind|null The account kind, or null if not found.
-     */
-    private function resolveMoneyAccountKind(string $chartKey): ?BankAccountKind
-    {
-        $bank = Bank::query()
-            ->whereNotNull('chart_id')
-            ->where('chart_id', $chartKey)
-            ->where('is_active', true)
-            ->first();
-
-        if ($bank instanceof Bank) {
-            return BankAccountKind::BANK;
-        }
-
-        $cashAccount = CashAccount::query()
-            ->whereNotNull('chart_id')
-            ->where('chart_id', $chartKey)
-            ->where('is_active', true)
-            ->first();
-
-        if ($cashAccount instanceof CashAccount) {
-            return BankAccountKind::CASH;
-        }
-
-        $eWalletAccount = EWalletAccount::query()
-            ->whereNotNull('chart_id')
-            ->where('chart_id', $chartKey)
-            ->where('is_active', true)
-            ->first();
-
-        if ($eWalletAccount instanceof EWalletAccount) {
-            return BankAccountKind::E_WALLET;
-        }
-
-        return null;
     }
 }

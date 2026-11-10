@@ -38,8 +38,7 @@ use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\Bank\Refund\SupplierRefund;
 use App\Models\ChartOfAccount\Chart;
-use App\Support\Posting\PaymentLedgerPoster;
-use App\Support\Posting\PostingLeg;
+use App\Support\Posting\Posting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -70,7 +69,7 @@ class RefundSeeder extends Seeder
      * The poster that writes a seeded document's double entry to every ledger it
      * belongs in, injected so the trait does not have to reach for the container.
      */
-    public function __construct(private readonly PaymentLedgerPoster $poster) {}
+    public function __construct(private readonly Posting $posting) {}
 
     /**
      * Seed the refunds.
@@ -100,26 +99,41 @@ class RefundSeeder extends Seeder
                 throw new LogicException('Refund names a company that does not exist: '.$refund['party']);
             }
 
-            $debitId = Chart::query()->where('name', $debitChart)->value('id');
-            $creditId = Chart::query()->where('name', $creditChart)->value('id');
+            $debitChartId = Chart::query()->where('name', $debitChart)->value('id');
+            $creditChartId = Chart::query()->where('name', $creditChart)->value('id');
 
             // The kind picks the table, so each seed writes to the model that owns
             // it. The model is named by the seed's own type field rather than
             // inferred from the party, because the table is the only thing that
-            // makes a refund a customer or a supplier refund now.
-            $documentClass = $refund['type'] === LedgerSubType::SUPPLIER_REFUND->value
+            // makes a customer or a supplier refund now.
+            $subtype = $refund['type'] === LedgerSubType::SUPPLIER_REFUND->value
+                ? LedgerSubType::SUPPLIER_REFUND
+                : LedgerSubType::CUSTOMER_REFUND;
+            $isSupplierRefund = $subtype === LedgerSubType::SUPPLIER_REFUND;
+            $documentClass = $isSupplierRefund
                 ? SupplierRefund::class
                 : CustomerRefund::class;
 
-            DB::transaction(function () use ($refund, $company, $debitId, $creditId, $debitChart, $creditChart, $documentClass): void {
+            // Money leaves a customer refund and comes back on a supplier refund,
+            // so the account named on the document is whichever side the money
+            // itself sits on rather than always the credit.
+            $moneyChartId = $isSupplierRefund ? $debitChartId : $creditChartId;
+            $accountColumns = $this->refundAccountColumns($moneyChartId, $refund['number']);
+
+            // A wallet can only be paid through as a wallet, so the transfer type
+            // follows the account that was resolved instead of being trusted from
+            // the seed row.
+            $transferType = $accountColumns['e_wallet_account_id'] === null
+                ? $refund['transfer_type']
+                : PaymentTransferType::E_WALLET;
+
+            DB::transaction(function () use ($refund, $company, $debitChartId, $creditChartId, $documentClass, $accountColumns, $transferType, $subtype): void {
                 $existing = $documentClass::query()
                     ->where('document_number', $refund['number'])
                     ->first();
 
                 if ($existing !== null) {
                     $this->purgePostedRows($refund['number']);
-
-                    $existing->lines()->delete();
                     $existing->forceDelete();
                 }
 
@@ -129,10 +143,11 @@ class RefundSeeder extends Seeder
                     'company_name' => $company->name,
                     'date' => $refund['date'],
                     'status' => $refund['status'],
-                    'payment_transfer_type' => $refund['transfer_type'],
+                    'payment_transfer_type' => $transferType,
                     'reference_number' => $refund['reference_number'],
                     'notes' => $refund['notes'],
                     'total_amount' => $refund['amount'],
+                    ...$accountColumns,
                     // Seeded approvals are dated relative to the document rather
                     // than left null, so a seeded history row reads like a real
                     // one rather than a posted refund nobody approved.
@@ -144,33 +159,14 @@ class RefundSeeder extends Seeder
                     'cancelled_at' => $refund['status'] === LedgerStatus::CANCELLED ? $refund['date'] : null,
                 ]);
 
-                $model->lines()->create([
-                    'amount' => $refund['amount'],
-                    'description' => $refund['notes'],
-                ]);
-
-                $model->lines()->create([
-                    'amount' => $refund['amount'],
-                    'description' => $refund['notes'],
-                ]);
-
-                $legs = [
-                    PostingLeg::debit($debitId, (string) $refund['amount'], $refund['notes']),
-                    PostingLeg::credit($creditId, (string) $refund['amount'], $refund['notes']),
-                ];
-
-                // The subtype is the kind the seed asked for, which is the same
-                // kind the model it was written to represents. The model reports
-                // its own source type, so the posting cannot disagree with the
-                // table the row landed in.
                 $this->postSeededDocument(
                     $model,
-                    $refund['type'] === LedgerSubType::SUPPLIER_REFUND->value
-                        ? LedgerSubType::SUPPLIER_REFUND
-                        : LedgerSubType::RECEIPT_REFUND,
+                    $subtype,
                     'document_number',
-                    $this->poster,
-                    $legs,
+                    $this->posting,
+                    $debitChartId,
+                    $creditChartId,
+                    (string) $refund['amount'],
                 );
             });
         }
@@ -185,7 +181,7 @@ class RefundSeeder extends Seeder
         // let one kind's numbers push the other kind's sequence forward, and a
         // new document would be issued a number the other kind already holds.
         foreach ([
-            [LedgerSubType::RECEIPT_REFUND, 'customer_refunds'],
+            [LedgerSubType::CUSTOMER_REFUND, 'customer_refunds'],
             [LedgerSubType::SUPPLIER_REFUND, 'supplier_refunds'],
         ] as [$subtype, $table]) {
             $this->seedDocumentSequence(
@@ -208,7 +204,7 @@ class RefundSeeder extends Seeder
         return [
             [
                 'number' => 'RR-DEMO-0101',
-                'type' => LedgerSubType::RECEIPT_REFUND->value,
+                'type' => LedgerSubType::CUSTOMER_REFUND->value,
                 'reference_number' => 'RCP-DEMO-0001',
                 'date' => '2026-09-15',
                 // Giving money back to a customer debits the debtor, because what
@@ -223,20 +219,20 @@ class RefundSeeder extends Seeder
             ],
             [
                 'number' => 'RR-DEMO-0001',
-                'type' => LedgerSubType::RECEIPT_REFUND->value,
+                'type' => LedgerSubType::CUSTOMER_REFUND->value,
                 'reference_number' => 'RCP-DEMO-0101',
                 'date' => '2026-08-28',
                 'debit_code' => '1200',
-                'credit_code' => '1110',
+                'credit_code' => '1150',
                 'amount' => '275.00',
                 'status' => LedgerStatus::POSTED,
                 'party' => 'Tradenet Financial Terminals',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
-                'notes' => 'Customer refund posted against RCP-DEMO-0101.',
+                'notes' => 'Customer refund paid out of Touch n Go Wallet.',
             ],
             [
                 'number' => 'RR-DEMO-0102',
-                'type' => LedgerSubType::RECEIPT_REFUND->value,
+                'type' => LedgerSubType::CUSTOMER_REFUND->value,
                 'reference_number' => 'RCP-DEMO-0001',
                 'date' => '2026-09-16',
                 'debit_code' => '1200',
@@ -291,7 +287,7 @@ class RefundSeeder extends Seeder
             ],
             [
                 'number' => 'RR-JUL-DEMO-0001',
-                'type' => LedgerSubType::RECEIPT_REFUND->value,
+                'type' => LedgerSubType::CUSTOMER_REFUND->value,
                 'reference_number' => 'RCP-JUL-DEMO-0001',
                 'date' => '2026-07-19',
                 'debit_code' => '1200',

@@ -30,11 +30,7 @@ namespace App\Support\Posting;
 
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
-use Carbon\Carbon;
 use Carbon\CarbonInterface;
-use DateTime;
-use DateTimeInterface;
-use Illuminate\Support\Str;
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
 
@@ -148,66 +144,6 @@ class LedgerData extends Data
         public ?CarbonInterface $updatedAt,
     ) {}
 
-    /**
-     * Build the general ledger row for one posting leg.
-     *
-     * @param  PostingLeg  $leg  The movement, already single-sided and exact.
-     * @param  LedgerType  $type  The kind of posting.
-     * @param  LedgerSubType  $subtype  The finer kind.
-     * @param  array{code: string|null, name: string|null}  $account  The chart
-     *                                                                account's code and name, snapshotted at posting time.
-     * @param  string|null  $companyId  The customer or supplier, where the document names one.
-     * @param  string|null  $companyName  Their name.
-     * @param  string|null  $currencyId  The currency the figures are in.
-     * @param  string  $documentNumber  The document's number.
-     * @param  DateTimeInterface  $date  The document's date.
-     * @param  string|null  $referenceNumber  What the document settles or corrects.
-     * @param  string|null  $notes  The document's master description, beyond its lines.
-     */
-    public static function fromLeg(
-        PostingLeg $leg,
-        LedgerType $type,
-        LedgerSubType $subtype,
-        array $account,
-        ?string $companyId,
-        ?string $companyName,
-        ?string $currencyId,
-        string $documentNumber,
-        DateTimeInterface $date,
-        ?string $referenceNumber = null,
-        ?string $notes = null,
-    ): self {
-        $date = $date instanceof CarbonInterface
-            ? $date
-            : Carbon::instance(DateTime::createFromInterface($date));
-
-        return new self(
-            id: $leg->id ?? (string) Str::uuid7(),
-            chartId: $leg->chartId,
-            companyId: $companyId,
-            currencyId: $currencyId,
-            type: $type,
-            subtype: $subtype,
-            documentNumber: $documentNumber,
-            referenceNumber: $referenceNumber,
-            date: $date,
-            chartCode: $account['code'],
-            chartName: $account['name'],
-            companyName: $companyName,
-            description: $notes,
-            lineDescription: $leg->description,
-            debitAmount: $leg->debit,
-            creditAmount: $leg->credit,
-            createdAt: now(),
-            updatedAt: now(),
-        );
-    }
-
-    /**
-     * The row as the ledgers table wants it.
-     *
-     * @return array<string, mixed>
-     */
     public function toRow(): array
     {
         /** @var array<string, mixed> $row */
