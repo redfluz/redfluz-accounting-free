@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Purchase;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Finance\LedgerSubType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Inventory\ProductStockBucket;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Purchase\PurchaseReturn\BatchApprovePurchaseReturnRequest;
+use App\Http\Requests\Purchase\PurchaseReturn\BatchCancelPurchaseReturnRequest;
 use App\Http\Requests\Purchase\PurchaseReturn\StorePurchaseReturnRequest;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductLedger;
@@ -77,25 +80,17 @@ class PurchaseReturnController extends Controller
         // Group receipts by company → document for cascading filters.
         // Skip entries with no company (e.g. opening stock) — they have no
         // supplier to return to.
-        /** @var array<string, array<string, list<array{id: string, product_name: string, quantity: string, reference_number: string|null}>>> $groupedRows */
-        $groupedRows = [];
-
-        foreach ($receipts as $receipt) {
-            $companyName = $receipt->company_name;
-
-            if ($companyName === null || $companyName === '') {
-                continue;
-            }
-
-            $groupedRows[$companyName][$receipt->document_number][] = [
-                'id' => $receipt->id,
-                'product_name' => $receipt->product_name,
-                'quantity' => $receipt->quantity,
-                'reference_number' => $receipt->reference_number,
-            ];
-        }
-
-        $grouped = collect($groupedRows);
+        $grouped = $receipts->filter(fn (ProductLedger $row) => ! empty($row->company_name))
+            ->groupBy('company_name')->map(
+                fn (Collection $companyRows) => $companyRows->groupBy('document_number')->map(
+                    fn (Collection $docRows) => $docRows->map(fn (ProductLedger $row) => [
+                        'id' => $row->id,
+                        'product_name' => $row->product_name,
+                        'quantity' => $row->quantity,
+                        'reference_number' => $row->reference_number,
+                    ])
+                )
+            );
 
         return view('purchase.returns.create', [
             'groupedReceipts' => $grouped,
@@ -131,7 +126,7 @@ class PurchaseReturnController extends Controller
             if ($request->dateValue() < $receipt->date->toDateString()) {
                 throw ValidationException::withMessages(['date' => __('purchase_returns.validation.before_receipt')]);
             }
-            $number = $this->generatePurchaseReturnNumber();
+            $number = $this->generateDocumentNumber(LedgerSubType::PURCHASE_RETURN);
             $now = now();
             ProductLedger::query()->insert([[
                 'id' => (string) Str::uuid7(),
@@ -231,20 +226,13 @@ class PurchaseReturnController extends Controller
     /**
      * Approve multiple pending purchase returns.
      *
-     * @param  Request  $request  The HTTP request instance containing document numbers.
+     * @param  BatchApprovePurchaseReturnRequest  $request  The HTTP request instance containing document numbers.
      * @return RedirectResponse Redirects to the specified route.
      *
      * @throws Throwable
      */
-    public function batchApprove(Request $request): RedirectResponse
+    public function batchApprove(BatchApprovePurchaseReturnRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::PURCHASE_RETURNS, FileAction::APPROVE);
-
-        $request->validate([
-            'document_numbers' => 'required|array|min:1',
-            'document_numbers.*' => 'required|string',
-        ]);
-
         $count = 0;
 
         DB::transaction(function () use ($request, &$count): void {
@@ -315,18 +303,11 @@ class PurchaseReturnController extends Controller
     /**
      * Cancel multiple pending purchase returns.
      *
-     * @param  Request  $request  The HTTP request instance containing document numbers.
+     * @param  BatchCancelPurchaseReturnRequest  $request  The HTTP request instance containing document numbers.
      * @return RedirectResponse Redirects to the specified route.
      */
-    public function batchCancel(Request $request): RedirectResponse
+    public function batchCancel(BatchCancelPurchaseReturnRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::PURCHASE_RETURNS, FileAction::CANCEL);
-
-        $request->validate([
-            'document_numbers' => 'required|array|min:1',
-            'document_numbers.*' => 'required|string',
-        ]);
-
         $affected = ProductLedger::query()
             ->where('source_type', ProductMovementSource::PURCHASE_RETURN)
             ->whereIn('document_number', $request->input('document_numbers', []))

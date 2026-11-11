@@ -34,6 +34,7 @@ use App\Enums\Sales\QuotationStatus;
 use App\Enums\Sales\SalesOrderStatus;
 use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\Quotation\StoreQuotationCompanyRequest;
 use App\Http\Requests\Sales\Quotation\StoreQuotationRequest;
 use App\Http\Requests\Sales\Quotation\UpdateQuotationRequest;
 use App\Models\Crm\Company;
@@ -114,18 +115,16 @@ class QuotationController extends Controller
     /**
      * Create a customer without leaving the Quotation form.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  StoreQuotationCompanyRequest  $request  The HTTP request instance.
      * @return JsonResponse Returns the new customer for the form selector.
      */
-    public function storeCompany(Request $request): JsonResponse
+    public function storeCompany(StoreQuotationCompanyRequest $request): JsonResponse
     {
-        $this->allows(FileResources::QUOTATIONS, FileAction::ADD);
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-        $companyName = is_array($validated) && is_string($validated['name'] ?? null) ? $validated['name'] : '';
+        /** @var array{name: string} $validated */
+        $validated = $request->validated();
+
         $company = Company::query()->create([
-            'name' => trim($companyName),
+            'name' => trim($validated['name']),
             'is_debtor' => true,
         ]);
 
@@ -201,7 +200,7 @@ class QuotationController extends Controller
         }
         /** @var EloquentCollection<string, Product> $products */
         $products = Product::query()->whereIn('id', $lines->pluck('product_id')->filter()->unique())->get()->keyBy('id');
-        $documentNumber = $this->generateQuotationNumber();
+        $documentNumber = $this->generateDocumentNumber(LedgerSubType::QUOTATION);
         $attachmentPath = $request->hasFile('attachment') ? $this->storeUpload($request->file('attachment'), 'quotations') : null;
         $now = now();
 
@@ -392,7 +391,7 @@ class QuotationController extends Controller
                     'company_id' => $quotation->company_id,
                     'contact_id' => $quotation->contact_id,
                     'quotation_id' => $quotation->id,
-                    'document_number' => $this->generateSalesOrderNumber(),
+                    'document_number' => $this->generateDocumentNumber(LedgerSubType::SALES_ORDER),
                     'customer_reference_number' => $quotation->reference_number,
                     'company_name' => $quotation->company_name,
                     'contact_name' => $quotation->contact?->name,

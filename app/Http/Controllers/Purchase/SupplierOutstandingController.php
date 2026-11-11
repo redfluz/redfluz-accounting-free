@@ -12,13 +12,13 @@
 
 namespace App\Http\Controllers\Purchase;
 
-use App\Enums\FileResources;
 use App\Enums\Finance\LedgerStatus;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Purchase\SupplierOutstanding\IndexSupplierOutstandingRequest;
 use App\Models\Bank\PaymentVoucher;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Purchase\PurchaseInvoice;
@@ -28,7 +28,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -41,21 +40,13 @@ class SupplierOutstandingController extends Controller
     /**
      * Display posted supplier invoices with their allocated balance and due status.
      *
-     * @param  Request  $request  The HTTP request instance containing invoice filters.
+     * @param  IndexSupplierOutstandingRequest  $request  The HTTP request instance containing invoice filters.
      * @return View|Response|StreamedResponse Returns the rendered supplier-outstanding view or export download.
      */
-    public function index(Request $request): View|Response|StreamedResponse
+    public function index(IndexSupplierOutstandingRequest $request): View|Response|StreamedResponse
     {
-        $this->allows(FileResources::SUPPLIER_OUTSTANDING);
         /** @var array<string, mixed> $validated */
-        $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max:255'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date'],
-            'as_of_date' => ['nullable', 'date'],
-            'status' => ['nullable', 'in:outstanding,overdue,due_soon'],
-            'export' => ['nullable', 'in:excel,pdf'],
-        ]);
+        $validated = $request->validated();
 
         $search = trim(is_string($validated['search'] ?? null) ? (string) $validated['search'] : '');
         /** @var string|null $startDate */
@@ -159,10 +150,10 @@ class SupplierOutstandingController extends Controller
     /**
      * Export the supplier outstanding report as an Excel file.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  IndexSupplierOutstandingRequest  $request  The HTTP request instance.
      * @return View|Response|StreamedResponse Returns the streamed Excel download.
      */
-    public function exportExcel(Request $request): View|Response|StreamedResponse
+    public function exportExcel(IndexSupplierOutstandingRequest $request): View|Response|StreamedResponse
     {
         $request->merge(['export' => 'excel']);
 
@@ -172,10 +163,10 @@ class SupplierOutstandingController extends Controller
     /**
      * Export the supplier outstanding report as a PDF file.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  IndexSupplierOutstandingRequest  $request  The HTTP request instance.
      * @return View|Response|StreamedResponse Returns the streamed PDF download.
      */
-    public function exportPdf(Request $request): View|Response|StreamedResponse
+    public function exportPdf(IndexSupplierOutstandingRequest $request): View|Response|StreamedResponse
     {
         $request->merge(['export' => 'pdf']);
 

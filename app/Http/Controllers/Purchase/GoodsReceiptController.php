@@ -30,6 +30,7 @@ use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\LedgerSubType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
@@ -368,7 +369,7 @@ class GoodsReceiptController extends Controller
             ->where('document_number', $data->purchaseOrderNumber)
             ->whereNotNull('approved_at')
             ->firstOrFail();
-        $documentNumber = $this->generateGoodsReceiptNumber();
+        $documentNumber = $this->generateDocumentNumber(LedgerSubType::GOODS_RECEIPT);
 
         DB::transaction(function () use (
             $availableLines,

@@ -12,13 +12,13 @@
 
 namespace App\Http\Controllers\Sales;
 
-use App\Enums\FileResources;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\CustomerOutstanding\IndexCustomerOutstandingRequest;
 use App\Models\Crm\ArLedger;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\SalesInvoice;
@@ -28,7 +28,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -41,21 +40,13 @@ class CustomerOutstandingController extends Controller
     /**
      * Display posted supplier invoices with their allocated balance and due status.
      *
-     * @param  Request  $request  The HTTP request instance containing invoice filters.
+     * @param  IndexCustomerOutstandingRequest  $request  The HTTP request instance containing invoice filters.
      * @return View|Response|StreamedResponse Returns the rendered customer-outstanding view or export download.
      */
-    public function index(Request $request): View|Response|StreamedResponse
+    public function index(IndexCustomerOutstandingRequest $request): View|Response|StreamedResponse
     {
-        $this->allows(FileResources::CUSTOMER_OUTSTANDING);
         /** @var array<string, mixed> $validated */
-        $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max:255'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date'],
-            'as_of_date' => ['nullable', 'date'],
-            'status' => ['nullable', 'in:outstanding,overdue,due_soon'],
-            'export' => ['nullable', 'in:excel,pdf'],
-        ]);
+        $validated = $request->validated();
 
         $search = trim(is_string($validated['search'] ?? null) ? (string) $validated['search'] : '');
         /** @var string|null $startDate */
@@ -74,23 +65,13 @@ class CustomerOutstandingController extends Controller
                 .'SUM(order_lines.ordered_quantity) as ordered_quantity'
             )
             ->groupBy('orders.document_number');
-        $deliveryQuantities = ProductLedger::query()
+        $receivedQuantities = ProductLedger::query()
             ->selectRaw('reference_number, SUM(quantity) as delivered_quantity')
             ->where('source_type', ProductMovementSource::DELIVERY_ORDER)
             ->where('direction', ProductMovementDirection::OUT->value)
             ->where('status', ProductMovementStatus::ACTIVE->value)
             ->whereNotNull('reference_number')
             ->groupBy('reference_number');
-        // An invoice may deduct its own stock instead of waiting for a delivery
-        // order, and that movement is keyed by the invoice document number
-        // rather than the sales order it came from.
-        $invoiceQuantities = ProductLedger::query()
-            ->selectRaw('document_number, SUM(quantity) as delivered_quantity')
-            ->where('source_type', ProductMovementSource::SALES_INVOICE)
-            ->where('direction', ProductMovementDirection::OUT->value)
-            ->where('status', ProductMovementStatus::ACTIVE->value)
-            ->whereNotNull('document_number')
-            ->groupBy('document_number');
         $paymentTotals = ArLedger::query()
             ->selectRaw('reference_number, SUM(credit_amount) as paid_amount')
             ->where('type', LedgerType::PAYMENT->value)
@@ -100,6 +81,7 @@ class CustomerOutstandingController extends Controller
 
         $invoiceQuery = SalesInvoice::query()
             ->from('sales_invoices as invoices')
+            ->leftJoin('companies', 'companies.id', '=', 'invoices.company_id')
             ->leftJoinSub($paymentTotals, 'payment_totals', function ($join) {
                 /** @var JoinClause $join */
                 $join->on('payment_totals.reference_number', '=', 'invoices.document_number');
@@ -108,22 +90,19 @@ class CustomerOutstandingController extends Controller
                 /** @var JoinClause $join */
                 $join->on('ordered_quantities.reference_number', '=', 'invoices.reference_number');
             })
-            ->leftJoinSub($deliveryQuantities, 'delivery_quantities', function ($join) {
+            ->leftJoinSub($receivedQuantities, 'received_quantities', function ($join) {
                 /** @var JoinClause $join */
-                $join->on('delivery_quantities.reference_number', '=', 'invoices.reference_number');
-            })
-            ->leftJoinSub($invoiceQuantities, 'invoice_quantities', function ($join) {
-                /** @var JoinClause $join */
-                $join->on('invoice_quantities.document_number', '=', 'invoices.document_number');
+                $join->on('received_quantities.reference_number', '=', 'invoices.reference_number');
             })
             ->selectRaw(
                 'invoices.id, invoices.document_number, '
-                .'invoices.company_name, invoices.date as invoice_date, '
+                .'COALESCE(invoices.company_name, companies.name) as company_name, '
+                .'invoices.date as invoice_date, '
                 .'invoices.due_date, '
                 .'invoices.total_amount as invoice_amount, '
                 .'COALESCE(payment_totals.paid_amount, 0) as paid_amount, '
                 .'COALESCE(ordered_quantities.ordered_quantity, 0) as ordered_quantity, '
-                .'COALESCE(delivery_quantities.delivered_quantity, 0) + COALESCE(invoice_quantities.delivered_quantity, 0) as delivered_quantity'
+                .'COALESCE(received_quantities.delivered_quantity, 0) as delivered_quantity'
             )
             ->where('invoices.status', 'posted')
             ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search): void {
@@ -171,10 +150,10 @@ class CustomerOutstandingController extends Controller
     /**
      * Export the customer outstanding report as an Excel file.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  IndexCustomerOutstandingRequest  $request  The HTTP request instance.
      * @return View|Response|StreamedResponse Returns the streamed Excel download.
      */
-    public function exportExcel(Request $request): View|Response|StreamedResponse
+    public function exportExcel(IndexCustomerOutstandingRequest $request): View|Response|StreamedResponse
     {
         $request->merge(['export' => 'excel']);
 
@@ -184,10 +163,10 @@ class CustomerOutstandingController extends Controller
     /**
      * Export the customer outstanding report as a PDF file.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  IndexCustomerOutstandingRequest  $request  The HTTP request instance.
      * @return View|Response|StreamedResponse Returns the streamed PDF download.
      */
-    public function exportPdf(Request $request): View|Response|StreamedResponse
+    public function exportPdf(IndexCustomerOutstandingRequest $request): View|Response|StreamedResponse
     {
         $request->merge(['export' => 'pdf']);
 
@@ -202,7 +181,7 @@ class CustomerOutstandingController extends Controller
     private function decorateInvoices(Collection $invoices, Carbon $asOfDate): void
     {
         $invoices->each(function (SalesInvoice $invoice) use ($asOfDate): void {
-            $totalRaw = $invoice->getAttribute('invoice_amount');
+            $totalRaw = $invoice->getAttribute('invoice_amount') ?? $invoice->getAttribute('total_amount');
             $invoiceAmount = is_numeric($totalRaw) ? (float) $totalRaw : 0.0;
             $paidRaw = $invoice->getAttribute('paid_amount');
             $paidAmount = is_numeric($paidRaw) ? (float) $paidRaw : 0.0;
@@ -223,7 +202,7 @@ class CustomerOutstandingController extends Controller
      */
     private function totals(Collection $invoices): array
     {
-        $invoiceRaw = $invoices->sum('invoice_amount');
+        $invoiceRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('invoice_amount') ?? $inv->getAttribute('total_amount'));
         $paidRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('paid_amount'));
         $balanceRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('balance_amount'));
         $orderedRaw = $invoices->sum(fn (SalesInvoice $inv): mixed => $inv->getAttribute('ordered_quantity'));
@@ -258,16 +237,12 @@ class CustomerOutstandingController extends Controller
             $orderedQty = is_numeric($orderedQtyRaw) ? (string) $orderedQtyRaw : '';
             $completionRaw = $invoice->getAttribute('delivery_completion');
             $deliveryCompletionStr = is_numeric($completionRaw) ? (string) $completionRaw.'%' : '-';
-            // The report selects the invoice date under its own alias, so the
-            // export reads that alias instead of the model's date attribute.
-            $invoiceDateRaw = $invoice->getAttribute('invoice_date');
-            /** @var Carbon|null $invoiceDate */
-            $invoiceDate = is_string($invoiceDateRaw) && $invoiceDateRaw !== '' ? Carbon::parse($invoiceDateRaw) : null;
+            $invoiceDate = $invoice->date;
             $invoiceDateStr = $invoiceDate instanceof Carbon ? $invoiceDate->format('d/m/Y') : '-';
             $dueDate = $invoice->due_date;
             $daysDiff = ($dueDate instanceof Carbon && $invoiceDate instanceof Carbon) ? $invoiceDate->diffInDays($dueDate).' days' : '-';
             $dueDateStr = $dueDate instanceof Carbon ? $dueDate->format('d/m/Y') : '-';
-            $totalRaw = $invoice->getAttribute('invoice_amount');
+            $totalRaw = $invoice->getAttribute('invoice_amount') ?? $invoice->getAttribute('total_amount');
             $invoiceAmount = is_numeric($totalRaw) ? (float) $totalRaw : 0.0;
             $paidExcelRaw = $invoice->getAttribute('paid_amount');
             $paidAmount = is_numeric($paidExcelRaw) ? (float) $paidExcelRaw : 0.0;

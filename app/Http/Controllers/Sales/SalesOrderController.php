@@ -246,7 +246,7 @@ class SalesOrderController extends Controller
             $salesOrder->fill([
                 'company_id' => $company->id,
                 'contact_id' => $contact?->id,
-                'document_number' => $this->generateSalesOrderNumber(),
+                'document_number' => $this->generateDocumentNumber(LedgerSubType::SALES_ORDER),
                 'customer_reference_number' => $data->customerReferenceNumber,
                 'company_name' => $company->name,
                 'contact_name' => $contact?->name,
