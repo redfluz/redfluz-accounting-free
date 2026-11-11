@@ -95,7 +95,6 @@ class CancelledController extends Controller
         $voucher = PaymentVoucher::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::CANCELLED)
-            ->with('apLedgers.chart')
             ->firstOrFail();
 
         return view('bank.voucher.cancelled.show', compact('voucher', 'documentNumber'));
@@ -115,7 +114,6 @@ class CancelledController extends Controller
         $voucher = PaymentVoucher::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::CANCELLED)
-            ->with('apLedgers.chart')
             ->firstOrFail();
 
         return Pdf::loadView('bank.voucher.pdf', [

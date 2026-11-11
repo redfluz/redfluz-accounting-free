@@ -31,6 +31,11 @@
                 <span class="badge theme-success d-flex align-items-center">
                     {{ __('journal_entries.status_approved') }}
                 </span>
+                <a class="btn btn-solid theme-primary btn-sm text-nowrap"
+                    href="{{ route('purchase.manual-adjustments.history.pdf', $documentNumber) }}" target="_blank">
+                    <i class="me-1" data-lucide="printer"></i>
+                    {{ __('common.actions.print_pdf') }}
+                </a>
                 <a class="btn btn-solid theme-secondary btn-sm"
                     href="{{ route('purchase.manual-adjustments.history.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>

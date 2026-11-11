@@ -103,4 +103,16 @@ return [
         'cancelled_by' => 'Dibatalkan Oleh',
         'undone_by' => 'Dipulihkan Oleh',
     ],
+
+    'coa_picker' => [
+        'title' => 'Pilih Akun',
+        'search_placeholder' => 'Cari berdasarkan kode, nama, atau jenis...',
+        'all_types' => 'Semua Jenis',
+        'code' => 'Kode',
+        'name' => 'Nama',
+        'type' => 'Jenis',
+        'type_to_search' => 'Ketik minimal 2 karakter untuk mencari',
+        'no_results' => 'Tidak ada akun ditemukan',
+        'search_error' => 'Kesalahan saat mencari akun',
+    ],
 ];

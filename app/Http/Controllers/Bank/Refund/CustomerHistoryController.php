@@ -27,7 +27,6 @@
 namespace App\Http\Controllers\Bank\Refund;
 
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\System\Setting;
@@ -97,8 +96,6 @@ class CustomerHistoryController extends Controller
 
         $refund = CustomerRefund::query()
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::POSTED)
-            ->with('arLedgers')
             ->firstOrFail();
 
         return view('bank.customer-refund.history.show', compact('refund', 'documentNumber'));
@@ -117,8 +114,6 @@ class CustomerHistoryController extends Controller
 
         $refund = CustomerRefund::query()
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::POSTED)
-            ->with('arLedgers')
             ->firstOrFail();
 
         return Pdf::loadView('bank.customer-refund.pdf', [
@@ -233,7 +228,6 @@ class CustomerHistoryController extends Controller
     private function buildQuery(string $search, ?string $startDate, ?string $endDate): Builder
     {
         return CustomerRefund::query()
-            ->where('status', LedgerStatus::POSTED)
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $q) => $q->where('document_number', 'like', "%$search%")
                     ->orWhere('reference_number', 'like', "%$search%")

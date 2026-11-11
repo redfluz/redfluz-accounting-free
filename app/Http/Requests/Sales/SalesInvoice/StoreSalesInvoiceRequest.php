@@ -33,6 +33,7 @@ use App\Enums\FileResources;
 use App\Enums\Finance\DiscountType;
 use App\Enums\Finance\TaxMode;
 use App\Enums\UploadType;
+use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 /**
@@ -75,7 +76,7 @@ class StoreSalesInvoiceRequest extends SalesInvoiceRequest
             'invoice_attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:5120'],
             'invoice_notes' => ['nullable', 'string'],
             'payment_notes' => ['nullable', 'string'],
-            'lines' => ['required', 'array', 'size:10'],
+            'lines' => ['required', 'array', 'size:'.Controller::detailGridRows()],
             'lines.*.product_id' => ['nullable', 'exists:products,id'],
             'lines.*.description' => ['nullable', 'string', 'max:1000'],
             'lines.*.quantity' => ['nullable', 'integer', 'min:1'],

@@ -334,7 +334,6 @@ class BankJournalController extends Controller
                 $debitChartId,
                 $creditChartId,
                 $amount,
-                referenceNumber: $journal->reference_number,
                 description: $journal->description,
             );
 

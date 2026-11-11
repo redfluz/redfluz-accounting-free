@@ -101,9 +101,9 @@ class SupplierRefundController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = trim((string) $request->input('search', ''));
-        $startDate = (string) ($request->input('start_date') ?? '');
-        $endDate = (string) ($request->input('end_date') ?? '');
+        $search = trim($request->string('search')->toString());
+        $startDate = $request->string('start_date')->toString();
+        $endDate = $request->string('end_date')->toString();
 
         $refunds = SupplierRefund::query()
             ->where('status', LedgerStatus::PENDING)
@@ -171,7 +171,7 @@ class SupplierRefundController extends Controller
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
-                'status' => $data->status ?? LedgerStatus::PENDING,
+                'status' => $data->status,
                 'payment_transfer_type' => $transferType,
                 ...$this->moneyAccountColumns($transferType, $data),
                 'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
@@ -326,7 +326,6 @@ class SupplierRefundController extends Controller
 
         /** @var Collection<int, PurchaseInvoice> $invoices */
         $invoices = PurchaseInvoice::query()
-            ->where('status', LedgerStatus::POSTED)
             ->where('company_id', $validated['company_id'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($subQuery) use ($search): void {
@@ -341,6 +340,7 @@ class SupplierRefundController extends Controller
 
         /** @var Collection<int, ApLedger> $entries */
         $entries = ApLedger::query()
+            ->againstPayableAccount()
             ->where('type', LedgerType::PAYMENT)
             ->whereIn('reference_number', $invoices->pluck('document_number')->all())
             ->get(['reference_number', 'debit_amount', 'credit_amount']);
@@ -350,11 +350,13 @@ class SupplierRefundController extends Controller
         $results = $invoices->map(function (PurchaseInvoice $invoice) use ($entries, $currency): array {
             /** @var Collection<int, ApLedger> $rows */
             $rows = $entries->where('reference_number', $invoice->document_number);
-            $available = bcsub(
-                bcadd((string) $rows->sum('debit_amount'), '0', 2),
-                bcadd((string) $rows->sum('credit_amount'), '0', 2),
-                2,
-            );
+            $debit = '0';
+            $credit = '0';
+            foreach ($rows as $row) {
+                $debit = bcadd($debit, $row->debit_amount, 2);
+                $credit = bcadd($credit, $row->credit_amount, 2);
+            }
+            $available = bcsub($debit, $credit, 2);
             $notes = filled($invoice->notes) ? " - $invoice->notes" : '';
 
             return [
@@ -379,7 +381,6 @@ class SupplierRefundController extends Controller
 
         $refund = SupplierRefund::query()
             ->where('document_number', $documentNumber)
-            ->with('apLedgers')
             ->firstOrFail();
 
         return Pdf::loadView('bank.supplier-refund.pdf', [
@@ -444,12 +445,9 @@ class SupplierRefundController extends Controller
             return $columns;
         }
 
-        $columns[$transferType->accountColumn()] = match ($transferType->accountColumn()) {
-            'e_wallet_account_id' => $data->eWalletAccountId,
-            default => $data->bankAccountId,
-        };
-
-        return $columns;
+        return $transferType->accountColumn() === 'e_wallet_account_id'
+            ? ['bank_account_id' => null, 'e_wallet_account_id' => $data->eWalletAccountId]
+            : ['bank_account_id' => $data->bankAccountId, 'e_wallet_account_id' => null];
     }
 
     /**
@@ -470,9 +468,10 @@ class SupplierRefundController extends Controller
         $setting = ChartSetting::query()->first();
         $transferType = $refund->payment_transfer_type ?? PaymentTransferType::CHEQUE;
         $moneyChartId = $refund->moneyAccount()?->chart_id;
-        $debitChartId = $moneyChartId ?? ($transferType === PaymentTransferType::E_WALLET
-            ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid)
-            : $setting?->bank_chart_uuid);
+        $transferChartId = $transferType === PaymentTransferType::E_WALLET
+            ? $setting?->e_wallet_chart_uuid
+            : null;
+        $debitChartId = $moneyChartId ?? $transferChartId ?? $setting?->bank_chart_uuid;
         $creditChartId = $setting?->vendor_chart_uuid;
         if (blank($debitChartId) || blank($creditChartId)) {
             throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);

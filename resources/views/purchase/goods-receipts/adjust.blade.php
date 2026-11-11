@@ -87,13 +87,15 @@
                                         {{ number_format((float) $line['headroom_quantity'], 4) }}
                                     </td>
                                     <td class="text-end">
+                                        <label class="visually-hidden"
+                                            for="line-{{ $loop->index }}-quantity">{{ __('goods_receipts.adjustment.column_corrected') }}</label>
                                         <input
+                                            id="line-{{ $loop->index }}-quantity"
                                             class="form-control form-control-sm text-end @error("lines.{$loop->index}.quantity") is-invalid @enderror"
                                             name="lines[{{ $loop->index }}][quantity]" type="number" step="0.0001"
                                             min="0" max="{{ $current }}"
                                             data-current="{{ $current }}" data-max="{{ $line['max_quantity'] }}"
-                                            value="{{ old("lines.{$loop->index}.quantity", number_format($current, 4, '.', '')) }}"
-                                            aria-label="{{ __('goods_receipts.adjustment.column_corrected') }}" />
+                                            value="{{ old("lines.{$loop->index}.quantity", number_format($current, 4, '.', '')) }}" />
                                         <input name="lines[{{ $loop->index }}][entry_id]" type="hidden"
                                             value="{{ $line['id'] }}" />
                                         @error("lines.{$loop->index}.quantity")

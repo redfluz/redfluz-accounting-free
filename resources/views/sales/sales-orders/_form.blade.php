@@ -170,49 +170,57 @@
                 </tr>
             </thead>
             <tbody>
-                @for ($index = 0; $index < 20; $index++)
+                @for ($index = 0; $index < $perPageGridDetail; $index++)
                     @php($line = $existingLines->get($index))
-                    <tr>
+                    <tr data-line-index="{{ $index }}">
                         <td style="min-width: 220px">
-                            <select class="form-control so-product" name="lines[{{ $index }}][product_id]"
-                                >
-                                <option value="">{{ __('common.actions.select_option') }}</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}"
-                                        data-description="{{ $product->description }}"
-                                        data-default-discount-id="{{ $product->default_discount_id }}"
-                                        data-default-tax-id="{{ $product->default_tax_id }}"
-                                        data-warranty-months="{{ $product->warranty_months ?? -1 }}"
-                                        @selected(old("lines.$index.product_id", $line?->product_id) === $product->id)>
-                                        {{ $product->sku }} - {{ $product->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="lines[{{ $index }}][product_id]"
+                                    class="so-product-id"
+                                    value="{{ old("lines.$index.product_id", $line?->product_id) }}">
+                                <div
+                                    class="so-product-display form-control d-flex align-items-center justify-content-between">
+                                    <span
+                                        class="so-product-label text-truncate">{{ old("lines.$index.product_id", $line?->product_id) ? $products->firstWhere('id', old("lines.$index.product_id", $line?->product_id))?->sku . ' - ' . $products->firstWhere('id', old("lines.$index.product_id", $line?->product_id))?->name : __('sales_orders.form.no_product_selected') }}</span>
+                                </div>
+                                <button class="btn btn-solid theme-primary so-product-choose-btn flex-shrink-0"
+                                    type="button" data-line-index="{{ $index }}">
+                                    <i data-lucide="search"></i>
+                                </button>
+                            </div>
                         </td>
                         <td style="min-width: 180px">
                             <div class="form-control form-adorn">
-                                <input class="form-ghost so-description" name="lines[{{ $index }}][description]"
+                                <label class="visually-hidden"
+                                    for="line-{{ $index }}-description">{{ __('sales_orders.form.description') }}</label>
+                                <input id="line-{{ $index }}-description" class="form-ghost so-description"
+                                    name="lines[{{ $index }}][description]"
                                     value="{{ old("lines.$index.description", $line?->description) }}" />
                             </div>
                         </td>
                         <td style="min-width: 115px">
                             <div class="form-control form-adorn">
-                                <input class="form-ghost so-quantity" name="lines[{{ $index }}][quantity]"
-                                    type="number" min="0.0001" step="0.0001"
+                                <label class="visually-hidden"
+                                    for="line-{{ $index }}-quantity">{{ __('sales_orders.form.quantity') }}</label>
+                                <input id="line-{{ $index }}-quantity" class="form-ghost so-quantity"
+                                    name="lines[{{ $index }}][quantity]" type="number" min="0.0001" step="0.0001"
                                     value="{{ old("lines.$index.quantity", $line?->ordered_quantity) }}" />
                             </div>
                         </td>
                         <td style="min-width: 125px">
                             <div class="form-control form-adorn">
-                                <input class="form-ghost so-price" name="lines[{{ $index }}][unit_price]"
-                                    type="number" min="0" step="0.01"
+                                <label class="visually-hidden"
+                                    for="line-{{ $index }}-unit_price">{{ __('sales_orders.form.unit_price') }}</label>
+                                <input id="line-{{ $index }}-unit_price" class="form-ghost so-price"
+                                    name="lines[{{ $index }}][unit_price]" type="number" min="0" step="0.01"
                                     value="{{ old("lines.$index.unit_price", $line?->unit_price) }}" />
                             </div>
                         </td>
                         <td style="min-width: 150px">
-                            <select class="form-control so-warranty"
-                                name="lines[{{ $index }}][warranty_months]"
-                                >
+                            <label class="visually-hidden"
+                                for="line-{{ $index }}-warranty_months">{{ __('sales_orders.form.warranty') }}</label>
+                            <select id="line-{{ $index }}-warranty_months" class="form-control so-warranty"
+                                name="lines[{{ $index }}][warranty_months]">
                                 @foreach ([-1, 0, 3, 6, 12, 24, 36] as $months)
                                     <option value="{{ $months }}" @selected((int) old("lines.$index.warranty_months", $line?->warranty_months ?? -1) === $months)>
                                         {{ $months === -1 ? __('products.warranty.unlimited') : ($months === 0 ? __('products.warranty.none') : __('products.warranty.months', ['count' => $months])) }}
@@ -221,9 +229,10 @@
                             </select>
                         </td>
                         <td style="min-width: 210px">
-                            <select class="form-control so-discount"
-                                name="lines[{{ $index }}][discount_option]"
-                                aria-label="{{ __('products.form.default_discount') }}">
+                            <label class="visually-hidden"
+                                for="line-{{ $index }}-discount_option">{{ __('products.form.default_discount') }}</label>
+                            <select id="line-{{ $index }}-discount_option" class="form-control so-discount"
+                                name="lines[{{ $index }}][discount_option]">
                                 <option value="none" data-type="percent" data-value="0">
                                     {{ __('discounts.form.none') }}
                                 </option>
@@ -238,14 +247,17 @@
                                 @endforeach
                             </select>
                             <div class="input-group input-group-sm mt-1">
-                                <select class="form-control so-discount-type"
-                                    name="lines[{{ $index }}][discount_type]"
-                                    aria-label="{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}">
+                                <label class="visually-hidden"
+                                    for="line-{{ $index }}-discount_type">{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}</label>
+                                <select id="line-{{ $index }}-discount_type" class="form-control so-discount-type"
+                                    name="lines[{{ $index }}][discount_type]">
                                     <option value="percent">%</option>
                                     <option value="amount">RM</option>
                                 </select>
                                 <div class="form-control form-adorn">
-                                    <input class="form-ghost so-discount-value"
+                                    <label class="visually-hidden"
+                                        for="line-{{ $index }}-discount_value">{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_amount') }}</label>
+                                    <input id="line-{{ $index }}-discount_value" class="form-ghost so-discount-value"
                                         name="lines[{{ $index }}][discount_value]" type="number" min="0"
                                         step="0.0001"
                                         value="{{ old("lines.$index.discount_value", $line?->discount_value ?? 0) }}" />
@@ -253,8 +265,10 @@
                             </div>
                         </td>
                         <td style="min-width: 210px">
-                            <select class="form-control so-tax" name="lines[{{ $index }}][tax_option]"
-                                aria-label="{{ __('products.form.default_tax') }}">
+                            <label class="visually-hidden"
+                                for="line-{{ $index }}-tax_option">{{ __('products.form.default_tax') }}</label>
+                            <select id="line-{{ $index }}-tax_option" class="form-control so-tax"
+                                name="lines[{{ $index }}][tax_option]">
                                 <option value="none" data-rate="0" data-mode="exclusive">
                                     {{ __('taxes.form.none') }}
                                 </option>
@@ -270,13 +284,18 @@
                             </select>
                             <div class="input-group input-group-sm mt-1">
                                 <div class="form-control form-adorn">
-                                    <input class="form-ghost so-tax-rate" name="lines[{{ $index }}][tax_rate]"
-                                        type="number" min="0" max="100" step="0.0001"
+                                    <label class="visually-hidden"
+                                        for="line-{{ $index }}-tax_rate">{{ __('ledgers.table.column_tax_rate') }}</label>
+                                    <input id="line-{{ $index }}-tax_rate" class="form-ghost so-tax-rate"
+                                        name="lines[{{ $index }}][tax_rate]" type="number" min="0" max="100"
+                                        step="0.0001"
                                         value="{{ old("lines.$index.tax_rate", $line?->tax_rate ?? 0) }}" />
                                 </div>
+                                <label class="visually-hidden"
+                                    for="line-{{ $index }}-tax_mode">{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}</label>
                                 <select
-                                    class="form-control so-tax-mode" name="lines[{{ $index }}][tax_mode]"
-                                    aria-label="{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}">
+                                    id="line-{{ $index }}-tax_mode" class="form-control so-tax-mode"
+                                    name="lines[{{ $index }}][tax_mode]">
                                     <option value="exclusive">{{ __('ledgers.tax_mode.exclusive') }}</option>
                                     <option value="inclusive">{{ __('ledgers.tax_mode.inclusive') }}</option>
                                 </select>
@@ -301,6 +320,73 @@
             data-lucide="save"></i>{{ $salesOrder === null ? __('common.actions.save') : __('common.actions.update') }}
     </button>
 </div>
+
+{{-- Product Selection Dialog --}}
+<dialog class="dialog" id="salesOrderProductPickerModal" aria-labelledby="salesOrderProductPickerModalLabel"
+    style="width: 90vw; max-width: 1200px; height: 85vh; max-height: 800px; padding: 0;">
+    <div class="dialog-header" style="padding: 1.5rem 2rem;">
+        <h4 class="dialog-title mb-0" id="salesOrderProductPickerModalLabel">
+            {{ __('sales_orders.form.select_product') }}</h4>
+        <button class="btn-close" data-bs-dismiss="dialog" type="button"></button>
+    </div>
+    <div class="dialog-body d-flex flex-column" style="padding: 1.5rem 2rem; min-height: 0;">
+        <div class="row g-3 mb-4 flex-shrink-0">
+            <div class="md:col-6">
+                <label class="visually-hidden" for="salesOrderProductSearchInput">Search Products</label><input
+                    type="text" class="form-control form-control-lg" id="salesOrderProductSearchInput"
+                    placeholder="{{ __('sales_orders.form.search_products') }}" style="font-size: 1.1rem;"
+                >
+            </div>
+            <div class="md:col-3">
+                <label class="visually-hidden" for="salesOrderProductCategoryFilter">Product Category</label><select
+                    class="form-control form-control-lg" id="salesOrderProductCategoryFilter"
+                    style="font-size: 1.1rem;">
+                    <option value="">{{ __('sales_orders.form.all_categories') }}</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="md:col-3">
+                <label class="visually-hidden" for="salesOrderProductTypeFilter">Product Type</label><select
+                    class="form-control form-control-lg" id="salesOrderProductTypeFilter" style="font-size: 1.1rem;">
+                    <option value="">{{ __('sales_orders.form.all_types') }}</option>
+                    @foreach ($categories as $category)
+                        @foreach ($category->types as $type)
+                            <option value="{{ $type->id }}" data-category-id="{{ $category->id }}">
+                                {{ $type->name }}</option>
+                        @endforeach
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="table-responsive flex-fill" style="overflow-y: auto; min-height: 0;">
+            <table class="table table-hover" style="font-size: 1.05rem;">
+                <thead class="sticky-top bg-body" style="font-size: 1.1rem;">
+                    <tr>
+                        <th scope="col" style="padding: 1rem;">{{ __('sales_orders.form.sku') }}</th>
+                        <th scope="col" style="padding: 1rem;">{{ __('sales_orders.form.product_name') }}</th>
+                        <th scope="col" style="padding: 1rem;">{{ __('sales_orders.form.category') }}</th>
+                        <th scope="col" class="text-end" style="padding: 1rem;">
+                            {{ __('sales_orders.form.price') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="salesOrderProductPickerResults">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5" style="font-size: 1.1rem;">
+                            {{ __('sales_orders.form.type_to_search') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="dialog-footer" style="padding: 1.5rem 2rem;">
+        <button class="btn btn-solid theme-primary btn-lg" data-bs-dismiss="dialog" type="button"
+            style="font-size: 1.1rem; padding: 0.75rem 2rem;">
+            {{ __('sales_orders.form.close_information') }}
+        </button>
+    </div>
+</dialog>
 
 @push('scripts')
     <script>
@@ -458,88 +544,216 @@
             }),
         );
 
-        function refreshSalesOrderProductSelects() {
-            if (typeof window.initCombobox !== 'function') {
+        // Product Picker Modal - wait for bootstrap to be available
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.bootstrap) {
+                console.error('Bootstrap is not loaded');
                 return;
             }
 
-            document.querySelectorAll('.so-product').forEach((element) => {
-                window.initCombobox(element, {
-                    placeholder: @json(__('common.actions.select_option')),
+            const salesOrderProductPickerModal = window.bootstrap.Dialog.getOrCreateInstance(document
+                .getElementById('salesOrderProductPickerModal'));
+            const salesOrderProductSearchInput = document.getElementById('salesOrderProductSearchInput');
+            const salesOrderProductCategoryFilter = document.getElementById('salesOrderProductCategoryFilter');
+            const salesOrderProductTypeFilter = document.getElementById('salesOrderProductTypeFilter');
+            const salesOrderProductPickerResults = document.getElementById('salesOrderProductPickerResults');
+            let salesOrderCurrentLineIndex = null;
+            let salesOrderSearchTimeout = null;
+
+            function filterSalesOrderProductTypes() {
+                const categoryId = salesOrderProductCategoryFilter.value;
+
+                Array.from(salesOrderProductTypeFilter.options).forEach((option) => {
+                    if (!option.dataset.categoryId) return;
+                    const belongsToCategory = option.dataset.categoryId === categoryId;
+                    option.hidden = !belongsToCategory;
+                    option.disabled = !belongsToCategory;
                 });
-            });
-        }
 
-        function updateSalesOrderLine(row) {
-            const subtotal =
-                (Number(row.querySelector('.so-quantity').value) || 0) * (Number(row.querySelector('.so-price').value) ||
-                    0);
-            const discountType = row.querySelector('.so-discount-type').value;
-            const discountValue = Number(row.querySelector('.so-discount-value').value) || 0;
-            const discount = discountType === 'percent' ? (subtotal * discountValue) / 100 : Math.min(subtotal,
-                discountValue);
-            const net = subtotal - discount;
-            const taxRate = Number(row.querySelector('.so-tax-rate').value) || 0;
-            const taxMode = row.querySelector('.so-tax-mode').value;
-            const tax = taxMode === 'inclusive' ? (net * taxRate) / (100 + taxRate) : (net * taxRate) / 100;
-            row.querySelector('.so-line-total').textContent = (taxMode === 'inclusive' ? net : net + tax).toFixed(2);
-        }
-        const initializeSalesOrderProducts = () => {
-            refreshSalesOrderProductSelects();
-
-            document.querySelectorAll('#sales-order-lines tbody tr').forEach((row) => {
-                const product = row.querySelector('.so-product');
-                const discount = row.querySelector('.so-discount');
-                const tax = row.querySelector('.so-tax');
-
-                function applyDiscount() {
-                    const option = discount.selectedOptions[0];
-                    const manual = discount.value === 'manual';
-                    row.querySelector('.so-discount-type').disabled = !manual;
-                    row.querySelector('.so-discount-value').readOnly = !manual;
-                    if (!manual) {
-                        row.querySelector('.so-discount-type').value = option.dataset.type || 'percent';
-                        row.querySelector('.so-discount-value').value = option.dataset.value || '0';
-                    }
-                    updateSalesOrderLine(row);
+                if (salesOrderProductTypeFilter.selectedOptions[0]?.hidden) {
+                    salesOrderProductTypeFilter.value = '';
                 }
 
-                function applyTax() {
-                    const option = tax.selectedOptions[0];
-                    const manual = tax.value === 'manual';
-                    row.querySelector('.so-tax-rate').readOnly = !manual;
-                    if (!manual) {
-                        row.querySelector('.so-tax-rate').value = option.dataset.rate || '0';
-                        row.querySelector('.so-tax-mode').value = option.dataset.mode || 'exclusive';
-                    }
-                    updateSalesOrderLine(row);
+                salesOrderProductTypeFilter.disabled = categoryId === '';
+            }
+
+            function searchSalesOrderProducts() {
+                const query = salesOrderProductSearchInput.value;
+                const categoryId = salesOrderProductCategoryFilter.value;
+                const typeId = salesOrderProductTypeFilter.value;
+                const noProductsText = @json(__('sales_orders.form.no_products_found'));
+                const searchErrorText = @json(__('sales_orders.form.search_error'));
+
+                if (salesOrderSearchTimeout) {
+                    clearTimeout(salesOrderSearchTimeout);
                 }
-                product.addEventListener('change', () => {
-                    const option = product.selectedOptions[0];
-                    if (!option?.value) return;
-                    row.querySelector('.so-price').value = option.dataset.price || '0';
-                    row.querySelector('.so-description').value ||= option.dataset.description || '';
-                    row.querySelector('.so-quantity').value ||= '1';
-                    row.querySelector('.so-warranty').value = option.dataset.warrantyMonths || '-1';
-                    discount.value = option.dataset.defaultDiscountId || 'none';
-                    tax.value = option.dataset.defaultTaxId || 'none';
+
+                salesOrderSearchTimeout = setTimeout(() => {
+                    fetch(
+                            `{{ route('sales.sales-orders.products.search') }}?search=${encodeURIComponent(query)}&category_id=${encodeURIComponent(categoryId)}&type_id=${encodeURIComponent(typeId)}`
+                        )
+                        .then(response => response.json())
+                        .then(products => {
+                            if (products.length === 0) {
+                                salesOrderProductPickerResults.innerHTML =
+                                    `<tr><td colspan="4" class="text-center text-muted py-5" style="font-size: 1.1rem;">${noProductsText}</td></tr>`;
+                            } else {
+                                salesOrderProductPickerResults.innerHTML = products.map(product => `
+                            <tr class="sales-order-product-picker-row" data-product-id="${product.id}" data-product-sku="${escapeHtml(product.sku)}" data-product-name="${escapeHtml(product.name)}" data-product-price="${product.price}" data-product-description="${escapeHtml(product.description)}" style="cursor: pointer; font-size: 1.05rem;">
+                                <td style="padding: 1rem;">${escapeHtml(product.sku)}</td>
+                                <td style="padding: 1rem;">${escapeHtml(product.name)}</td>
+                                <td style="padding: 1rem;">${escapeHtml(product.category)}</td>
+                                <td class="text-end" style="padding: 1rem;">${quantity(product.price)}</td>
+                            </tr>
+                        `).join('');
+
+                                salesOrderProductPickerResults.querySelectorAll(
+                                    '.sales-order-product-picker-row').forEach(row => {
+                                    row.addEventListener('click', () => {
+                                        const productId = row.dataset.productId;
+                                        const productSku = row.dataset.productSku;
+                                        const productName = row.dataset.productName;
+                                        const productPrice = row.dataset.productPrice;
+                                        const productDescription = row.dataset
+                                            .productDescription;
+
+                                        const targetRow = document.querySelector(
+                                            `tr[data-line-index="${salesOrderCurrentLineIndex}"]`
+                                        );
+                                        const productIdInput = targetRow.querySelector(
+                                            '.so-product-id');
+                                        const productLabel = targetRow.querySelector(
+                                            '.so-product-label');
+                                        const descriptionInput = targetRow
+                                            .querySelector('.so-description');
+                                        const priceInput = targetRow.querySelector(
+                                            '.so-price');
+                                        const quantityInput = targetRow.querySelector(
+                                            '.so-quantity');
+
+                                        productIdInput.value = productId;
+                                        productLabel.textContent =
+                                            `${productSku} - ${productName}`;
+                                        descriptionInput.value ||= productDescription;
+                                        quantityInput.value ||= '1';
+                                        priceInput.value ||= productPrice;
+
+                                        updateSalesOrderLine(targetRow);
+                                        salesOrderProductPickerModal.hide();
+                                    });
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error searching products:', error);
+                            salesOrderProductPickerResults.innerHTML =
+                                `<tr><td colspan="4" class="text-center text-danger py-5" style="font-size: 1.1rem;">${searchErrorText}</td></tr>`;
+                        });
+                }, 300);
+            }
+
+            const quantity = (value) =>
+                Number(value || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+            const escapeHtml = (value) =>
+                String(value).replace(
+                    /[&<>'"]/g,
+                    (character) =>
+                    ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        "'": '&#039;',
+                        '"': '&quot;',
+                    })[character],
+                );
+
+            function updateSalesOrderLine(row) {
+                const subtotal =
+                    (Number(row.querySelector('.so-quantity').value) || 0) * (Number(row.querySelector('.so-price')
+                            .value) ||
+                        0);
+                const discountType = row.querySelector('.so-discount-type').value;
+                const discountValue = Number(row.querySelector('.so-discount-value').value) || 0;
+                const discount = discountType === 'percent' ? (subtotal * discountValue) / 100 : Math.min(subtotal,
+                    discountValue);
+                const net = subtotal - discount;
+                const taxRate = Number(row.querySelector('.so-tax-rate').value) || 0;
+                const taxMode = row.querySelector('.so-tax-mode').value;
+                const tax = taxMode === 'inclusive' ? (net * taxRate) / (100 + taxRate) : (net * taxRate) / 100;
+                row.querySelector('.so-line-total').textContent = (taxMode === 'inclusive' ? net : net + tax)
+                    .toFixed(2);
+            }
+
+            const initializeSalesOrderProducts = () => {
+                document.querySelectorAll('#sales-order-lines tbody tr').forEach((row) => {
+                    const chooseBtn = row.querySelector('.so-product-choose-btn');
+                    const discount = row.querySelector('.so-discount');
+                    const tax = row.querySelector('.so-tax');
+
+                    function applyDiscount() {
+                        const option = discount.selectedOptions[0];
+                        const manual = discount.value === 'manual';
+                        row.querySelector('.so-discount-type').disabled = !manual;
+                        row.querySelector('.so-discount-value').readOnly = !manual;
+                        if (!manual) {
+                            row.querySelector('.so-discount-type').value = option.dataset.type ||
+                                'percent';
+                            row.querySelector('.so-discount-value').value = option.dataset.value || '0';
+                        }
+                        updateSalesOrderLine(row);
+                    }
+
+                    function applyTax() {
+                        const option = tax.selectedOptions[0];
+                        const manual = tax.value === 'manual';
+                        row.querySelector('.so-tax-rate').readOnly = !manual;
+                        if (!manual) {
+                            row.querySelector('.so-tax-rate').value = option.dataset.rate || '0';
+                            row.querySelector('.so-tax-mode').value = option.dataset.mode ||
+                                'exclusive';
+                        }
+                        updateSalesOrderLine(row);
+                    }
+
+                    chooseBtn?.addEventListener('click', (e) => {
+                        salesOrderCurrentLineIndex = e.currentTarget.dataset.lineIndex;
+                        salesOrderProductSearchInput.value = '';
+                        salesOrderProductCategoryFilter.value = '';
+                        salesOrderProductTypeFilter.value = '';
+                        filterSalesOrderProductTypes();
+                        const typeToSearchText = @json(__('sales_orders.form.type_to_search'));
+                        salesOrderProductPickerResults.innerHTML =
+                            `<tr><td colspan="4" class="text-center text-muted py-5" style="font-size: 1.1rem;">${typeToSearchText}</td></tr>`;
+                        salesOrderProductPickerModal.show();
+                        setTimeout(() => salesOrderProductSearchInput.focus(), 500);
+                    });
+
+                    discount.addEventListener('change', applyDiscount);
+                    tax.addEventListener('change', applyTax);
+                    row.querySelectorAll('input, select').forEach((input) =>
+                        input.addEventListener('input', () => updateSalesOrderLine(row)),
+                    );
                     applyDiscount();
                     applyTax();
                 });
-                discount.addEventListener('change', applyDiscount);
-                tax.addEventListener('change', applyTax);
-                row.querySelectorAll('input, select').forEach((input) =>
-                    input.addEventListener('input', () => updateSalesOrderLine(row)),
-                );
-                applyDiscount();
-                applyTax();
-            });
-        };
+            };
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeSalesOrderProducts);
-        } else {
-            initializeSalesOrderProducts();
-        }
+            salesOrderProductSearchInput.addEventListener('input', searchSalesOrderProducts);
+            salesOrderProductCategoryFilter.addEventListener('change', () => {
+                filterSalesOrderProductTypes();
+                searchSalesOrderProducts();
+            });
+            salesOrderProductTypeFilter.addEventListener('change', searchSalesOrderProducts);
+            filterSalesOrderProductTypes();
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeSalesOrderProducts);
+            } else {
+                initializeSalesOrderProducts();
+            }
+        });
     </script>
 @endpush

@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Inventory\AcquisitionType;
 use App\Enums\UploadType;
+use App\Http\Controllers\Controller;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Validation\Rule;
 
@@ -98,7 +99,7 @@ class StoreProductRequest extends ProductRequest
             'default_acquisition_type' => ['required', Rule::enum(AcquisitionType::class)],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'reorder_quantity' => ['nullable', 'numeric', 'min:0'],
-            'variants' => ['nullable', 'array', 'max:10'],
+            'variants' => ['nullable', 'array', 'max:'.Controller::detailGridRows()],
             'variants.*.variant_name' => ['nullable', 'string', 'max:255', 'required_with:variants.*.sku'],
             'variants.*.sku' => [
                 'nullable', 'string', 'max:100', 'distinct:ignore_case',

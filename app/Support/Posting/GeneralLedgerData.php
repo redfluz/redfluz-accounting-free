@@ -42,6 +42,7 @@ use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
+use App\Services\DecimalService;
 use App\Support\PostingException;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -301,8 +302,8 @@ class GeneralLedgerData extends Data
             companyName: $row->companyName,
             description: $invoice->notes,
             lineDescription: $row->description,
-            debitAmount: $row->debitAmount,
-            creditAmount: $row->creditAmount,
+            debitAmount: DecimalService::normalize($row->debitAmount),
+            creditAmount: DecimalService::normalize($row->creditAmount),
             createdAt: now(),
             updatedAt: now(),
             deletedAt: null,
@@ -315,7 +316,15 @@ class GeneralLedgerData extends Data
      * The line is one single-sided entry as the user keyed it: one account,
      * one amount, debit or credit, never both.
      *
+     * The reference and the wording come from wherever the adjustment keeps them,
+     * which is the header for the bill being corrected and the line for the text
+     * keyed beside each amount. The receivable row is built the same way, so the
+     * two tables print the same reference and the same description for one entry.
+     *
+     * @param  ManualSalesAdjustment  $adjustment  The adjustment being posted.
+     * @param  ManualSalesAdjustmentChart  $line  The chart line the row is built from.
      * @param  Collection<string, string>  $accountDescriptions  Chart id to name.
+     * @return self The general ledger row.
      */
     public static function fromManualSalesAdjustmentLine(
         ManualSalesAdjustment $adjustment,
@@ -330,12 +339,12 @@ class GeneralLedgerData extends Data
             type: $line->type->value,
             subtype: $line->subtype->value,
             documentNumber: $line->document_number,
-            referenceNumber: $line->reference_number,
+            referenceNumber: $line->reference_number ?? $adjustment->reference_number,
             date: $line->date,
             chartCode: $line->chart_code,
             chartName: $line->chart_name ?? self::accountName($accountDescriptions, $line->chart_id),
             companyName: $line->company_name ?? $adjustment->company_name,
-            description: $line->description ?? $adjustment->notes,
+            description: $line->line_description ?? $line->description ?? $adjustment->notes,
             lineDescription: $line->line_description,
             debitAmount: $line->debit_amount ?? '0.00',
             creditAmount: $line->credit_amount ?? '0.00',
@@ -351,7 +360,15 @@ class GeneralLedgerData extends Data
      * The line is one single-sided entry as the user keyed it: one account,
      * one amount, debit or credit, never both.
      *
+     * The reference and the wording come from wherever the adjustment keeps them,
+     * which is the header for the bill being corrected and the line for the text
+     * keyed beside each amount. The payable row is built the same way, so the two
+     * tables print the same reference and the same description for one entry.
+     *
+     * @param  ManualPurchaseAdjustment  $adjustment  The adjustment being posted.
+     * @param  ManualPurchaseAdjustmentChart  $line  The chart line the row is built from.
      * @param  Collection<string, string>  $accountDescriptions  Chart id to name.
+     * @return self The general ledger row.
      */
     public static function fromManualPurchaseAdjustmentLine(
         ManualPurchaseAdjustment $adjustment,
@@ -366,12 +383,12 @@ class GeneralLedgerData extends Data
             type: $line->type->value,
             subtype: $line->subtype->value,
             documentNumber: $line->document_number,
-            referenceNumber: $line->reference_number,
+            referenceNumber: $line->reference_number ?? $adjustment->reference_number,
             date: $line->date,
             chartCode: $line->chart_code,
             chartName: $line->chart_name ?? self::accountName($accountDescriptions, $line->chart_id),
             companyName: $line->company_name ?? $adjustment->company_name,
-            description: $line->description ?? $adjustment->notes,
+            description: $line->line_description ?? $line->description ?? $adjustment->notes,
             lineDescription: $line->line_description,
             debitAmount: $line->debit_amount ?? '0.00',
             creditAmount: $line->credit_amount ?? '0.00',

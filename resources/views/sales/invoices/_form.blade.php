@@ -227,35 +227,44 @@
                 </tr>
             </thead>
             <tbody>
-                @for ($lineIndex = 0; $lineIndex < 10; $lineIndex++)
-                    @php($line = $existingLines->get($lineIndex))
-                    <tr>
-                        <td>
-                            <label class="visually-hidden"
-                                for="product_id_{{ $lineIndex }}">{{ __('ledgers.table.column_product') }}</label>
-                            <select
-                                class="form-control form-control-sm js-product-select @error("lines.$lineIndex.product_id") is-invalid @enderror"
-                                id="product_id_{{ $lineIndex }}"
-                                name="lines[{{ $lineIndex }}][product_id]">
-                                <option value="">{{ __('common.actions.select_option') }}</option>
-                                @foreach ($products as $product)
-                                    <option data-base-price="{{ $product->base_price }}"
-                                        data-selling-price="{{ $product->selling_price }}"
-                                        data-default-discount-id="{{ $product->default_discount_id }}"
-                                        data-default-tax-id="{{ $product->default_tax_id }}"
-                                        value="{{ $product->id }}"
-                                        {{ old("lines.$lineIndex.product_id", $line?->product_id) == $product->id ? 'selected' : '' }}>
-                                        {{ $product->sku ? $product->sku . ' - ' : '' }}{{ $product->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                @for ($lineIndex = 0; $lineIndex < $perPageGridDetail; $lineIndex++)
+                    @php
+                        $line = $existingLines->get($lineIndex);
+                    @endphp
+                    <tr data-line-index="{{ $lineIndex }}">
+                        <td style="min-width: 220px">
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="lines[{{ $lineIndex }}][product_id]"
+                                    class="invoice-product-id"
+                                    value="{{ old("lines.$lineIndex.product_id") }}">
+                                <div
+                                    class="invoice-product-display form-control form-control-sm d-flex align-items-center justify-content-between">
+                                    <span class="invoice-product-label text-truncate">
+                                        @php
+                                            $oldProductId = old("lines.$lineIndex.product_id", $line?->product_id);
+                                            $selectedProduct = $oldProductId
+                                                ? $products->firstWhere('id', $oldProductId)
+                                                : null;
+                                        @endphp
+                                        {{ $selectedProduct ? ($selectedProduct->sku ? $selectedProduct->sku . ' - ' : '') . $selectedProduct->name : __('invoices.form.select_product') }}
+                                    </span>
+                                </div>
+                                <button
+                                    class="btn btn-solid theme-primary invoice-product-choose-btn flex-shrink-0"
+                                    type="button" data-line-index="{{ $lineIndex }}">
+                                    <i data-lucide="search"></i>
+                                </button>
+                            </div>
                             @error("lines.$lineIndex.product_id")
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-description">{{ __('ledgers.table.column_description') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-description"
                                     class="form-ghost @error("lines.$lineIndex.description") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][description]" type="text"
                                     value="{{ old("lines.$lineIndex.description", $line?->description) }}"
@@ -267,7 +276,10 @@
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-quantity">{{ __('ledgers.table.column_quantity') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-quantity"
                                     class="form-ghost line-quantity @error("lines.$lineIndex.quantity") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][quantity]" type="number"
                                     value="{{ old("lines.$lineIndex.quantity", $line?->quantity) }}" min="1" />
@@ -278,7 +290,10 @@
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-unit_price">{{ __('ledgers.table.column_unit_price') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-unit_price"
                                     class="form-ghost line-unit-price @error("lines.$lineIndex.unit_price") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][unit_price]" type="number"
                                     value="{{ old("lines.$lineIndex.unit_price", $line?->unit_price) }}" min="0"
@@ -290,9 +305,9 @@
                         </td>
                         <td>
                             <label class="visually-hidden"
-                                for="discount_option_{{ $lineIndex }}">{{ __('products.form.default_discount') }}</label>
+                                for="line-{{ $lineIndex }}-discount_option">{{ __('products.form.default_discount') }}</label>
                             <select class="form-control form-control-sm line-discount-option"
-                                id="discount_option_{{ $lineIndex }}"
+                                id="line-{{ $lineIndex }}-discount_option"
                                 name="lines[{{ $lineIndex }}][discount_option]">
                                 <option data-type="percent" data-value="0" value="none"
                                     @selected(old("lines.$lineIndex.discount_option", $line?->discount_id ?? 'none') === 'none')>
@@ -313,9 +328,9 @@
                             </select>
                             <div class="input-group input-group-sm mt-1">
                                 <label class="visually-hidden"
-                                    for="discount_type_{{ $lineIndex }}">{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}</label>
+                                    for="line-{{ $lineIndex }}-discount_type">{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_type') }}</label>
                                 <select class="form-control line-discount-type"
-                                    id="discount_type_{{ $lineIndex }}"
+                                    id="line-{{ $lineIndex }}-discount_type"
                                     name="lines[{{ $lineIndex }}][discount_type]">
                                     <option value="percent" @selected(old("lines.$lineIndex.discount_type", $line?->discount_type ?? 'percent') === 'percent')>
                                         %
@@ -325,7 +340,9 @@
                                     </option>
                                 </select>
                                 <div class="form-control form-adorn">
-                                    <input class="form-ghost line-discount-value"
+                                    <label class="visually-hidden"
+                                        for="line-{{ $lineIndex }}-discount_value">{{ __('products.form.default_discount') }} {{ __('ledgers.table.column_amount') }}</label>
+                                    <input id="line-{{ $lineIndex }}-discount_value" class="form-ghost line-discount-value"
                                         name="lines[{{ $lineIndex }}][discount_value]" type="number"
                                         value="{{ old("lines.$lineIndex.discount_value", $line?->discount_value ?? 0) }}"
                                         min="0" step="0.0001" />
@@ -334,9 +351,9 @@
                         </td>
                         <td>
                             <label class="visually-hidden"
-                                for="tax_option_{{ $lineIndex }}">{{ __('products.form.default_tax') }}</label>
+                                for="line-{{ $lineIndex }}-tax_option">{{ __('products.form.default_tax') }}</label>
                             <select class="form-control form-control-sm line-tax-option"
-                                id="tax_option_{{ $lineIndex }}"
+                                id="line-{{ $lineIndex }}-tax_option"
                                 name="lines[{{ $lineIndex }}][tax_option]">
                                 <option data-mode="exclusive" data-rate="0" value="none"
                                     @selected(old("lines.$lineIndex.tax_option", $line?->tax_id ?? 'none') === 'none')>
@@ -357,15 +374,17 @@
                             </select>
                             <div class="input-group input-group-sm mt-1">
                                 <div class="form-control form-adorn">
-                                    <input class="form-ghost line-tax-rate"
+                                    <label class="visually-hidden"
+                                        for="line-{{ $lineIndex }}-tax_rate">{{ __('ledgers.table.column_tax_rate') }}</label>
+                                    <input id="line-{{ $lineIndex }}-tax_rate" class="form-ghost line-tax-rate"
                                         name="lines[{{ $lineIndex }}][tax_rate]" type="number"
                                         value="{{ old("lines.$lineIndex.tax_rate", $line?->tax_rate ?? 0) }}" min="0"
                                         max="100" step="0.0001" />
                                 </div>
                                 <label class="visually-hidden"
-                                    for="tax_mode_{{ $lineIndex }}">{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}</label>
+                                    for="line-{{ $lineIndex }}-tax_mode">{{ __('products.form.default_tax') }} {{ __('ledgers.table.column_type') }}</label>
                                 <select class="form-control line-tax-mode"
-                                    id="tax_mode_{{ $lineIndex }}"
+                                    id="line-{{ $lineIndex }}-tax_mode"
                                     name="lines[{{ $lineIndex }}][tax_mode]">
                                     <option value="exclusive" @selected(old("lines.$lineIndex.tax_mode", $line?->tax_mode ?? 'exclusive') === 'exclusive')>
                                         {{ __('ledgers.tax_mode.exclusive') }}
@@ -444,18 +463,6 @@
 
         filterContactsByCompany();
 
-        function refreshProductSelects() {
-            if (typeof window.initCombobox !== 'function') {
-                return;
-            }
-
-            document.querySelectorAll('.js-product-select').forEach((element) => {
-                window.initCombobox(element, {
-                    placeholder: selectText,
-                });
-            });
-        }
-
         function setFormSection(section) {
             document.querySelectorAll('#invoice-form-tabs [data-form-section]').forEach((tab) => {
                 tab.classList.toggle('active', tab.dataset.formSection === section);
@@ -470,42 +477,6 @@
             Object.entries(panels).forEach(([id, name]) => {
                 document.getElementById(id)?.classList.toggle('sales-tab-panel-active', section === name);
             });
-        }
-
-        function applySelectedProductPrice(select, force = false) {
-            const row = select.closest('tr');
-
-            if (!row) {
-                return;
-            }
-
-            const unitPriceInput = row.querySelector('.line-unit-price');
-            const selectedValue = String(select.value ?? '');
-            const selectedOption = Array.from(select.options ?? []).find((option) => String(option.value) ===
-            selectedValue);
-
-            if (selectedValue === '' || !selectedOption) {
-                if (force && unitPriceInput) {
-                    unitPriceInput.value = '';
-                    refreshLineTotals();
-                }
-
-                return;
-            }
-
-            if (!unitPriceInput || (!force && unitPriceInput.value !== '')) {
-                return;
-            }
-
-            const priceAttribute = 'data-selling-price';
-            const selectedPrice = selectedOption.getAttribute(priceAttribute);
-
-            if (selectedPrice === null) {
-                return;
-            }
-
-            unitPriceInput.value = selectedPrice;
-            refreshLineTotals();
         }
 
         function refreshLineTotals() {
@@ -616,25 +587,171 @@
             );
             filterContactsByCompany();
             setFormSection('general');
-            refreshProductSelects();
-            document.querySelectorAll('.js-product-select').forEach((select) => {
-                select.addEventListener('change', () => {
-                    applySelectedProductPrice(select, true);
-                    const row = select.closest('tr');
-                    const option = select.selectedOptions[0];
-                    if (!row || !option) return;
-                    row.querySelector('.line-discount-option').value = option.dataset
-                        .defaultDiscountId || 'none';
-                    row.querySelector('.line-tax-option').value = option.dataset.defaultTaxId ||
-                        'none';
-                    applySelectedDiscount(row);
-                    applySelectedTax(row);
+
+            // Product picker modal functionality
+            const productPickerDialog = document.getElementById('invoiceProductPickerDialog');
+            const productSearchInput = document.getElementById('invoice-product-search');
+            const productCategoryFilter = document.getElementById('invoice-product-category-filter');
+            const productTypeFilter = document.getElementById('invoice-product-type-filter');
+            const productSearchResults = document.getElementById('invoice-product-search-results');
+            let currentProductLineIndex = null;
+            let productSearchTimeout = null;
+
+            function filterInvoiceProductTypes() {
+                const categoryId = productCategoryFilter.value;
+
+                Array.from(productTypeFilter.options).forEach((option) => {
+                    if (!option.dataset.categoryId) return;
+                    const belongsToCategory = option.dataset.categoryId === categoryId;
+                    option.hidden = !belongsToCategory;
+                    option.disabled = !belongsToCategory;
                 });
 
-                if (select.value !== '') {
-                    applySelectedProductPrice(select);
+                if (productTypeFilter.selectedOptions[0]?.hidden) {
+                    productTypeFilter.value = '';
                 }
+
+                productTypeFilter.disabled = categoryId === '';
+            }
+
+            function searchInvoiceProducts() {
+                const search = productSearchInput.value;
+                const categoryId = productCategoryFilter.value;
+                const typeId = productTypeFilter.value;
+                const typeToSearchText = @json(__('invoices.form.type_to_search'));
+                const noProductsText = @json(__('invoices.form.no_products_found'));
+                const searchErrorText = @json(__('invoices.form.search_error'));
+
+                if (search.length < 2 && !categoryId && !typeId) {
+                    productSearchResults.querySelector('tbody').innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted" style="font-size: 1.05rem; padding: 1rem;">${typeToSearchText}</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                fetch(
+                    `{{ route('sales.invoices.products.search') }}?search=${encodeURIComponent(search)}&category_id=${encodeURIComponent(categoryId)}&type_id=${encodeURIComponent(typeId)}`)
+                    .then(response => response.json())
+                    .then(products => {
+                        if (products.length === 0) {
+                            productSearchResults.querySelector('tbody').innerHTML = `
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted" style="font-size: 1.05rem; padding: 1rem;">${noProductsText}</td>
+                                </tr>
+                            `;
+                            return;
+                        }
+
+                        productSearchResults.querySelector('tbody').innerHTML = products.map(product => `
+                            <tr style="cursor: pointer; font-size: 1.05rem;"
+                                data-product-id="${product.id}"
+                                data-product-name="${product.name.replace(/"/g, '&quot;')}"
+                                data-product-sku="${(product.sku || '').replace(/"/g, '&quot;')}"
+                                data-product-price="${product.price}"
+                                data-discount-id="${product.default_discount_id || 'none'}"
+                                data-tax-id="${product.default_tax_id || 'none'}">
+                                <td style="padding: 1rem;">${product.sku || '-'}</td>
+                                <td style="padding: 1rem;">${product.name}</td>
+                                <td style="padding: 1rem;">${product.category || '-'}</td>
+                                <td style="padding: 1rem;">${parseFloat(product.price).toFixed(2)}</td>
+                            </tr>
+                        `).join('');
+
+                        // Add click handlers
+                        productSearchResults.querySelectorAll('tbody tr[data-product-id]').forEach(row => {
+                            row.addEventListener('click', function () {
+                                selectInvoiceProduct(
+                                    this.dataset.productId,
+                                    this.dataset.productName,
+                                    this.dataset.productSku,
+                                    this.dataset.productPrice,
+                                    this.dataset.discountId,
+                                    this.dataset.taxId
+                                );
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error searching products:', error);
+                        productSearchResults.querySelector('tbody').innerHTML = `
+                            <tr>
+                                <td colspan="4" class="text-center text-danger" style="font-size: 1.05rem; padding: 1rem;">${searchErrorText}</td>
+                            </tr>
+                        `;
+                    });
+            }
+
+            window.selectInvoiceProduct = function (productId, productName, productSku, productPrice,
+                                                    defaultDiscountId, defaultTaxId) {
+                if (currentProductLineIndex === null) return;
+
+                const row = document.querySelector(
+                    `#invoice-lines-table tbody tr[data-line-index="${currentProductLineIndex}"]`);
+                if (!row) return;
+
+                const productInput = row.querySelector('.invoice-product-id');
+                const productLabel = row.querySelector('.invoice-product-label');
+
+                if (productInput) productInput.value = productId;
+                if (productLabel) productLabel.textContent = productSku ? `${productSku} - ${productName}` :
+                    productName;
+
+                // Set price
+                const unitPriceInput = row.querySelector('.line-unit-price');
+                if (unitPriceInput) {
+                    unitPriceInput.value = parseFloat(productPrice).toFixed(2);
+                }
+
+                // Set discount
+                const discountOption = row.querySelector('.line-discount-option');
+                if (discountOption) {
+                    discountOption.value = defaultDiscountId || 'none';
+                    applySelectedDiscount(row);
+                }
+
+                // Set tax
+                const taxOption = row.querySelector('.line-tax-option');
+                if (taxOption) {
+                    taxOption.value = defaultTaxId || 'none';
+                    applySelectedTax(row);
+                }
+
+                refreshLineTotals();
+                window.bootstrap.Dialog.getOrCreateInstance(productPickerDialog).hide();
+            };
+
+            document.querySelectorAll('.invoice-product-choose-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    currentProductLineIndex = this.dataset.lineIndex;
+                    productSearchInput.value = '';
+                    productCategoryFilter.value = '';
+                    productTypeFilter.value = '';
+                    filterInvoiceProductTypes();
+                    const typeToSearchText = @json(__('invoices.form.type_to_search'));
+                    productSearchResults.querySelector('tbody').innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted" style="font-size: 1.05rem; padding: 1rem;">${typeToSearchText}</td>
+                        </tr>
+                    `;
+                    window.bootstrap.Dialog.getOrCreateInstance(productPickerDialog).show();
+                    setTimeout(() => productSearchInput.focus(), 100);
+                });
             });
+
+            productSearchInput.addEventListener('input', () => {
+                clearTimeout(productSearchTimeout);
+                productSearchTimeout = setTimeout(searchInvoiceProducts, 300);
+            });
+
+            productCategoryFilter.addEventListener('change', () => {
+                filterInvoiceProductTypes();
+                searchInvoiceProducts();
+            });
+            productTypeFilter.addEventListener('change', searchInvoiceProducts);
+            filterInvoiceProductTypes();
+
             document
                 .querySelectorAll('#invoice-form-tabs [data-form-section]')
                 .forEach((tab) => tab.addEventListener('click', () => setFormSection(tab.dataset.formSection)));
@@ -685,13 +802,28 @@
                         const row = rows[index];
 
                         if (line.product_id) {
-                            const productSelect = row.querySelector('.js-product-select');
-                            if (productSelect.autoComplete) {
-                                productSelect.autoComplete.setValue(String(line.product_id), true);
-                            } else {
-                                productSelect.value = line.product_id;
+                            const productInput = row.querySelector('.invoice-product-id');
+                            const productLabel = row.querySelector('.invoice-product-label');
+
+                            if (productInput) productInput.value = line.product_id;
+
+                            // Find product name from the products collection
+                            const allProducts = @json($products);
+                            const product = allProducts.find(p => p.id === line.product_id);
+                            if (productLabel && product) {
+                                productLabel.textContent = product.sku ?
+                                    `${product.sku} - ${product.name}` : product.name;
                             }
-                            applySelectedProductPrice(productSelect, true);
+
+                            // Set price
+                            if (line?.unit_price) {
+                                const unitPriceInput = row.querySelector('.line-unit-price');
+                                if (unitPriceInput) unitPriceInput.value = line.unit_price;
+                            } else if (product) {
+                                const unitPriceInput = row.querySelector('.line-unit-price');
+                                if (unitPriceInput) unitPriceInput.value = parseFloat(product.selling_price)
+                                    .toFixed(2);
+                            }
                         }
 
                         if (line.description) {

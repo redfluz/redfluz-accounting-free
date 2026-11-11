@@ -105,96 +105,177 @@
         {{ __('goods_receipts.messages.manual_product_required') }}
     </div>
 
-    @if ($goodsReceipt === null && $invoiceSummary !== null)
-        <div class="row g-3 mb-3">
-            <div class="md:col-4">
-                <div class="bg-2 rounded border p-3">
-                    <div class="fg-secondary small">{{ __('goods_receipts.form.ordered_quantity') }}</div>
-                    <div class="fs-xl fw-bold">
-                        {{ number_format((float) $invoiceSummary['ordered_quantity'], 4) }}
+    @if ($goodsReceipt)
+        <div class="table-responsive rounded border">
+            <table class="table-hover table-striped mb-0 table align-middle">
+                <thead class="bg-1">
+                    <tr>
+                        <th scope="col">{{ __('goods_receipts.form.product') }}</th>
+                        <th scope="col" style="width: 22%">{{ __('goods_receipts.form.quantity') }}</th>
+                        <th scope="col" style="width: 22%">{{ __('goods_receipts.form.unit_cost') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for ($lineNumber = 0; $lineNumber < $perPageGridDetail; $lineNumber++)
+                        @php
+                            $entry = $entries?->get($lineNumber);
+                        @endphp
+                        <tr>
+                            <td>
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineNumber }}-product_id">{{ __('goods_receipts.form.product') }}</label>
+                                <select
+                                    id="line-{{ $lineNumber }}-product_id"
+                                    class="form-control @error('lines.' . $lineNumber . '.product_id') is-invalid @enderror"
+                                    name="lines[{{ $lineNumber }}][product_id]" data-combobox>
+                                    <option value="">{{ __('common.actions.select_option') }}</option>
+                                    @foreach ($products as $product)
+                                        <option value="{{ $product->id }}" @selected(old("lines.{$lineNumber}.product_id", $entry?->product_id) === $product->id)>
+                                            {{ $product->sku }} - {{ $product->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('lines.' . $lineNumber . '.product_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </td>
+                            <td>
+                                <div class="form-control form-adorn">
+                                    <label class="visually-hidden"
+                                        for="line-{{ $lineNumber }}-quantity">{{ __('goods_receipts.form.quantity') }}</label>
+                                    <input
+                                        id="line-{{ $lineNumber }}-quantity"
+                                        class="form-ghost @error('lines.' . $lineNumber . '.quantity') is-invalid @enderror"
+                                        name="lines[{{ $lineNumber }}][quantity]" type="number"
+                                        value="{{ old("lines.{$lineNumber}.quantity", $entry?->quantity) }}"
+                                        min="0"
+                                        max="{{ $invoiceSummary['remaining_quantity'] ?? 0 }}"
+                                        step="0.0001" />
+                                </div>
+                                @error('lines.' . $lineNumber . '.quantity')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </td>
+                            <td>
+                                <div class="form-control form-adorn">
+                                    <label class="visually-hidden"
+                                        for="line-{{ $lineNumber }}-unit_cost">{{ __('goods_receipts.form.unit_cost') }}</label>
+                                    <input
+                                        id="line-{{ $lineNumber }}-unit_cost"
+                                        class="form-ghost @error('lines.' . $lineNumber . '.unit_cost') is-invalid @enderror"
+                                        name="lines[{{ $lineNumber }}][unit_cost]" type="number"
+                                        value="{{ old("lines.{$lineNumber}.unit_cost", $entry?->unit_cost ?? $invoiceSummary['unit_cost'] ?? '') }}"
+                                        min="0" step="0.01" />
+                                </div>
+                                @error('lines.' . $lineNumber . '.unit_cost')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </td>
+                        </tr>
+                    @endfor
+                </tbody>
+            </table>
+        </div>
+    @else
+        @if ($invoiceSummary !== null)
+            <div class="row g-3 mb-3">
+                <div class="md:col-4">
+                    <div class="bg-2 rounded border p-3">
+                        <div class="fg-secondary small">{{ __('goods_receipts.form.ordered_quantity') }}</div>
+                        <div class="fs-xl fw-bold">
+                            {{ number_format((float) $invoiceSummary['ordered_quantity'], 4) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-4">
+                    <div class="bg-2 rounded border p-3">
+                        <div class="fg-secondary small">{{ __('goods_receipts.form.previously_received') }}</div>
+                        <div class="fs-xl fw-bold">
+                            {{ number_format((float) $invoiceSummary['received_quantity'], 4) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-4">
+                    <div class="bg-2 rounded border p-3">
+                        <div class="fg-secondary small">{{ __('goods_receipts.form.remaining_quantity') }}</div>
+                        <div class="fs-xl fw-bold">
+                            {{ number_format((float) $invoiceSummary['remaining_quantity'], 4) }}
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="md:col-4">
-                <div class="bg-2 rounded border p-3">
-                    <div class="fg-secondary small">{{ __('goods_receipts.form.previously_received') }}</div>
-                    <div class="fs-xl fw-bold">
-                        {{ number_format((float) $invoiceSummary['received_quantity'], 4) }}
-                    </div>
-                </div>
-            </div>
-            <div class="md:col-4">
-                <div class="bg-2 rounded border p-3">
-                    <div class="fg-secondary small">{{ __('goods_receipts.form.remaining_quantity') }}</div>
-                    <div class="fs-xl fw-bold">
-                        {{ number_format((float) $invoiceSummary['remaining_quantity'], 4) }}
-                    </div>
-                </div>
-            </div>
+        @endif
+
+        <div class="table-responsive rounded border">
+            <table class="table-hover table-striped mb-0 table align-middle">
+                <thead class="bg-1">
+                    <tr>
+                        <th scope="col">{{ __('goods_receipts.form.product') }}</th>
+                        <th scope="col" style="width: 22%">{{ __('goods_receipts.form.quantity') }}</th>
+                        <th scope="col" style="width: 22%">{{ __('goods_receipts.form.unit_cost') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for ($lineNumber = 0; $lineNumber < $perPageGridDetail; $lineNumber++)
+                        <tr data-line-index="{{ $lineNumber }}">
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="hidden" name="lines[{{ $lineNumber }}][product_id]"
+                                        class="grn-product-id"
+                                        value="{{ old("lines.{$lineNumber}.product_id") }}">
+                                    <div
+                                        class="grn-product-display form-control d-flex align-items-center justify-content-between">
+                                        <span
+                                            class="grn-product-label text-truncate">{{ old("lines.{$lineNumber}.product_id") ? $products->firstWhere('id', old("lines.{$lineNumber}.product_id"))?->sku . ' - ' . $products->firstWhere('id', old("lines.{$lineNumber}.product_id"))?->name : __('goods_receipts.form.no_product_selected') }}</span>
+                                    </div>
+                                    <button
+                                        class="btn btn-solid theme-primary grn-product-choose-btn flex-shrink-0"
+                                        type="button" data-line-index="{{ $lineNumber }}">
+                                        <i data-lucide="search"></i>
+                                    </button>
+                                </div>
+                                @error('lines.' . $lineNumber . '.product_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </td>
+                            <td>
+                                <div class="form-control form-adorn">
+                                    <label class="visually-hidden"
+                                        for="line-{{ $lineNumber }}-quantity">{{ __('goods_receipts.form.quantity') }}</label>
+                                    <input
+                                        id="line-{{ $lineNumber }}-quantity"
+                                        class="form-ghost @error('lines.' . $lineNumber . '.quantity') is-invalid @enderror"
+                                        name="lines[{{ $lineNumber }}][quantity]" type="number"
+                                        value="{{ old("lines.{$lineNumber}.quantity") }}"
+                                        min="0"
+                                        max="{{ $invoiceSummary['remaining_quantity'] ?? 0 }}"
+                                        step="0.0001" />
+                                </div>
+                                @error('lines.' . $lineNumber . '.quantity')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </td>
+                            <td>
+                                <div class="form-control form-adorn">
+                                    <label class="visually-hidden"
+                                        for="line-{{ $lineNumber }}-unit_cost">{{ __('goods_receipts.form.unit_cost') }}</label>
+                                    <input
+                                        id="line-{{ $lineNumber }}-unit_cost"
+                                        class="form-ghost @error('lines.' . $lineNumber . '.unit_cost') is-invalid @enderror"
+                                        name="lines[{{ $lineNumber }}][unit_cost]" type="number"
+                                        value="{{ old("lines.{$lineNumber}.unit_cost", $invoiceSummary['unit_cost'] ?? '') }}"
+                                        min="0" step="0.01" />
+                                </div>
+                                @error('lines.' . $lineNumber . '.unit_cost')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </td>
+                        </tr>
+                    @endfor
+                </tbody>
+            </table>
         </div>
     @endif
-
-    <div class="table-responsive rounded border">
-        <table class="table-hover table-striped mb-0 table align-middle">
-            <thead class="bg-1">
-                <tr>
-                    <th scope="col">{{ __('goods_receipts.form.product') }}</th>
-                    <th scope="col" style="width: 22%">{{ __('goods_receipts.form.quantity') }}</th>
-                    <th scope="col" style="width: 22%">{{ __('goods_receipts.form.unit_cost') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for ($lineNumber = 0; $lineNumber < 5; $lineNumber++)
-                    @php
-                        $entry = $entries?->get($lineNumber);
-                    @endphp
-                    <tr>
-                        <td>
-                            <select
-                                class="form-control @error('lines.' . $lineNumber . '.product_id') is-invalid @enderror"
-                                name="lines[{{ $lineNumber }}][product_id]" data-combobox>
-                                <option value="">{{ __('common.actions.select_option') }}</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->id }}" @selected(old("lines.{$lineNumber}.product_id", $entry?->product_id) === $product->id)>
-                                        {{ $product->sku }} - {{ $product->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('lines.' . $lineNumber . '.product_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </td>
-                        <td>
-                            <div class="form-control form-adorn">
-                                <input
-                                    class="form-ghost @error('lines.' . $lineNumber . '.quantity') is-invalid @enderror"
-                                    name="lines[{{ $lineNumber }}][quantity]" type="number"
-                                    value="{{ old("lines.{$lineNumber}.quantity", $entry?->quantity) }}"
-                                    min="0"
-                                    max="{{ $invoiceSummary['remaining_quantity'] ?? 0 }}"
-                                    step="0.0001" />
-                            </div>
-                            @error('lines.' . $lineNumber . '.quantity')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </td>
-                        <td>
-                            <div class="form-control form-adorn">
-                                <input
-                                    class="form-ghost @error('lines.' . $lineNumber . '.unit_cost') is-invalid @enderror"
-                                    name="lines[{{ $lineNumber }}][unit_cost]" type="number"
-                                    value="{{ old("lines.{$lineNumber}.unit_cost", $entry?->unit_cost ?? $invoiceSummary['unit_cost'] ?? '') }}"
-                                    min="0" step="0.01" />
-                            </div>
-                            @error('lines.' . $lineNumber . '.unit_cost')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </td>
-                    </tr>
-                @endfor
-            </tbody>
-        </table>
-    </div>
 @else
     <div class="table-responsive rounded border">
         <table class="table-hover table-striped mb-0 table align-middle">

@@ -135,6 +135,34 @@ class HistoryController extends Controller
     }
 
     /**
+     * Print one posted manual sales adjustment.
+     *
+     * @param  string  $documentNumber  The document number of the posted manual adjustment.
+     * @return Response Returns the PDF download response.
+     */
+    public function pdf(string $documentNumber): Response
+    {
+        $this->allows(FileResources::MANUAL_SALES_ADJUSTMENTS);
+
+        /** @var ManualSalesAdjustment|null $adjustment */
+        $adjustment = ManualSalesAdjustment::query()
+            ->with(['company', 'charts'])
+            ->where('document_number', $documentNumber)
+            ->where('status', LedgerStatus::POSTED)
+            ->first();
+
+        abort_if($adjustment === null, 404);
+
+        return Pdf::loadView('sales.manual-adjustments.pdf', [
+            'adjustment' => $adjustment,
+            'documentNumber' => $documentNumber,
+            'setting' => Setting::query()->first(),
+        ])
+            ->setPaper('a4')
+            ->download("manual_sales_adjustment_$documentNumber.pdf");
+    }
+
+    /**
      * Export posted manual sales adjustments to PDF.
      *
      * @param  Request  $request  The incoming request containing list filters.

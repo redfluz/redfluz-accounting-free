@@ -19,6 +19,7 @@ use App\Models\Crm\Contact;
 use App\Models\Finance\Discount;
 use App\Models\Finance\Tax;
 use App\Models\Inventory\Product;
+use App\Models\Inventory\ProductCategory;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\Sales\SalesOrder;
@@ -117,6 +118,53 @@ class SalesOrderController extends Controller
             'id' => $company->id,
             'name' => $company->name,
         ], 201);
+    }
+
+    /**
+     * Search products for the sales order creation form.
+     * Returns a JSON array of products matching the search query.
+     *
+     * @param  Request  $request  The HTTP request instance containing the search query.
+     * @return JsonResponse JSON response with matching products.
+     */
+    public function searchProducts(Request $request): JsonResponse
+    {
+        $this->allows(FileResources::SALES_ORDERS, FileAction::ADD);
+
+        $search = $request->string('search')->toString();
+        $categoryId = $request->string('category_id')->toString();
+        $typeId = $request->string('type_id')->toString();
+
+        $query = Product::query()
+            ->where('is_service', false)
+            ->with(['category', 'type']);
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search): void {
+                $subQuery->where('name', 'like', "%$search%")
+                    ->orWhere('sku', 'like', "%$search%");
+            });
+        }
+
+        if ($categoryId !== '') {
+            $query->where('product_category_id', $categoryId);
+        }
+
+        if ($typeId !== '') {
+            $query->where('product_type_id', $typeId);
+        }
+
+        $products = $query->orderBy('name')->limit(50)->get();
+
+        return response()->json($products->map(fn (Product $product): array => [
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'name' => $product->name,
+            'category' => $product->category->name ?? '',
+            'type' => $product->type->name ?? '',
+            'price' => (string) $product->selling_price,
+            'description' => $product->description ?? '',
+        ]));
     }
 
     /**
@@ -439,6 +487,44 @@ class SalesOrderController extends Controller
     }
 
     /**
+     * Revert an approved Sales Order back to draft so it can be edited.
+     *
+     * This is only allowed before any delivery or invoice has been raised, so the
+     * order can be adjusted (for example, to record a back-order note) without
+     * conflicting fulfilment documents.
+     *
+     * @param  SalesOrder  $salesOrder  The Sales Order resource instance.
+     * @return RedirectResponse Redirects to the Sales Order.
+     *
+     * @throws Throwable
+     */
+    public function revert(SalesOrder $salesOrder): RedirectResponse
+    {
+        $this->allows(FileResources::SALES_ORDERS, FileAction::APPROVE);
+
+        DB::transaction(function () use ($salesOrder): void {
+            $lockedOrder = SalesOrder::query()
+                ->whereKey($salesOrder->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_if($lockedOrder->status !== SalesOrderStatus::APPROVED, 409);
+            abort_if(SalesInvoice::query()->where('sales_order_id', $lockedOrder->id)->exists(), 409);
+            abort_if($lockedOrder->deliveryOrders()->exists(), 409);
+
+            $lockedOrder->forceFill([
+                'status' => SalesOrderStatus::DRAFT,
+                'approved_by' => null,
+                'approved_name' => null,
+                'approved_at' => null,
+            ])->save();
+        });
+
+        return redirect()->route('sales.sales-orders.show', $salesOrder)
+            ->with('success', __('sales_orders.messages.reverted'));
+    }
+
+    /**
      * Create a pending Sales Invoice directly from an approved Sales Order.
      *
      * This path is for sales that do not require a Delivery Order. It is only
@@ -623,11 +709,13 @@ class SalesOrderController extends Controller
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get();
         /** @var EloquentCollection<int, Product> $products */
         $products = Product::query()->where('is_service', false)->orderBy('name')->get();
+        /** @var EloquentCollection<int, ProductCategory> $categories */
+        $categories = ProductCategory::query()->with('types')->orderBy('name')->get();
         /** @var EloquentCollection<int, Discount> $discounts */
         $discounts = Discount::query()->where('is_active', true)->orderBy('code')->get();
         /** @var EloquentCollection<int, Tax> $taxes */
         $taxes = Tax::query()->where('is_active', true)->orderBy('code')->get();
 
-        return compact('companies', 'contacts', 'products', 'discounts', 'taxes');
+        return compact('companies', 'contacts', 'products', 'categories', 'discounts', 'taxes');
     }
 }

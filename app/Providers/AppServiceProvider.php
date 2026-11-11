@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Controller;
 use App\Models\System\Setting;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
@@ -36,5 +37,8 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         View::share('currencySymbol', Setting::getCurrencySymbol());
+
+        // Blade cannot read the protected controller constant directly.
+        View::share('perPageGridDetail', Controller::detailGridRows());
     }
 }

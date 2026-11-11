@@ -90,7 +90,6 @@ class HistoryController extends Controller
         $voucher = PaymentVoucher::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('apLedgers.chart')
             ->firstOrFail();
 
         return view('bank.voucher.history.show', compact('voucher', 'documentNumber'));
@@ -109,7 +108,6 @@ class HistoryController extends Controller
         $voucher = PaymentVoucher::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('apLedgers.chart')
             ->firstOrFail();
 
         return Pdf::loadView('bank.voucher.pdf', [

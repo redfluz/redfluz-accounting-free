@@ -39,6 +39,7 @@ use App\Http\Requests\Sales\Quotation\UpdateQuotationRequest;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Models\Inventory\Product;
+use App\Models\Inventory\ProductCategory;
 use App\Models\Sales\Quotation;
 use App\Models\Sales\QuotationLine;
 use App\Models\Sales\SalesInvoice;
@@ -129,6 +130,52 @@ class QuotationController extends Controller
         ]);
 
         return response()->json(['id' => $company->id, 'name' => $company->name], 201);
+    }
+
+    /**
+     * Search products for the quotation creation form.
+     * Returns a JSON array of products matching the search query.
+     *
+     * @param  Request  $request  The HTTP request instance containing the search query.
+     * @return JsonResponse JSON response with matching products.
+     */
+    public function searchProducts(Request $request): JsonResponse
+    {
+        $this->allows(FileResources::QUOTATIONS, FileAction::ADD);
+
+        $search = $request->string('search')->toString();
+        $categoryId = $request->string('category_id')->toString();
+        $typeId = $request->string('type_id')->toString();
+
+        $query = Product::query()
+            ->with(['category', 'type']);
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search): void {
+                $subQuery->where('name', 'like', "%$search%")
+                    ->orWhere('sku', 'like', "%$search%");
+            });
+        }
+
+        if ($categoryId !== '') {
+            $query->where('product_category_id', $categoryId);
+        }
+
+        if ($typeId !== '') {
+            $query->where('product_type_id', $typeId);
+        }
+
+        $products = $query->orderBy('name')->limit(50)->get();
+
+        return response()->json($products->map(fn (Product $product): array => [
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'name' => $product->name,
+            'category' => $product->category->name ?? '',
+            'type' => $product->type->name ?? '',
+            'price' => (string) $product->selling_price,
+            'description' => $product->description ?? '',
+        ]));
     }
 
     /**
@@ -540,6 +587,7 @@ class QuotationController extends Controller
             'companies' => Company::query()->where('is_debtor', true)->orderBy('name')->get(),
             'contacts' => Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get(),
             'products' => Product::query()->orderBy('name')->get(),
+            'categories' => ProductCategory::query()->with('types')->orderBy('name')->get(),
             'statuses' => QuotationStatus::cases(),
         ];
     }

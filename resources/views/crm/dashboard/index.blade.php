@@ -83,12 +83,15 @@
             <div class="crm-greeting-copy">
                 <h2 class="crm-greeting-title">{{ $greeting }}, {{ $displayName }} <span class="crm-greeting-wave">👋</span></h2>
                 <p class="crm-greeting-sub">{{ __('crm_dashboard.greeting.subtitle') }}</p>
-                <select class="crm-month-select" id="crmMonthFilter" aria-label="{{ __('crm_dashboard.chart.select_month') }}">
-                    <i data-lucide="calendar"></i>
-                    @foreach ($monthOptions as $opt)
-                        <option value="{{ $opt['value'] }}" {{ $opt['selected'] ? 'selected' : '' }}>{{ $opt['label'] }}</option>
-                    @endforeach
-                </select>
+                <span class="crm-month-select-wrap">
+                    <select class="crm-month-select" id="crmMonthFilter" aria-label="{{ __('crm_dashboard.chart.select_month') }}">
+                        <i data-lucide="calendar"></i>
+                        @foreach ($monthOptions as $opt)
+                            <option value="{{ $opt['value'] }}" {{ $opt['selected'] ? 'selected' : '' }}>{{ $opt['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <i data-lucide="chevron-down" class="crm-month-select-arrow" aria-hidden="true"></i>
+                </span>
             </div>
             <div class="crm-greeting-tagline">{{ __('crm_dashboard.greeting.tagline') }}</div>
         </div>
@@ -285,23 +288,65 @@
         /* =====================================================================
            CRM dashboard — poster-matched layout:
            greeting card, 4 stat cards with trends, 2 chart cards, tip bar.
+
+           Every colour below is a palette token. Light-only literals (#fff
+           surfaces, #9f1239 accents) are what made this page unreadable: the ink
+           is var(--fg-body), so on a dark palette the numbers were near-white on
+           white, and the surfaces hid the wallpaper instead of joining the glass.
            ===================================================================== */
 
         .crm-page {
+            /* The two "deep" accents are text, so they must clear 4.5:1 on every
+               palette. --danger-fg-emphasis looks right but is not theme-flipped:
+               only cyberpunk/zelda/red_alert author it, the rest inherit a near-black
+               ink (rgb(38 42 53)) that vanishes on the dark palettes. Mixing the
+               palette's own colour toward its own ink keeps a readable distance at both
+               ends, and light-dark() splits the weight because --success-base is a
+               bright mint by design — deepening it is right on light, wrong on dark,
+               where the base already reads. The palette mixin already declares
+               color-scheme, so light-dark() follows the theme with no extra state. */
             --crm-ink: var(--fg-body);
-            --crm-ink-soft: var(--fg-2);
-            --crm-rose-deep: #9f1239;
-            --crm-rose: #fb7185;
-            --crm-green-deep: #047857;
-            --crm-green: #34d399;
-            --crm-green-soft: #d9f5e6;
-            --crm-green-wash: #f4fbf7;
-            --crm-blue: #3b82f6;
-            --crm-blue-soft: #dbeafe;
-            --crm-orange: #f59e0b;
-            --crm-orange-soft: #fef3c7;
-            --crm-hairline: #f7f1f1;
-            --crm-card-shadow: 0 1rem 1.9rem -0.9rem rgb(15 32 43 / 0.12);
+            /* --fg-2 alone is the palette's muted text: 3.56:1 on pastel_fantasy,
+               4.24:1 on electric_blast — under AA for the greeting line, the legend
+               rows and the tip bar. Pulling it toward the palette's own ink keeps the
+               hierarchy (it still reads lighter than --crm-ink) and clears 4.5:1
+               everywhere, in both directions, because --fg-body is always the
+               highest-contrast colour of the pair. */
+            --crm-ink-soft: color-mix(in srgb, var(--fg-2) 45%, var(--fg-body));
+            --crm-rose-deep: light-dark(
+                color-mix(in srgb, var(--danger-base) 45%, var(--fg-body)),
+                color-mix(in srgb, var(--danger-base) 55%, var(--fg-body))
+            );
+            --crm-rose: var(--danger-base);
+            --crm-green-deep: light-dark(
+                color-mix(in srgb, var(--success-base) 30%, var(--fg-body)),
+                var(--success-base)
+            );
+            --crm-green: var(--success-base);
+            --crm-green-soft: color-mix(in srgb, var(--success-base) 18%, transparent);
+            --crm-green-wash: color-mix(in srgb, var(--success-base) 8%, transparent);
+            --crm-blue: var(--info-base);
+            --crm-blue-soft: color-mix(in srgb, var(--info-base) 18%, transparent);
+            --crm-orange: var(--warning-base);
+            --crm-orange-soft: color-mix(in srgb, var(--warning-base) 18%, transparent);
+            --crm-hairline: var(--border-color);
+            --crm-surface: var(--app-glass-card-bg);
+            /* Links and micro-labels follow the same rule as the two deep accents:
+               a palette's --primary-base is chosen to sit under white or black
+               button text, not to be read as text itself. pastel_fantasy's cyan
+               #7bdff2 is 1.33:1 on its own card, and --fg-3 drops to 2.14:1 on the
+               same palette. Shifting each toward the theme's own ink keeps the hue
+               and clears 4.5:1 on all fifteen palettes. */
+            --crm-link: light-dark(
+                color-mix(in srgb, var(--primary-base) 30%, var(--fg-body)),
+                color-mix(in srgb, var(--primary-base) 65%, var(--fg-body))
+            );
+            --crm-ink-faint: color-mix(in srgb, var(--fg-2) 55%, var(--fg-body));
+            --crm-blue-deep: light-dark(color-mix(in srgb, var(--info-base) 40%, var(--fg-body)), var(--info-base));
+            --crm-orange-deep: light-dark(color-mix(in srgb, var(--warning-base) 40%, var(--fg-body)), var(--warning-base));
+            --crm-card-shadow: 0 1rem 1.9rem -0.9rem color-mix(in srgb, var(--fg-body) 22%, transparent);
+            --crm-chip-shadow: 0 0.35rem 0.9rem -0.4rem color-mix(in srgb, var(--danger-base) 25%, transparent);
+            --crm-chip-shadow-strong: 0 0.35rem 1.2rem -0.3rem color-mix(in srgb, var(--danger-base) 35%, transparent);
         }
 
         /* ---------------- Greeting card ---------------- */
@@ -364,8 +409,8 @@
             gap: 0.45rem;
             padding: 0.45rem 0.95rem;
             border-radius: 999px;
-            background: #fff;
-            box-shadow: 0 0.35rem 0.9rem -0.4rem rgb(159 18 57 / 0.25);
+            background: var(--crm-surface);
+            box-shadow: var(--crm-chip-shadow);
             color: var(--crm-rose-deep);
             font-size: 0.85rem;
             font-weight: 600;
@@ -376,14 +421,35 @@
             height: 15px;
         }
 
+        /* The select cannot be given a theme-aware arrow through background-image:
+           a data URI is a string, so its stroke would have to be another literal.
+           The chevron is an element next to it instead and inherits the ink. */
+        .crm-month-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .crm-month-select-arrow,
+        .crm-month-select-wrap > svg {
+            position: absolute;
+            right: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            color: var(--crm-rose-deep);
+            pointer-events: none;
+        }
+
         .crm-month-select {
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
             padding: 0.45rem 2rem 0.45rem 0.95rem;
             border-radius: 999px;
-            background: #fff;
-            box-shadow: 0 0.35rem 0.9rem -0.4rem rgb(159 18 57 / 0.25);
+            background: var(--crm-surface);
+            box-shadow: var(--crm-chip-shadow);
             color: var(--crm-rose-deep);
             font-size: 0.85rem;
             font-weight: 600;
@@ -392,18 +458,14 @@
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239f1239' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.7rem center;
-            background-size: 12px;
         }
 
         .crm-month-select:hover {
-            box-shadow: 0 0.35rem 1.2rem -0.3rem rgb(159 18 57 / 0.35);
+            box-shadow: var(--crm-chip-shadow-strong);
         }
 
         .crm-month-select:focus {
-            box-shadow: 0 0 0 3px rgb(159 18 57 / 0.15), 0 0.35rem 0.9rem -0.4rem rgb(159 18 57 / 0.25);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-base) 25%, transparent), var(--crm-chip-shadow);
         }
 
         /* ---------------- KPI stat cards ---------------- */
@@ -412,7 +474,9 @@
             display: flex;
             gap: 0.9rem;
             align-items: flex-start;
-            background: #fff;
+            background: var(--crm-surface);
+            -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+            backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
             border-radius: 16px;
             box-shadow: var(--crm-card-shadow);
             padding: 1.15rem 1.25rem;
@@ -426,23 +490,23 @@
             height: 46px;
             border-radius: 13px;
             background: var(--primary-bg-subtle);
-            color: var(--primary-base);
+            color: var(--crm-link);
             flex: 0 0 auto;
         }
 
         .crm-stat-icon.is-blue {
             background: var(--crm-blue-soft);
-            color: var(--crm-blue);
+            color: var(--crm-blue-deep);
         }
 
         .crm-stat-icon.is-orange {
             background: var(--crm-orange-soft);
-            color: var(--crm-orange);
+            color: var(--crm-orange-deep);
         }
 
         .crm-stat-icon.is-green {
             background: var(--crm-green-soft);
-            color: #059669;
+            color: var(--crm-green-deep);
         }
 
         .crm-stat-icon svg {
@@ -462,7 +526,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.07em;
-            color: var(--fg-3);
+            color: var(--crm-ink-faint);
         }
 
         .crm-stat-value {
@@ -489,7 +553,7 @@
         }
 
         .crm-stat-trend.is-up {
-            color: #059669;
+            color: var(--crm-green-deep);
         }
 
         .crm-stat-trend.is-down {
@@ -497,7 +561,7 @@
         }
 
         .crm-stat-trend.is-neutral {
-            color: var(--fg-3);
+            color: var(--crm-ink-faint);
         }
 
         .crm-stat-link {
@@ -508,7 +572,7 @@
             padding-top: 0.4rem;
             font-size: 0.78rem;
             font-weight: 600;
-            color: var(--primary-base);
+            color: var(--crm-link);
             text-decoration: none;
         }
 
@@ -528,7 +592,9 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            background: #fff;
+            background: var(--crm-surface);
+            -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+            backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
             border-radius: 18px;
             box-shadow: var(--crm-card-shadow);
             overflow: hidden;
@@ -551,7 +617,7 @@
         .crm-chart-period {
             font-size: 0.75rem;
             font-weight: 600;
-            color: var(--fg-3);
+            color: var(--crm-ink-faint);
             background: var(--primary-bg-subtle);
             padding: 0.2rem 0.6rem;
             border-radius: 999px;
@@ -618,7 +684,7 @@
 
         .crm-donut-total-label {
             font-size: 0.65rem;
-            color: var(--fg-3);
+            color: var(--crm-ink-faint);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
@@ -649,7 +715,7 @@
 
         .crm-legend-row small {
             padding-left: 0.4rem;
-            color: var(--fg-3);
+            color: var(--crm-ink-faint);
             font-weight: 600;
         }
 
@@ -724,17 +790,17 @@
         }
 
         .crm-bar-in {
-            background: linear-gradient(180deg, var(--crm-green), #6ee7b7);
+            background: linear-gradient(180deg, var(--crm-green), color-mix(in srgb, var(--success-base) 55%, var(--bg-1)));
         }
 
         .crm-bar-out {
-            background: linear-gradient(180deg, var(--crm-rose), #fda4af);
+            background: linear-gradient(180deg, var(--crm-rose), color-mix(in srgb, var(--danger-base) 55%, var(--bg-1)));
         }
 
         .crm-bar-label {
             font-size: 0.62rem;
             font-weight: 600;
-            color: var(--fg-3);
+            color: var(--crm-ink-faint);
             text-transform: uppercase;
             letter-spacing: 0.03em;
         }
@@ -760,7 +826,9 @@
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            background: #fff;
+            background: var(--crm-surface);
+            -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
+            backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
             border-radius: 16px;
             box-shadow: var(--crm-card-shadow);
             padding: 1rem 1.4rem;
@@ -778,7 +846,7 @@
         .crm-tip-left svg {
             width: 20px;
             height: 20px;
-            color: var(--crm-orange);
+            color: var(--crm-orange-deep);
             flex: 0 0 auto;
         }
 
@@ -788,7 +856,7 @@
             gap: 0.3rem;
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--primary-base);
+            color: var(--crm-link);
             text-decoration: none;
         }
 

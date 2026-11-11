@@ -60,7 +60,7 @@ $canDelete = auth()->user()->hasFilePermission(FileResources::PAYMENTS, FileActi
                 <div class="d-flex gap-2">
                     @if ($canDelete)
                         <form autocomplete="off" action="{{ route('bank.receipts.destroy', $documentNumber) }}" method="POST"
-                            onsubmit="return confirm('{{ __('common.messages.confirm_delete') }}')">
+                            onsubmit="return confirm('{{ __('common.alerts.confirm_delete_message') }}')">
                             @csrf
                             @method('DELETE')
                             <button class="btn btn-solid theme-danger" type="submit">

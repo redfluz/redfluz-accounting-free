@@ -144,18 +144,30 @@ class LedgerData extends Data
         public ?CarbonInterface $updatedAt,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toRow(): array
     {
-        /** @var array<string, mixed> $row */
-        $row = [
-            ...$this->toArray(),
+        return [
+            'id' => $this->id,
+            'chart_id' => $this->chartId,
+            'company_id' => $this->companyId,
+            'currency_id' => $this->currencyId,
             'type' => $this->type?->value,
             'subtype' => $this->subtype?->value,
+            'document_number' => $this->documentNumber,
+            'reference_number' => $this->referenceNumber,
             'date' => $this->date->format('Y-m-d'),
+            'chart_code' => $this->chartCode,
+            'chart_name' => $this->chartName,
+            'company_name' => $this->companyName,
+            'description' => $this->description,
+            'line_description' => $this->lineDescription,
+            'debit_amount' => $this->debitAmount,
+            'credit_amount' => $this->creditAmount,
             'created_at' => $this->createdAt?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updatedAt?->format('Y-m-d H:i:s'),
         ];
-
-        return $row;
     }
 }

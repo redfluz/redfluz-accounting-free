@@ -36,6 +36,7 @@ use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Bank\Concerns\HandlesTransfers;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Bank\Transfer\StoreCashTransferRequest;
 use App\Http\Requests\Bank\Transfer\UpdateCashTransferRequest;
 use App\Models\Bank\CashAccount;
 use App\Models\Bank\Transfer;
@@ -165,16 +166,13 @@ class CashTransferController extends Controller
     /**
      * Record a new transfer, pending.
      *
-     * @param  Request  $request  The submitted transfer.
      *
      * @throws Throwable
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCashTransferRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::CASH_TRANSFERS, FileAction::ADD);
-
         /** @var array<string, mixed> $validated */
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
 
         $fields = $this->fields($validated);
         $account = $this->resolveDrawer($fields['cashAccountId']);
@@ -202,7 +200,6 @@ class CashTransferController extends Controller
     /**
      * Change a transfer that has not been posted.
      *
-     * @param  UpdateCashTransferRequest  $request  The submitted transfer.
      * @param  string  $documentNumber  The transfer's document number.
      *
      * @throws Throwable
@@ -393,7 +390,7 @@ class CashTransferController extends Controller
                 'balance' => $this->cashBalance($account),
                 'float' => $account->float_amount === null
                     ? $this->toAmount('0')
-                    : $this->toAmount($account->float_amount),
+                    : $this->toAmount((string) $account->float_amount),
                 'surplus' => $this->surplusFor($account),
             ];
         }
@@ -503,23 +500,6 @@ class CashTransferController extends Controller
             'referenceNumber' => is_string($referenceNumber) ? $referenceNumber : null,
             'description' => is_string($description) ? $description : null,
             'notes' => is_string($notes) ? $notes : null,
-        ];
-    }
-
-    /**
-     * The validation rules for a transfer out.
-     *
-     * @return array<string, mixed>
-     */
-    private function rules(): array
-    {
-        return [
-            'cash_account_id' => ['required', 'uuid'],
-            'date' => ['required', 'date'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
-            'reference_number' => ['nullable', 'string', 'max:100'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'notes' => ['nullable', 'string'],
         ];
     }
 }

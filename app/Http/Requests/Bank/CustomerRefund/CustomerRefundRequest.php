@@ -149,7 +149,7 @@ abstract class CustomerRefundRequest extends BaseFormRequest
      */
     protected function moneyAccountRules(): array
     {
-        $chosen = PaymentTransferType::tryFrom((string) $this->input('payment_transfer_type'))?->accountColumn();
+        $chosen = PaymentTransferType::tryFrom($this->string('payment_transfer_type')->toString())?->accountColumn();
 
         $rules = [];
 
@@ -175,15 +175,17 @@ abstract class CustomerRefundRequest extends BaseFormRequest
      * The money still returnable to the customer from the receipts on the invoice.
      *
      * A receipt credits the receivable and a customer refund debits it again, so what
-     * is left on the credit side of the receivables ledger is what the customer
-     * actually paid and has not been given back. The figure is read the same way the
-     * invoice options of the customer refund controller read it, so the amount the
-     * screen offers and the amount the server allows cannot drift apart.
+     * is left on the credit side of the receivable account is what the customer
+     * actually paid and has not been given back. The receivable ledger holds a row of
+     * every payment, the account the money moved among them, so the sum is read on the
+     * receivable account alone. The figure is read the same way the invoice options of
+     * the customer refund controller read it, so the amount the screen offers and the
+     * amount the server allows cannot drift apart.
      *
      * Null is returned when the refund names no invoice, because there is then no
      * payment to return and nothing to measure against.
      *
-     * @return string|null The refundable balance as a decimal string, or null when no invoice is named.
+     * @return numeric-string|null The refundable balance as a decimal string, or null when no invoice is named.
      */
     protected function refundableBalance(): ?string
     {
@@ -195,15 +197,19 @@ abstract class CustomerRefundRequest extends BaseFormRequest
 
         /** @var Collection<int, ArLedger> $entries */
         $entries = ArLedger::query()
+            ->againstReceivableAccount()
             ->where('type', LedgerType::PAYMENT)
             ->where('reference_number', $reference)
             ->get(['debit_amount', 'credit_amount']);
 
-        return bcsub(
-            bcadd((string) $entries->sum('credit_amount'), '0', 2),
-            bcadd((string) $entries->sum('debit_amount'), '0', 2),
-            2,
-        );
+        $credit = '0';
+        $debit = '0';
+        foreach ($entries as $entry) {
+            $credit = bcadd($credit, $entry->credit_amount, 2);
+            $debit = bcadd($debit, $entry->debit_amount, 2);
+        }
+
+        return bcsub($credit, $debit, 2);
     }
 
     /**

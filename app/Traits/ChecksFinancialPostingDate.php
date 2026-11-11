@@ -28,6 +28,7 @@ namespace App\Traits;
 
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Year\Period;
+use App\Models\Year\Year;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 
@@ -44,9 +45,7 @@ trait ChecksFinancialPostingDate
      */
     protected function financialPostingDateBounds(): array
     {
-        $chartSetting = ChartSetting::query()
-            ->with(['currentYear', 'currentPeriod'])
-            ->first();
+        $chartSetting = ChartSetting::query()->first();
 
         if ($chartSetting === null) {
             return [
@@ -55,9 +54,19 @@ trait ChecksFinancialPostingDate
             ];
         }
 
+        $today = Carbon::today()->toDateString();
+
+        // Strict journal posting narrows the picker to the period that contains
+        // today. Otherwise the whole financial year that contains today is open.
         $dateRange = $chartSetting->strict_journal_posting
-            ? $chartSetting->currentPeriod
-            : $chartSetting->currentYear;
+            ? Period::query()
+                ->whereDate('start_date', '<=', $today)
+                ->whereDate('end_date', '>=', $today)
+                ->first()
+            : Year::query()
+                ->whereDate('start_date', '<=', $today)
+                ->whereDate('end_date', '>=', $today)
+                ->first();
 
         if ($dateRange === null) {
             return [
@@ -100,7 +109,7 @@ trait ChecksFinancialPostingDate
             ->whereDate('end_date', '>=', $postingDate)
             ->first();
 
-        if ($period === null || $period->year === null) {
+        if ($period === null) {
             $this->throwPostingDateError($field, 'common.errors.posting_date_unavailable');
         }
 
@@ -116,11 +125,16 @@ trait ChecksFinancialPostingDate
             return;
         }
 
-        if ($chartSetting->year_uuid === null || $chartSetting->period_uuid === null) {
+        $currentPeriod = Period::query()
+            ->whereDate('start_date', '<=', Carbon::today()->toDateString())
+            ->whereDate('end_date', '>=', Carbon::today()->toDateString())
+            ->first();
+
+        if ($currentPeriod === null) {
             $this->throwPostingDateError($field, 'common.errors.posting_date_current_period_missing');
         }
 
-        if ($period->year_id !== $chartSetting->year_uuid || $period->id !== $chartSetting->period_uuid) {
+        if ($period->year_id !== $currentPeriod->year_id || $period->id !== $currentPeriod->id) {
             $this->throwPostingDateError($field, 'common.errors.posting_date_not_current_period');
         }
     }

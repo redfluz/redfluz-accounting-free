@@ -27,4 +27,6 @@
             </form>
         </div>
     </div>
+
+    @include('sales.invoices._product-picker')
 @endsection

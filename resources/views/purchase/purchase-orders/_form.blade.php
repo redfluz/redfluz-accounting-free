@@ -157,12 +157,15 @@
             </tr>
         </thead>
         <tbody>
-            @for ($lineIndex = 0; $lineIndex < 10; $lineIndex++)
+            @for ($lineIndex = 0; $lineIndex < $perPageGridDetail; $lineIndex++)
                 @php($existingLine = $existingLines->get($lineIndex))
                 <tr>
                     <td>
+                        <label class="visually-hidden"
+                            for="line-{{ $lineIndex }}-description">{{ __('ledgers.table.column_description') }}</label>
                         <div class="form-control form-control-sm form-adorn">
-                            <input class="form-ghost @error("lines.$lineIndex.description") is-invalid @enderror"
+                            <input id="line-{{ $lineIndex }}-description"
+                                class="form-ghost @error("lines.$lineIndex.description") is-invalid @enderror"
                                 name="lines[{{ $lineIndex }}][description]"
                                 value="{{ old("lines.$lineIndex.description", $existingLine?->description) }}" />
                         </div>
@@ -171,8 +174,11 @@
                         @enderror
                     </td>
                     <td>
+                        <label class="visually-hidden"
+                            for="line-{{ $lineIndex }}-quantity">{{ __('ledgers.table.column_quantity') }}</label>
                         <div class="form-control form-control-sm form-adorn">
                             <input
+                                id="line-{{ $lineIndex }}-quantity"
                                 class="form-ghost line-quantity @error("lines.$lineIndex.quantity") is-invalid @enderror"
                                 name="lines[{{ $lineIndex }}][quantity]" type="number"
                                 value="{{ old("lines.$lineIndex.quantity", $existingLine?->quantity) }}"
@@ -183,8 +189,11 @@
                         @enderror
                     </td>
                     <td>
+                        <label class="visually-hidden"
+                            for="line-{{ $lineIndex }}-unit_price">{{ __('ledgers.table.column_unit_price') }}</label>
                         <div class="form-control form-control-sm form-adorn">
                             <input
+                                id="line-{{ $lineIndex }}-unit_price"
                                 class="form-ghost line-unit-price @error("lines.$lineIndex.unit_price") is-invalid @enderror"
                                 name="lines[{{ $lineIndex }}][unit_price]" type="number"
                                 value="{{ old("lines.$lineIndex.unit_price", $existingLine?->unit_price) }}"

@@ -33,11 +33,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\Currency\StoreCurrencyRequest;
 use App\Http\Requests\Finance\Currency\UpdateCurrencyRequest;
 use App\Models\Finance\Currency;
+use App\Models\System\Setting;
 use App\Support\Data\Finance\CurrencyData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class CurrencyController extends Controller
@@ -193,7 +193,7 @@ final class CurrencyController extends Controller
     private function currencyUsage(Currency $currency): array
     {
         $checks = [
-            __('currencies.usage.system_settings') => DB::table('settings')->where('currency_id', $currency->id),
+            __('currencies.usage.system_settings') => Setting::query()->where('currency_id', $currency->id),
         ];
 
         $blocked = [];

@@ -28,20 +28,17 @@ namespace App\Http\Controllers\Finance;
 
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerSubType;
-use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
 use App\Models\ChartOfAccount\Chart;
-use App\Models\Finance\JournalEntry;
 use App\Models\Finance\Ledger;
 use App\Models\System\Setting;
+use App\Support\Traits\ResolvesLedgerSources;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -58,6 +55,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class LedgerController extends Controller
 {
+    use ResolvesLedgerSources;
+
     /**
      * Build the filtered query for General Ledger reporting.
      *
@@ -176,102 +175,6 @@ class LedgerController extends Controller
     }
 
     /**
-     * Resolve each posted row to its originating sub-ledger document when one exists.
-     *
-     * @param  Collection<int, Ledger>  $ledgers  The posted ledger entries.
-     * @return array<string, string> Returns the resolved source URLs keyed by document number.
-     */
-    private function sourceUrls(Collection $ledgers): array
-    {
-        $journalEntries = JournalEntry::query()
-            ->whereIn(
-                'document_number',
-                $ledgers
-                    ->filter(fn (Ledger $ledger): bool => (
-                        $ledger->subtype
-                    ) === LedgerSubType::JOURNAL && (
-                        $ledger->type
-                    ) === LedgerType::JOURNAL)
-                    ->pluck('document_number')
-                    ->filter()
-                    ->unique()
-            )
-            ->pluck('id', 'document_number');
-
-        return $ledgers
-            ->mapWithKeys(function (Ledger $ledger) use ($journalEntries): array {
-                $documentNumber = (string) $ledger->document_number;
-
-                if ($documentNumber === '') {
-                    return [];
-                }
-
-                $subtype = $ledger->subtype;
-                $type = $ledger->type;
-
-                $url = match ($subtype) {
-                    LedgerSubType::SALES_INVOICE,
-                    LedgerSubType::MANUAL_SALES_INVOICE => route(
-                        'sales.invoices.show',
-                        $documentNumber
-                    ),
-                    LedgerSubType::PURCHASE_INVOICE => route(
-                        'purchase.invoices.show',
-                        $documentNumber
-                    ),
-                    // Receipts and payment vouchers are separate document
-                    // families now, so each subtype links into its own grid.
-                    LedgerSubType::RECEIPT => route(
-                        'bank.receipts.show',
-                        $documentNumber
-                    ),
-                    LedgerSubType::PAYMENT_VOUCHER => route(
-                        'bank.payment-vouchers.show',
-                        $documentNumber
-                    ),
-                    // A refund links to the grid for its own kind. The two kinds
-                    // are separate document families now, so a supplier refund
-                    // linking into the customer refund grid would land on a
-                    // document that is not there.
-                    LedgerSubType::CUSTOMER_REFUND,
-                    LedgerSubType::REFUND => route(
-                        'bank.customer-refunds.show',
-                        $documentNumber
-                    ),
-                    LedgerSubType::SUPPLIER_REFUND => route(
-                        'bank.supplier-refunds.show',
-                        $documentNumber
-                    ),
-                    // A bank journal is a document of its own, so its rows link
-                    // into its own grid.
-                    LedgerSubType::BANK_JOURNAL => route(
-                        'bank.bank-journals.show',
-                        $documentNumber
-                    ),
-                    LedgerSubType::MANUAL_SALES_ADJUSTMENT => route('sales.manual-adjustments.show', $documentNumber),
-                    LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT => route('purchase.manual-adjustments.show', $documentNumber),
-                    // A transfer and a withdrawal are movements between money
-                    // accounts rather than refunds. They have no document of
-                    // their own yet, so there is nothing to link to.
-                    LedgerSubType::TRANSFER,
-                    LedgerSubType::WITHDRAWAL => null,
-                    LedgerSubType::JOURNAL => $type === LedgerType::JOURNAL
-                        && filled($journalEntries->get($documentNumber))
-                        ? route(
-                            'finance.journal-entries.show',
-                            $journalEntries->get($documentNumber)
-                        )
-                        : null,
-                    // Stock takes are not available in this edition, so there is no link.
-                    LedgerSubType::STOCK_VARIANCE => null,
-                };
-
-                return $url === null ? [] : [$ledger->id => $url];
-            })
-            ->all();
-    }
-
-    /**
      * Export the filtered General Ledger to PDF.
      *
      * @param  Request  $request  The HTTP request instance.
@@ -340,7 +243,6 @@ class LedgerController extends Controller
                 $ledger->chart_name,
             ], fn ($value): bool => filled($value))));
             $company = $ledger->company_name ?? $ledger->company->name ?? '-';
-            $contact = $ledger->contact->name ?? '';
 
             $sheet->setCellValueExplicit(
                 [1, $row],
@@ -355,7 +257,7 @@ class LedgerController extends Controller
             );
             $sheet->setCellValue([2, $row], $ledger->date->format('d M Y'));
             $sheet->setCellValue([3, $row], __('ledgers.type.'.$type)."\n".__('ledgers.sub_type.'.$subtype));
-            $sheet->setCellValue([4, $row], $company."\n".$contact);
+            $sheet->setCellValue([4, $row], $company);
             $sheet->setCellValue([5, $row], (float) $ledger->debit_amount > 0 ? (float) $ledger->debit_amount : '-');
             $sheet->setCellValue([6, $row], (float) $ledger->credit_amount > 0 ? (float) $ledger->credit_amount : '-');
         }

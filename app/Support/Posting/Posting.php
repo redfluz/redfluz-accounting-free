@@ -559,8 +559,9 @@ class Posting
      * Post a simple 2-sided payment/receipt/refund/transfer/journal (no legs).
      *
      * Direct from the document's accounts and amount: builds GL + money ledger
-     * (cash/bank/e-wallet, with balance) + counterparty AR/AP, then writes via
-     * Posting's ledger writers. Controllers pass chart IDs and amount only.
+     * (cash/bank/e-wallet, with balance) + the AR/AP mirror of every row of the
+     * document, then writes via Posting's ledger writers. Controllers pass chart
+     * IDs and amount only.
      *
      * @param  numeric-string  $amount
      */
@@ -635,6 +636,68 @@ class Posting
         $counterpartySide = $this->subLedgerSideForSubtype($subtype);
         $arDtos = [];
         $apDtos = [];
+
+        // Party sub-ledger: every row of this document is mirrored, the same
+        // figure against the same account, so a supplier or customer ledger holds
+        // exactly the rows the general ledger holds for the document rather than
+        // only the half that touches the control account. The money half is
+        // mirrored too, which is what makes a statement and the ledger behind it
+        // tie out line for line. A subtype with no party - a transfer, a
+        // withdrawal, a bank journal - mirrors nothing.
+        if ($counterpartySide !== null && $writeCounterparty) {
+            if ($companyId === null) {
+                throw PostingException::noCounterpartyCompany($documentNumber);
+            }
+
+            foreach ($sides as $side) {
+                $chart = $charts[$side['chartId']] ?? null;
+
+                if ($counterpartySide === 'receivable') {
+                    $arDtos[] = new ArLedgerData(
+                        id: (string) Str::uuid7(),
+                        chartId: $side['chartId'],
+                        companyId: $companyId,
+                        currencyId: $currencyId,
+                        type: $type->value,
+                        subtype: $subtype->value,
+                        documentNumber: $documentNumber,
+                        date: $date->format('Y-m-d'),
+                        referenceNumber: $referenceNumber,
+                        chartCode: $chart['code'] ?? null,
+                        chartName: $chart['name'] ?? null,
+                        chartDescription: $chart['description'] ?? null,
+                        companyName: $companyName,
+                        description: $description,
+                        debitAmount: $side['debit'],
+                        creditAmount: $side['credit'],
+                    );
+
+                    continue;
+                }
+
+                $apDtos[] = new ApLedgerData(
+                    id: (string) Str::uuid7(),
+                    chartId: $side['chartId'],
+                    companyId: $companyId,
+                    currencyId: $currencyId,
+                    type: $type->value,
+                    subtype: $subtype->value,
+                    documentNumber: $documentNumber,
+                    date: $date->format('Y-m-d'),
+                    referenceNumber: $referenceNumber,
+                    chartCode: $chart['code'] ?? null,
+                    chartName: $chart['name'] ?? null,
+                    chartDescription: $chart['description'] ?? null,
+                    companyName: $companyName,
+                    description: $description,
+                    debitAmount: $side['debit'],
+                    creditAmount: $side['credit'],
+                    createdAt: null,
+                    updatedAt: null,
+                    deletedAt: null,
+                );
+            }
+        }
 
         foreach ($sides as $side) {
             $chartId = $side['chartId'];
@@ -711,63 +774,6 @@ class Posting
 
                 continue;
             }
-
-            if ($counterpartySide === null || ! $writeCounterparty) {
-                continue;
-            }
-            $chart = $charts[$chartId] ?? null;
-            $isCounterparty = $counterpartySide === 'receivable'
-                ? ($chart['is_debtor'] ?? false)
-                : ($chart['is_creditor'] ?? false);
-            if (! $isCounterparty) {
-                continue;
-            }
-            if ($companyId === null) {
-                throw PostingException::noCounterpartyCompany($documentNumber);
-            }
-            $rowId = (string) Str::uuid7();
-            if ($counterpartySide === 'receivable') {
-                $arDtos[] = new ArLedgerData(
-                    id: $rowId,
-                    chartId: $chartId,
-                    companyId: $companyId,
-                    currencyId: $currencyId,
-                    type: $type->value,
-                    subtype: $subtype->value,
-                    documentNumber: $documentNumber,
-                    date: $date->format('Y-m-d'),
-                    referenceNumber: $referenceNumber,
-                    chartCode: $chart['code'] ?? null,
-                    chartName: $chart['name'] ?? null,
-                    chartDescription: $chart['description'] ?? null,
-                    companyName: $companyName,
-                    description: $description,
-                    debitAmount: $debit,
-                    creditAmount: $credit,
-                );
-            } else {
-                $apDtos[] = new ApLedgerData(
-                    id: $rowId,
-                    chartId: $chartId,
-                    companyId: $companyId,
-                    currencyId: $currencyId,
-                    type: $type->value,
-                    subtype: $subtype->value,
-                    documentNumber: $documentNumber,
-                    date: $date->format('Y-m-d'),
-                    referenceNumber: $referenceNumber,
-                    chartCode: $chart['code'] ?? null,
-                    chartName: $chart['name'] ?? null,
-                    chartDescription: $chart['description'] ?? null,
-                    companyName: $companyName,
-                    description: $description,
-                    debitAmount: $debit,
-                    creditAmount: $credit,
-                    createdAt: null,
-                    updatedAt: null,
-                    deletedAt: null,
-                );
-            }
         }
 
         $this->cashLedger($cashDtos);
@@ -809,7 +815,10 @@ class Posting
     {
         $cache = [];
         foreach (DB::table('charts')->get(['id', 'code', 'name', 'description', 'report_group', 'isDebtor', 'isCreditor']) as $c) {
-            $id = (string) $c->id;
+            $id = $c->id;
+            if (! is_string($id)) {
+                continue;
+            }
             $cache[$id] = [
                 'code' => is_string($c->code) ? $c->code : null,
                 'name' => is_string($c->name) ? $c->name : null,
@@ -823,19 +832,14 @@ class Posting
         return $cache;
     }
 
+    /** @return numeric-string */
     private function priorBalanceFor(BankAccountKind $kind, string $accountId): string
     {
-        $table = match ($kind) {
-            BankAccountKind::CASH => 'cash_ledgers',
-            BankAccountKind::BANK => 'bank_ledgers',
-            BankAccountKind::E_WALLET => 'e_wallet_ledgers',
-            default => throw PostingException::unknownLedgerKind($kind->value),
-        };
-        $col = match ($kind) {
-            BankAccountKind::CASH => 'cash_account_id',
-            BankAccountKind::BANK => 'bank_account_id',
-            BankAccountKind::E_WALLET => 'e_wallet_account_id',
-            default => throw PostingException::unknownLedgerKind($kind->value),
+        [$table, $col] = match ($kind) {
+            BankAccountKind::CASH => ['cash_ledgers', 'cash_account_id'],
+            BankAccountKind::BANK => ['bank_ledgers', 'bank_account_id'],
+            BankAccountKind::E_WALLET => ['e_wallet_ledgers', 'e_wallet_account_id'],
+            BankAccountKind::CRYPTO => throw PostingException::unknownLedgerKind($kind->value),
         };
         $balance = DB::table($table)->where($col, $accountId)->selectRaw('COALESCE(SUM(debit_amount) - SUM(credit_amount), 0) as balance')->value('balance');
 

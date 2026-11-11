@@ -149,7 +149,7 @@ abstract class SupplierRefundRequest extends BaseFormRequest
      */
     protected function moneyAccountRules(): array
     {
-        $chosen = PaymentTransferType::tryFrom((string) $this->input('payment_transfer_type'))?->accountColumn();
+        $chosen = PaymentTransferType::tryFrom($this->string('payment_transfer_type')->toString())?->accountColumn();
 
         $rules = [];
 
@@ -175,15 +175,17 @@ abstract class SupplierRefundRequest extends BaseFormRequest
      * The money still recoverable from the payments recorded against the invoice.
      *
      * A payment voucher debits the payable and a supplier refund credits it again,
-     * so what is left on the debit side of the payables ledger is what the supplier
-     * was actually paid and has not been given back. The figure is read the same way
-     * the invoice options of the supplier refund controller read it, so the amount
-     * the screen offers and the amount the server allows cannot drift apart.
+     * so what is left on the debit side of the payable account is what the supplier
+     * was actually paid and has not been given back. The payable ledger holds a row
+     * of every payment, the account the money left among them, so the sum is read on
+     * the payable account alone. The figure is read the same way the invoice options
+     * of the supplier refund controller read it, so the amount the screen offers and
+     * the amount the server allows cannot drift apart.
      *
      * Null is returned when the refund names no invoice, because there is then no
      * payment to recover and nothing to measure against.
      *
-     * @return string|null The refundable balance as a decimal string, or null when no invoice is named.
+     * @return numeric-string|null The refundable balance as a decimal string, or null when no invoice is named.
      */
     protected function refundableBalance(): ?string
     {
@@ -195,15 +197,19 @@ abstract class SupplierRefundRequest extends BaseFormRequest
 
         /** @var Collection<int, ApLedger> $entries */
         $entries = ApLedger::query()
+            ->againstPayableAccount()
             ->where('type', LedgerType::PAYMENT)
             ->where('reference_number', $reference)
             ->get(['debit_amount', 'credit_amount']);
 
-        return bcsub(
-            bcadd((string) $entries->sum('debit_amount'), '0', 2),
-            bcadd((string) $entries->sum('credit_amount'), '0', 2),
-            2,
-        );
+        $debit = '0';
+        $credit = '0';
+        foreach ($entries as $entry) {
+            $debit = bcadd($debit, $entry->debit_amount, 2);
+            $credit = bcadd($credit, $entry->credit_amount, 2);
+        }
+
+        return bcsub($debit, $credit, 2);
     }
 
     /**

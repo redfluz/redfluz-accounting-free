@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Enums\UploadType;
+use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 /**
@@ -87,7 +88,7 @@ class StorePurchaseOrderRequest extends PurchaseOrderRequest
             // txt. csv and txt are now refused app-wide for that reason, and
             // extensions: is used so the gate cannot be defeated by content.
             'attachments.*' => ['file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:10240'],
-            'lines' => ['required', 'array', 'size:10'],
+            'lines' => ['required', 'array', 'size:'.Controller::detailGridRows()],
             'lines.*' => ['array'],
             'lines.*.product_id' => ['prohibited'],
             'lines.*.description' => ['nullable', 'string'],

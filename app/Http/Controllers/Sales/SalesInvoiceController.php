@@ -56,6 +56,7 @@ use App\Models\Finance\JournalEntryChart;
 use App\Models\Finance\Ledger as FinanceLedger;
 use App\Models\Finance\Tax;
 use App\Models\Inventory\Product;
+use App\Models\Inventory\ProductCategory;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\DeliveryOrder;
 use App\Models\Sales\SalesInvoice;
@@ -172,8 +173,12 @@ class SalesInvoiceController extends Controller
         /** @var Collection<int, SalesInvoiceLine> $lines */
         $lines = $invoice->lines;
 
+        // One card per payment, so the receivable side is what is listed: the
+        // ledger also holds the account the money moved, and that would print
+        // the same payment a second time.
         /** @var Collection<int, ArLedger> $payments */
-        $payments = ArLedger::query()->where('type', LedgerType::PAYMENT)
+        $payments = ArLedger::query()->againstReceivableAccount()
+            ->where('type', LedgerType::PAYMENT)
             ->where('reference_number', $documentNumber)->whereNotNull('chart_code')->orderBy('date')->get();
 
         $isPosted = $invoice->status === LedgerStatus::POSTED;
@@ -190,89 +195,123 @@ class SalesInvoiceController extends Controller
         ) + [
             'canDeductInventory' => $this->canDeductInventory($documentNumber),
             'inventoryDeducted' => $this->inventoryDeducted($documentNumber),
+            'deductableLines' => $this->deductableLines($documentNumber),
         ]);
     }
 
     /**
-     * Determine whether this invoice still owes a stock deduction.
-     *
-     * A stock deduction is only offered for a product sale whose lines still
-     * carry deduct_inventory = false. The flag is the single record of who owns
-     * the movement: this button sets it, and a delivery order that reduced stock
-     * also sets it, so the same units are never deducted twice.
-     *
-     * sales_type is checked as well so that a document whose lines are not
-     * product sales never offers a stock deduction, even if the data is edited
-     * outside the application.
+     * Get invoice lines that are eligible for manual inventory deduction.
      *
      * @param  string  $documentNumber  The sales invoice document number.
-     * @return bool True when the deduct-inventory action should be offered.
+     * @return Collection<int, SalesInvoiceLine>
      */
-    private function canDeductInventory(string $documentNumber): bool
+    private function deductableLines(string $documentNumber): Collection
     {
         /** @var SalesInvoice|null $invoice */
         $invoice = SalesInvoice::query()
+            ->with(['lines.product'])
             ->where('document_number', $documentNumber)
             ->first();
 
-        if ($invoice === null) {
-            return false;
+        if ($invoice === null || $invoice->sales_type !== SalesType::PRODUCT) {
+            return new Collection;
         }
 
-        /** @var Collection<int, SalesInvoiceLine> $lines */
-        $lines = $invoice->lines()->get();
-
-        return $lines->isNotEmpty()
-            && $invoice->sales_type === SalesType::PRODUCT
-            && $lines->every(fn (SalesInvoiceLine $line): bool => ! $line->deduct_inventory)
-            && ! $this->inventoryDeducted($documentNumber);
+        return $invoice->lines
+            ->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null && ! $line->deduct_inventory)
+            ->values();
     }
 
     /**
-     * Determine whether stock has already been moved for this document.
+     * Determine whether this invoice still has stock that can be deducted manually.
      *
      * @param  string  $documentNumber  The sales invoice document number.
-     * @return bool True when a movement already exists for the document.
+     * @return bool True when at least one eligible line still owes a deduction.
+     */
+    private function canDeductInventory(string $documentNumber): bool
+    {
+        return $this->deductableLines($documentNumber)->isNotEmpty();
+    }
+
+    /**
+     * Determine whether all eligible invoice lines have been deducted.
+     *
+     * @param  string  $documentNumber  The sales invoice document number.
+     * @return bool True when no eligible line remains to deduct.
      */
     private function inventoryDeducted(string $documentNumber): bool
     {
-        return ProductLedger::query()
+        /** @var SalesInvoice|null $invoice */
+        $invoice = SalesInvoice::query()
+            ->with('lines')
             ->where('document_number', $documentNumber)
-            ->where('status', ProductMovementStatus::ACTIVE->value)
-            ->exists();
+            ->first();
+
+        if ($invoice === null || $invoice->sales_type !== SalesType::PRODUCT) {
+            return false;
+        }
+
+        $eligible = $invoice->lines->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null);
+
+        return $eligible->isNotEmpty()
+            && $eligible->every(fn (SalesInvoiceLine $line): bool => (bool) $line->deduct_inventory);
     }
 
     /**
-     * Reduce stock for a posted sales invoice that never went through a delivery order.
+     * Reduce stock for selected lines of a posted sales invoice.
      *
+     * @param  Request  $request  The incoming request containing selected line IDs.
      * @param  string  $documentNumber  The sales invoice document number.
      * @return RedirectResponse Redirects back to the invoice.
      *
      * @throws ValidationException|Throwable If the invoice is not eligible for a deduction.
      */
-    public function deductInventory(string $documentNumber): RedirectResponse
+    public function deductInventory(Request $request, string $documentNumber): RedirectResponse
     {
         $this->allows(FileResources::SALES_INVOICES, FileAction::UPDATE);
 
-        abort_unless($this->canDeductInventory($documentNumber), 409);
-
-        DB::transaction(function () use ($documentNumber): void {
+        DB::transaction(function () use ($request, $documentNumber): void {
             /** @var SalesInvoice|null $invoice */
             $invoice = SalesInvoice::query()
+                ->with('lines')
                 ->where('document_number', $documentNumber)
                 ->lockForUpdate()
                 ->first();
 
             abort_if($invoice === null, 404);
+            abort_if($invoice->sales_type !== SalesType::PRODUCT, 409);
 
-            $invoice->lines()->update(['deduct_inventory' => true]);
+            $eligibleLines = $invoice->lines
+                ->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null && ! $line->deduct_inventory);
 
-            $this->syncPendingSalesProductMovements($documentNumber);
-            $this->postSalesProductMovements($documentNumber);
+            abort_if($eligibleLines->isEmpty(), 409);
+
+            $deductAll = $request->boolean('deduct_all');
+            /** @var array<int, string> $selectedIds */
+            $selectedIds = array_values(array_filter((array) $request->input('line_ids', []), 'is_string'));
+
+            $lineIds = $deductAll
+                ? $eligibleLines->pluck('id')->all()
+                : array_values(array_intersect($selectedIds, $eligibleLines->pluck('id')->all()));
+
+            if ($lineIds === []) {
+                throw ValidationException::withMessages([
+                    'line_ids' => __('invoices.deduct_inventory.select_at_least_one'),
+                ]);
+            }
+
+            $this->syncPendingSalesProductMovements($documentNumber, null, $lineIds);
+
+            SalesInvoiceLine::query()
+                ->where('sales_invoice_id', $invoice->id)
+                ->whereIn('id', $lineIds)
+                ->update(['deduct_inventory' => true]);
+
+            $this->postSalesProductMovements($documentNumber, $lineIds);
         });
 
-        return redirect()->route('sales.invoices.show', $documentNumber)
-            ->with('success', FlashMessage::updated(FileResources::SALES_INVOICES));
+        return redirect()->back()
+            ->with('success', __('invoices.deduct_inventory.success'));
     }
 
     /**
@@ -353,6 +392,8 @@ class SalesInvoiceController extends Controller
         $companies = Company::query()->where('is_debtor', true)->orderBy('name')->get();
         /** @var Collection<int, Product> $products */
         $products = Product::query()->orderBy('name')->get();
+        /** @var Collection<int, ProductCategory> $categories */
+        $categories = ProductCategory::query()->with('types')->orderBy('name')->get();
         /** @var Collection<int, Contact> $contacts */
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get();
         /** @var Collection<int, Tax> $taxes */
@@ -368,7 +409,7 @@ class SalesInvoiceController extends Controller
 
         return view(
             'sales.invoices.create',
-            compact('companies', 'products', 'contacts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'deliveryOrder', 'canCreateCompany', 'cloneData')
+            compact('companies', 'products', 'categories', 'contacts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'deliveryOrder', 'canCreateCompany', 'cloneData')
         );
     }
 
@@ -388,6 +429,54 @@ class SalesInvoiceController extends Controller
         ]);
 
         return response()->json(['id' => $company->id, 'name' => $company->name], 201);
+    }
+
+    /**
+     * Search products for the sales invoice creation form.
+     * Returns a JSON array of products matching the search query.
+     *
+     * @param  Request  $request  The HTTP request instance containing the search query.
+     * @return JsonResponse JSON response with matching products.
+     */
+    public function searchProducts(Request $request): JsonResponse
+    {
+        $this->allows(FileResources::SALES_INVOICES, FileAction::ADD);
+
+        $search = $request->string('search')->toString();
+        $categoryId = $request->string('category_id')->toString();
+        $typeId = $request->string('type_id')->toString();
+
+        $query = Product::query()
+            ->with(['category', 'type']);
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search): void {
+                $subQuery->where('name', 'like', "%$search%")
+                    ->orWhere('sku', 'like', "%$search%");
+            });
+        }
+
+        if ($categoryId !== '') {
+            $query->where('product_category_id', $categoryId);
+        }
+
+        if ($typeId !== '') {
+            $query->where('product_type_id', $typeId);
+        }
+
+        $products = $query->orderBy('name')->limit(50)->get();
+
+        return response()->json($products->map(fn (Product $product): array => [
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'name' => $product->name,
+            'category' => $product->category->name ?? '',
+            'type' => $product->type->name ?? '',
+            'price' => (string) $product->selling_price,
+            'description' => $product->description ?? '',
+            'default_discount_id' => $product->default_discount_id,
+            'default_tax_id' => $product->default_tax_id,
+        ]));
     }
 
     /**
@@ -463,6 +552,8 @@ class SalesInvoiceController extends Controller
         $companies = Company::query()->where('is_debtor', true)->orderBy('name')->get();
         /** @var Collection<int, Product> $products */
         $products = Product::query()->orderBy('name')->get();
+        /** @var Collection<int, ProductCategory> $categories */
+        $categories = ProductCategory::query()->with('types')->orderBy('name')->get();
         /** @var Collection<int, Contact> $contacts */
         $contacts = Contact::query()->whereHas('company', fn ($query) => $query->where('is_debtor', true))->orderBy('name')->get();
         /** @var Collection<int, Tax> $taxes */
@@ -481,7 +572,7 @@ class SalesInvoiceController extends Controller
 
         return view(
             'sales.invoices.edit',
-            compact('companies', 'products', 'contacts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'documentNumber', 'deliveryOrder', 'canCreateCompany')
+            compact('companies', 'products', 'categories', 'contacts', 'taxes', 'discounts', 'subtype', 'indexRoute', 'documentNumber', 'deliveryOrder', 'canCreateCompany')
         );
     }
 
@@ -547,7 +638,7 @@ class SalesInvoiceController extends Controller
         );
 
         if ($lineCommercialTerms->contains(fn (array $terms): bool => (float) $terms['tax_rate'] > 0)) {
-            if (empty($chartSetting?->output_tax_chart_uuid)) {
+            if ($chartSetting === null || empty($chartSetting->output_tax_chart_uuid)) {
                 throw ValidationException::withMessages([
                     'tax_rate' => __('ledgers.validation.output_tax_account_required'),
                 ]);
@@ -1166,7 +1257,7 @@ class SalesInvoiceController extends Controller
                     currencyId: $dto->currencyId,
                     type: LedgerType::JOURNAL,
                     subtype: LedgerSubType::JOURNAL,
-                    documentNumber: $dto->documentNumber,
+                    documentNumber: $dto->documentNumber ?? $documentNumber,
                     referenceNumber: $dto->referenceNumber,
                     date: $dto->date,
                     chartCode: $dto->chartCode,
@@ -1317,8 +1408,10 @@ class SalesInvoiceController extends Controller
     /**
      * Post one sales invoice to its receivable sub-ledger and the general ledger.
      *
-     * Every entry is written to both ledgers from the same figure, so the general
-     * ledger holds exactly what the receivable ledger holds.
+     * Every entry is written to both ledgers from the same figure and against the
+     * same account, so the general ledger holds exactly what the receivable ledger
+     * holds: the revenue row reads as revenue, the tax row as tax, the discount row
+     * as discount, and only the net debt row reads as the customer's receivable.
      *
      * @param  SalesInvoice  $invoice  The invoice being posted.
      *
@@ -1366,7 +1459,7 @@ class SalesInvoiceController extends Controller
                 '0.00', $grossTotal
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $clientChart, $currencyId,
+                $invoice, $firstLine, $incomeChart, $currencyId,
                 '0.00', $grossTotal
             );
         }
@@ -1379,7 +1472,7 @@ class SalesInvoiceController extends Controller
                 '0.00', $taxTotal
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $clientChart, $currencyId,
+                $invoice, $firstLine, $outputTaxChart, $currencyId,
                 '0.00', $taxTotal
             );
         }
@@ -1393,7 +1486,7 @@ class SalesInvoiceController extends Controller
                 $discountTotal, '0.00'
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $clientChart, $currencyId,
+                $invoice, $firstLine, $discountChart, $currencyId,
                 $discountTotal, '0.00'
             );
         }

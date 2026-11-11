@@ -25,7 +25,7 @@
  */
 ?>
 
-@props(['charts'])
+@props(['charts', 'chartTypes'])
 
 @extends('layouts.app')
 
@@ -54,4 +54,6 @@
             </form>
         </div>
     </div>
+
+    @include('finance.journal-entries._coa-picker')
 @endsection

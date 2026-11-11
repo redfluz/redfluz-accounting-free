@@ -183,18 +183,26 @@ trait HandlesInvoiceProductMovement
      *
      * @param  string  $documentNumber  The sales invoice document number.
      * @param  string|null  $stockLocationId  The optional stock location ID.
+     * @param  list<string>|null  $onlyLineIds  When provided, only rebuild pending movements for these invoice line IDs.
      * @return void No return value; rebuilds the pending movements in the database.
      */
     protected function syncPendingSalesProductMovements(
         string $documentNumber,
-        ?string $stockLocationId = null
+        ?string $stockLocationId = null,
+        ?array $onlyLineIds = null
     ): void {
         $stockLocation = $this->resolveStockLocation($stockLocationId);
-        ProductLedger::query()
+        $pendingQuery = ProductLedger::query()
             ->where('document_number', $documentNumber)
             ->where('source_type', ProductMovementSource::SALES_INVOICE)
-            ->where('status', ProductMovementStatus::PENDING->value)
-            ->forceDelete();
+            ->where('status', ProductMovementStatus::PENDING->value);
+
+        if ($onlyLineIds !== null) {
+            $pendingQuery->whereIn('source_entry_id', $onlyLineIds);
+        }
+
+        $pendingQuery->forceDelete();
+
         // Invoice lines are read from the invoice's own table, where each line
         // belongs to the invoice it was raised on.
         $invoice = SalesInvoice::query()
@@ -205,7 +213,12 @@ trait HandlesInvoiceProductMovement
             return;
         }
 
-        $invoiceLines = $invoice->lines()->with('product')->whereNotNull('product_id')->get();
+        $linesQuery = $invoice->lines()->with('product')->whereNotNull('product_id');
+        if ($onlyLineIds !== null) {
+            $linesQuery->whereIn('id', $onlyLineIds);
+        }
+
+        $invoiceLines = $linesQuery->get();
 
         $sourceType = ProductMovementSource::SALES_INVOICE->value;
         $direction = ProductMovementDirection::OUT->value;
@@ -266,17 +279,24 @@ trait HandlesInvoiceProductMovement
      * Activate pending stock-out rows and create their COGS journal pair.
      *
      * @param  string  $documentNumber  The sales invoice document number whose movements should be posted.
+     * @param  list<string>|null  $onlyLineIds  When provided, only post pending movements for these invoice line IDs.
      * @return void No return value; activates movements and creates COGS journal entries.
      *
      * @throws ValidationException
      */
-    protected function postSalesProductMovements(string $documentNumber): void
+    protected function postSalesProductMovements(string $documentNumber, ?array $onlyLineIds = null): void
     {
-        /** @var \Illuminate\Database\Eloquent\Collection<int, ProductLedger> $movements */
-        $movements = ProductLedger::query()
+        $movementsQuery = ProductLedger::query()
             ->where('document_number', $documentNumber)
             ->where('source_type', ProductMovementSource::SALES_INVOICE)
-            ->where('status', ProductMovementStatus::PENDING->value)
+            ->where('status', ProductMovementStatus::PENDING->value);
+
+        if ($onlyLineIds !== null) {
+            $movementsQuery->whereIn('source_entry_id', $onlyLineIds);
+        }
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, ProductLedger> $movements */
+        $movements = $movementsQuery
             ->orderBy('product_id')
             ->orderBy('id')
             ->lockForUpdate()

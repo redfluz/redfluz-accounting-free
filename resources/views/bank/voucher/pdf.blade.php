@@ -1,212 +1,327 @@
 @php use App\Models\System\Setting; @endphp
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8" />
-    <title>{{ $documentNumber }}</title>
     <style>
-        /* A4 with room for the audit table at the foot. The page margin is set
-           on the Pdf object rather than with @page here so the browser preview
-           and the download agree. */
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            color: #1a1a1a;
+        @page {
             margin: 0;
-            padding: 18px;
         }
 
-        h1 {
-            font-size: 18px;
-            margin: 0 0 2px;
+        body {
+            color: #1f2937;
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 11px;
+            margin: 0;
         }
 
-        h2 {
-            font-size: 13px;
-            margin: 18px 0 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #d0d0d0;
+        .header {
+            background: #1e3a8a;
+            color: #fff;
+            padding: 40px 48px;
         }
 
-        .muted {
-            color: #6c757d;
+        .content {
+            padding: 30px 48px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-        }
-
-        th,
-        td {
-            border: 1px solid #c8c8c8;
-            padding: 5px 7px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background: #f1f3f5;
+        .company-name {
+            font-size: 23px;
             font-weight: bold;
+            margin-bottom: 5px;
         }
 
-        .text-end {
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 1px;
             text-align: right;
         }
 
-        .summary td {
-            width: 25%;
+        .muted {
+            color: #6b7280;
         }
 
-        .summary .label {
-            color: #6c757d;
+        .meta-label {
+            color: #6b7280;
             font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-
-        .summary .value {
             font-weight: bold;
-            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        /* The signature box is a fixed height so the rows line up whether or not
-           a name was recorded. An empty cell of a variable height would make the
-           printed table look unfinished. */
-        .audit-signature {
+        .party-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .summary {
+            margin: 20px 0 0;
+        }
+
+        .amount {
+            border: 2px solid #1e3a8a;
+            color: #1e3a8a;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .detail td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px 0;
+        }
+
+        .detail .label {
+            color: #6b7280;
+            width: 42%;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin: 22px 0 10px;
+            text-transform: uppercase;
+        }
+
+        .item-table th {
+            background: #f3f4f6;
+            font-size: 10px;
+            padding: 11px 9px;
+            text-align: left;
+        }
+
+        .item-table td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 11px 9px;
+        }
+
+        .item-table tfoot th {
+            border-top: 2px solid #1e3a8a;
+            font-size: 11px;
+            padding: 11px 9px;
+            text-align: right;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* The signature cell keeps a fixed height so the printed rows line up
+           whether or not a name was recorded against that step. */
+        .signature-box {
             height: 34px;
         }
 
+        .signature {
+            margin-top: 26px;
+        }
+
+        /* The audit block is the last thing on the page and it is short, so it
+           is kept whole: a trail split over two pages, with the signature line
+           alone on the second, is not something anyone wants to file. */
+        .audit-table {
+            page-break-inside: avoid;
+        }
+
+        .audit-table td {
+            padding: 8px 9px;
+        }
+
         .footer {
-            margin-top: 18px;
+            background: #f3f4f6;
+            bottom: 0;
+            color: #6b7280;
             font-size: 9px;
-            color: #6c757d;
-            border-top: 1px solid #d0d0d0;
-            padding-top: 6px;
+            padding: 14px 48px;
+            position: fixed;
+            text-align: center;
+            width: 100%;
         }
     </style>
+    <title></title>
 </head>
-<body>
-    @if ($setting?->company_name)
-        <div class="muted">{{ $setting->company_name }}</div>
-    @endif
 
-    <h1>{{ __('payment_vouchers.title') }} {{ $documentNumber }}</h1>
-    <div class="muted">
-        {{ $voucher->status->value === 'posted' ? __('journal_entries.status_approved') : __('ledgers.status_cancelled') }}
-        | {{ __('payment_vouchers.title') }}
+<body>
+    @php
+        $entries = $voucher->relationLoaded('apLedgers') ? $voucher->apLedgers : collect();
+        $moneyAccountText = $voucher->moneyAccount()?->name ?? '-';
+    @endphp
+
+    <div class="header">
+        <table>
+            <tr>
+                <td>
+                    @if ($setting->logo_path)
+                        <img
+                            src="{{ public_path('storage/' . $setting->logo_path) }}"
+                            alt="{{ $setting->company_name }}"
+                            style="max-height: 55px; max-width: 180px; margin-bottom: 8px"
+                        />
+                    @else
+                        <div class="company-name">
+                            {{ $setting->company_name ?: __('payments.pdf.company_placeholder') }}
+                        </div>
+                    @endif
+
+                    <div>{{ $setting->company_email }}</div>
+                    @if ($setting->company_phone)
+                        <div>{{ $setting->company_phone }}</div>
+                    @endif
+                    @if ($setting->company_fax)
+                        <div>{{ $setting->company_fax }}</div>
+                    @endif
+                    @if ($setting->company_website)
+                        <div>{{ $setting->company_website }}</div>
+                    @endif
+                    @if ($setting->company_registration_no)
+                        <div>{{ $setting->company_registration_no }}</div>
+                    @endif
+                    @if ($setting->company_tax_no)
+                        <div>{{ $setting->company_tax_no }}</div>
+                    @endif
+                    @if ($setting->address)
+                        <div>{{ $setting->address }}</div>
+                    @endif
+                </td>
+                <td>
+                    <div class="title">{{ __('payments.pdf.payment_voucher_title') }}</div>
+                    <div class="text-right">{{ $documentNumber }}</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <h2>{{ __('payment_vouchers.title') }}</h2>
-    <table class="summary">
-        <tr>
-            <td>
-                <div class="label">{{ __('ledgers.table.column_reference_number') }}</div>
-                <div class="value">{{ $voucher->reference_number ?? '-' }}</div>
-            </td>
-            <td>
-                <div class="label">{{ __('ledgers.table.column_date') }}</div>
-                <div class="value">{{ $voucher->date->format(Setting::getDefaultDate()) }}</div>
-            </td>
-            <td>
-                <div class="label">{{ __('ledgers.table.column_company') }}</div>
-                <div class="value">{{ $voucher->company_name ?: '-' }}</div>
-            </td>
-            <td>
-                <div class="label">{{ __('ledgers.table.column_total_amount') }}</div>
-                <div class="value">{{ number_format((float) $voucher->total_amount, 2) }}</div>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <div class="label">{{ __('payments.form.payment_transfer') }}</div>
-                <div class="value">{{ $voucher->payment_transfer_type?->label() ?? '-' }}</div>
-            </td>
-            <td colspan="3"></td>
-        </tr>
-    </table>
+    <div class="content">
+        <div class="muted">
+            {{ $voucher->status->value === 'posted'
+                ? __('journal_entries.status_approved')
+                : ($voucher->status->value === 'cancelled' ? __('ledgers.status_cancelled') : __('journal_entries.status_pending')) }}
+        </div>
 
-    <h2>{{ __('payments.table.column_entry') }}</h2>
-    <table>
-        <thead>
+        <table class="summary">
             <tr>
-                <th scope="col" style="width: 28px">#</th>
-                <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
-                <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
-                <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                <td width="65%">
+                    <div class="meta-label">{{ __('payments.pdf.paid_to') }}</div>
+                    <div class="party-name">{{ $voucher->company_name ?: '-' }}</div>
+                </td>
+                <td class="text-right">
+                    <span class="muted">{{ __('payments.pdf.date') }}:</span>
+                    {{ $voucher->date->format(Setting::getDefaultDate()) }}
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @php $displayEntries = $voucher->relationLoaded('apLedgers') ? $voucher->apLedgers : collect(); @endphp
-                        @forelse ($displayEntries as $line)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ (float)($line->debit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td>{{ (float)($line->credit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td class="text-end">{{ (float)($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
-                                <td class="text-end">{{ (float)($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="text-center fg-secondary">{{ $voucher->status?->value === 'posted' ? '-' : __('common.messages.no_data') }}</td></tr>
-                        @endforelse
-        </tbody>
-        <tfoot>
-            <tr>
-                <th scope="row" colspan="3" class="text-end">{{ __('common.labels.total') }}:</th>
-                <th scope="row" class="text-end">
-                    {{ number_format((float) $voucher->total_amount, 2) }}
-                </th>
-                <th scope="row" class="text-end">
-                    {{ number_format((float) $voucher->total_amount, 2) }}
-                </th>
-            </tr>
-        </tfoot>
-    </table>
+        </table>
 
-    @if ($voucher->notes)
-        <h2>{{ __('ledgers.table.column_notes') }}</h2>
-        <div>{{ $voucher->notes }}</div>
-    @endif
+        <div class="amount">
+            {{ __('payments.pdf.amount') }}: {{ $currencySymbol }} {{ number_format((float) $voucher->total_amount, 2) }}
+        </div>
 
-    {{-- The audit trail, printed on every copy: who prepared it, who approved
-         it, who cancelled it, and who brought a cancellation back, each with a
-         box to sign. --}}
-    <h2>{{ __('payment_vouchers.audit.role') }}</h2>
-    <table>
-        <thead>
+        <table class="detail">
             <tr>
-                <th scope="col" style="width: 130px">{{ __('payment_vouchers.audit.role') }}</th>
-                <th scope="col" style="width: 160px">{{ __('payment_vouchers.audit.name') }}</th>
-                <th scope="col" style="width: 110px">{{ __('payment_vouchers.audit.date') }}</th>
-                <th scope="col">{{ __('payment_vouchers.audit.signature') }}</th>
+                <td class="label">{{ __('payments.pdf.linked_invoice') }}</td>
+                <td>{{ $voucher->reference_number ?? '-' }}</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach ([
-                ['label' => __('payment_vouchers.audit.created_by'), 'name' => $voucher->created_name, 'at' => $voucher->created_at],
-                ['label' => __('payment_vouchers.audit.approved_by'), 'name' => $voucher->approved_name, 'at' => $voucher->approved_at],
-                ['label' => __('payment_vouchers.audit.cancelled_by'), 'name' => $voucher->cancelled_name, 'at' => $voucher->cancelled_at],
-            ] as $row)
+            <tr>
+                <td class="label">{{ __('payments.pdf.payment_transfer') }}</td>
+                <td>{{ $voucher->payment_transfer_type?->label() ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td class="label">{{ __('payments.form.paid_from') }}</td>
+                <td>{{ $moneyAccountText }}</td>
+            </tr>
+            @if ($voucher->notes)
                 <tr>
-                    <td>{{ $row['label'] }}</td>
-                    <td>{{ $row['name'] ?? '-' }}</td>
-                    <td>{{ $row['at']?->format(Setting::getDefaultDate('long_date_format')) ?? '-' }}</td>
-                    <td class="audit-signature"></td>
-                </tr>
-            @endforeach
-
-            @if ($voucher->undone_name !== null || $voucher->undone_at !== null)
-                <tr>
-                    <td>{{ __('payment_vouchers.audit.undone_by') }}</td>
-                    <td>{{ $voucher->undone_name ?? '-' }}</td>
-                    <td>{{ $voucher->undone_at?->format(Setting::getDefaultDate('long_date_format')) ?? '-' }}</td>
-                    <td class="audit-signature"></td>
+                    <td class="label">{{ __('ledgers.table.column_notes') }}</td>
+                    <td>{{ $voucher->notes }}</td>
                 </tr>
             @endif
-        </tbody>
-    </table>
+        </table>
+
+        <div class="section-title">{{ __('payments.table.column_entry') }}</div>
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 28px">#</th>
+                    <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
+                    <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
+                    <th scope="col" class="text-right">{{ __('ledgers.table.column_debit_amount') }}</th>
+                    <th scope="col" class="text-right">{{ __('ledgers.table.column_credit_amount') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($entries as $line)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ (float) ($line->debit_amount ?? 0) > 0 ? trim(($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
+                        <td>{{ (float) ($line->credit_amount ?? 0) > 0 ? trim(($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
+                        <td class="text-right">{{ (float) ($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
+                        <td class="text-right">{{ (float) ($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-right">{{ $voucher->isPosted() ? '-' : __('ledgers.no_records') }}</td>
+                    </tr>
+                @endforelse
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="3" scope="row">{{ __('common.labels.total') }}</th>
+                    <th scope="row">{{ number_format((float) $voucher->total_amount, 2) }}</th>
+                    <th scope="row">{{ number_format((float) $voucher->total_amount, 2) }}</th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="section-title">{{ __('common.labels.audit_trail') }}</div>
+        <table class="item-table audit-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 120px">{{ __('payment_vouchers.audit.role') }}</th>
+                    <th scope="col" style="width: 150px">{{ __('payment_vouchers.audit.name') }}</th>
+                    <th scope="col" style="width: 130px">{{ __('payment_vouchers.audit.date') }}</th>
+                    <th scope="col">{{ __('payment_vouchers.audit.signature') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ([
+                    ['label' => __('payment_vouchers.audit.created_by'), 'name' => $voucher->created_name, 'at' => $voucher->created_at],
+                    ['label' => __('payment_vouchers.audit.approved_by'), 'name' => $voucher->approved_name, 'at' => $voucher->approved_at],
+                    ['label' => __('payment_vouchers.audit.cancelled_by'), 'name' => $voucher->cancelled_name, 'at' => $voucher->cancelled_at],
+                ] as $row)
+                    <tr>
+                        <td>{{ $row['label'] }}</td>
+                        <td>{{ $row['name'] ?? '-' }}</td>
+                        <td>{{ $row['at']?->format(Setting::getDefaultDate('long_date_format')) ?? '-' }}</td>
+                        <td class="signature-box"></td>
+                    </tr>
+                @endforeach
+
+                @if ($voucher->undone_name !== null || $voucher->undone_at !== null)
+                    <tr>
+                        <td>{{ __('payment_vouchers.audit.undone_by') }}</td>
+                        <td>{{ $voucher->undone_name ?? '-' }}</td>
+                        <td>{{ $voucher->undone_at?->format(Setting::getDefaultDate('long_date_format')) ?? '-' }}</td>
+                        <td class="signature-box"></td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
+
+        <p class="signature">
+            ____________________________
+            <br />
+            {{ __('payments.pdf.authorised_signature') }}
+        </p>
+    </div>
 
     <div class="footer">
         {{ $voucher->document_number }} | {{ now()->format(Setting::getDefaultDate('long_date_format')) }}

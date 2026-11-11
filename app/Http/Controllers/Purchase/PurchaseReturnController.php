@@ -77,17 +77,25 @@ class PurchaseReturnController extends Controller
         // Group receipts by company → document for cascading filters.
         // Skip entries with no company (e.g. opening stock) — they have no
         // supplier to return to.
-        $grouped = $receipts->filter(fn (ProductLedger $row) => ! empty($row->company_name))
-            ->groupBy('company_name')->map(
-                fn (Collection $companyRows) => $companyRows->groupBy('document_number')->map(
-                    fn (Collection $docRows) => $docRows->map(fn (ProductLedger $row) => [
-                        'id' => $row->id,
-                        'product_name' => $row->product_name,
-                        'quantity' => $row->quantity,
-                        'reference_number' => $row->reference_number,
-                    ])
-                )
-            );
+        /** @var array<string, array<string, list<array{id: string, product_name: string, quantity: string, reference_number: string|null}>>> $groupedRows */
+        $groupedRows = [];
+
+        foreach ($receipts as $receipt) {
+            $companyName = $receipt->company_name;
+
+            if ($companyName === null || $companyName === '') {
+                continue;
+            }
+
+            $groupedRows[$companyName][$receipt->document_number][] = [
+                'id' => $receipt->id,
+                'product_name' => $receipt->product_name,
+                'quantity' => $receipt->quantity,
+                'reference_number' => $receipt->reference_number,
+            ];
+        }
+
+        $grouped = collect($groupedRows);
 
         return view('purchase.returns.create', [
             'groupedReceipts' => $grouped,

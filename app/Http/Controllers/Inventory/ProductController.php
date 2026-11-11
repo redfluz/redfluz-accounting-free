@@ -300,6 +300,11 @@ class ProductController extends Controller
                     // Stock transfers and stock takes have no detail screen in this edition.
                     ProductMovementSource::STOCK_TRANSFER => null,
                     ProductMovementSource::STOCK_TAKE => null,
+                    // RMA movements have no detail screen in this edition either.
+                    ProductMovementSource::RMA_RECEIPT => null,
+                    ProductMovementSource::RMA_REPLACEMENT => null,
+                    ProductMovementSource::RMA_RETURN_TO_STOCK => null,
+                    ProductMovementSource::RMA_WRITE_OFF => null,
                 };
 
                 $movement->setAttribute('document_url', $documentUrl);

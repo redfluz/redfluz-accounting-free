@@ -59,6 +59,12 @@
                     </form>
                 @endif
 
+                <a class="btn btn-solid theme-primary btn-sm text-nowrap"
+                    href="{{ route('bank.customer-refunds.pdf', $documentNumber) }}" target="_blank">
+                    <i class="me-1" data-lucide="file-type-2"></i>
+                    {{ __('payments.actions.print_pdf') }}
+                </a>
+
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('bank.customer-refunds.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>
                     {{ __('ledgers.back') }}

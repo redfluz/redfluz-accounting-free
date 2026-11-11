@@ -63,6 +63,7 @@ Route::get('journal-entries/history/{journalEntry}', [JournalEntryHistoryControl
 Route::patch('journal-entries/cancelled/{journalEntry}/uncancel', [JournalEntryCancelledController::class, 'uncancel'])->name('finance.journal-entries.cancelled.uncancel');
 Route::get('journal-entries/cancelled/{journalEntry}', [JournalEntryCancelledController::class, 'show'])->name('finance.journal-entries.cancelled.show');
 Route::get('journal-entries/create', [JournalEntryController::class, 'create'])->name('finance.journal-entries.create');
+Route::get('journal-entries/charts/search', [JournalEntryController::class, 'searchCharts'])->name('finance.journal-entries.charts.search');
 Route::post('journal-entries', [JournalEntryController::class, 'store'])->name('finance.journal-entries.store');
 Route::get('journal-entries/{journalEntry}/pdf', [JournalEntryController::class, 'pdf'])->name('finance.journal-entries.pdf');
 Route::get('journal-entries/{journalEntry}/edit', [JournalEntryController::class, 'edit'])->name('finance.journal-entries.edit');

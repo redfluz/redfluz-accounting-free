@@ -45,13 +45,16 @@ use App\Models\Bank\PaymentVoucher;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
 use App\Models\Purchase\PurchaseInvoice;
+use App\Models\System\Setting;
 use App\Services\DecimalService;
 use App\Support\Data\Bank\PaymentVoucherData;
 use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -73,9 +76,9 @@ class PaymentVoucherController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = trim((string) $request->input('search', ''));
-        $startDate = (string) ($request->input('start_date') ?? '');
-        $endDate = (string) ($request->input('end_date') ?? '');
+        $search = trim($request->string('search')->toString());
+        $startDate = $request->string('start_date')->toString();
+        $endDate = $request->string('end_date')->toString();
         $vouchers = PaymentVoucher::query()
             ->where('status', LedgerStatus::PENDING)
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
@@ -165,7 +168,7 @@ class PaymentVoucherController extends Controller
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
-                'status' => $data->status ?? LedgerStatus::PENDING,
+                'status' => $data->status,
                 'payment_transfer_type' => $transferType,
                 ...$this->moneyAccountColumns($transferType, $data),
                 'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
@@ -360,13 +363,11 @@ class PaymentVoucherController extends Controller
 
         $column = $transferType->accountColumn();
 
-        $columns[$column] = match ($column) {
-            'cash_account_id' => $data->cashAccountId,
-            'e_wallet_account_id' => $data->eWalletAccountId,
-            default => $data->bankAccountId,
+        return match ($column) {
+            'cash_account_id' => ['bank_account_id' => null, 'cash_account_id' => $data->cashAccountId, 'e_wallet_account_id' => null],
+            'e_wallet_account_id' => ['bank_account_id' => null, 'cash_account_id' => null, 'e_wallet_account_id' => $data->eWalletAccountId],
+            default => ['bank_account_id' => $data->bankAccountId, 'cash_account_id' => null, 'e_wallet_account_id' => null],
         };
-
-        return $columns;
     }
 
     /**
@@ -386,11 +387,12 @@ class PaymentVoucherController extends Controller
         $setting = ChartSetting::query()->first();
         $transferType = $voucher->payment_transfer_type ?? PaymentTransferType::CHEQUE;
         $moneyChartId = $voucher->moneyAccount()?->chart_id;
-        $creditChartId = $moneyChartId ?? ($transferType === PaymentTransferType::CASH
-            ? ($setting?->cash_chart_uuid ?? $setting?->bank_chart_uuid)
-            : ($transferType === PaymentTransferType::E_WALLET
-                ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid)
-                : $setting?->bank_chart_uuid));
+        $transferChartId = match ($transferType) {
+            PaymentTransferType::CASH => $setting?->cash_chart_uuid,
+            PaymentTransferType::E_WALLET => $setting?->e_wallet_chart_uuid,
+            default => null,
+        };
+        $creditChartId = $moneyChartId ?? $transferChartId ?? $setting?->bank_chart_uuid;
         $debitChartId = $setting?->vendor_chart_uuid;
         if (blank($debitChartId) || blank($creditChartId)) {
             throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
@@ -445,7 +447,6 @@ class PaymentVoucherController extends Controller
         $search = trim($validated['search'] ?? '');
 
         $results = PurchaseInvoice::query()
-            ->where('status', LedgerStatus::POSTED)
             ->where('company_id', $validated['company_id'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($subQuery) use ($search): void {
@@ -469,5 +470,28 @@ class PaymentVoucherController extends Controller
             ->values();
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Print one payment voucher.
+     *
+     * @param  string  $documentNumber  The document number of the payment voucher.
+     * @return Response Returns the PDF download response.
+     */
+    public function pdf(string $documentNumber): Response
+    {
+        $this->allows(FileResources::PAYMENT_VOUCHERS);
+
+        $voucher = PaymentVoucher::query()
+            ->where('document_number', $documentNumber)
+            ->firstOrFail();
+
+        return Pdf::loadView('bank.voucher.pdf', [
+            'voucher' => $voucher,
+            'documentNumber' => $documentNumber,
+            'setting' => Setting::query()->first(),
+        ])
+            ->setPaper('a4')
+            ->download("voucher_$documentNumber.pdf");
     }
 }

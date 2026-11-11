@@ -29,10 +29,8 @@ namespace App\Http\Controllers\Sales\Invoice;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\LedgerStatus;
-use App\Enums\Inventory\ProductMovementStatus;
 use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
-use App\Models\Inventory\ProductLedger;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
@@ -134,15 +132,13 @@ class HistoryController extends Controller
         /** @var Collection<int, SalesInvoiceLine> $lines */
         $lines = $invoice->lines;
 
-        $canDeductInventory = $lines->isNotEmpty()
-            && $invoice->sales_type === SalesType::PRODUCT
-            && $lines->every(fn (SalesInvoiceLine $line): bool => ! $line->deduct_inventory)
-            && ! ProductLedger::query()
-                ->where('document_number', $documentNumber)
-                ->where('status', ProductMovementStatus::ACTIVE->value)
-                ->exists();
+        $deductableLines = $lines
+            ->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null && ! $line->deduct_inventory)
+            ->values();
 
-        return view('sales.invoices.history.show', compact('documentNumber', 'lines', 'invoice', 'canDeductInventory'));
+        $canDeductInventory = $invoice->sales_type === SalesType::PRODUCT && $deductableLines->isNotEmpty();
+
+        return view('sales.invoices.history.show', compact('documentNumber', 'lines', 'invoice', 'canDeductInventory', 'deductableLines'));
     }
 
     /**

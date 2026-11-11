@@ -247,7 +247,9 @@
                         <td class="fw-bold text-end">{{ $remaining }}</td>
                         <td>
                             <div class="form-control form-adorn">
-                                <input class="form-ghost delivery-quantity"
+                                <label class="visually-hidden"
+                                       for="line-{{ $index }}-quantity">{{ __('delivery_orders.form.quantity') }}</label>
+                                <input id="line-{{ $index }}-quantity" class="form-ghost delivery-quantity"
                                        name="lines[{{ $index }}][quantity]" type="number"
                                        value="{{ old("lines.$index.quantity", $existingLines->get($line->id)?->quantity ?? $remaining) }}"
                                        min="0" max="{{ $remaining }}" step="0.0001"/>

@@ -169,7 +169,7 @@ class PurchaseInvoiceController extends Controller
 
         /** @var Collection<int, PaymentVoucher> $payments */
         $payments = PaymentVoucher::query()
-            ->with('lines')
+            ->with('apLedgers')
             ->where('reference_number', $documentNumber)
             ->orderBy('date')
             ->get();
@@ -234,13 +234,13 @@ class PurchaseInvoiceController extends Controller
         // The on-account payment is a payment voucher, so its printable document
         // is read from there rather than from wherever it was once stored.
         $payment = PaymentVoucher::query()
-            ->with(['company', 'lines'])
+            ->with(['company', 'apLedgers'])
             ->where('document_number', $paymentDocumentNumber)
             ->first();
 
         abort_if($payment === null, 404);
 
-        $paymentEntries = $payment->lines;
+        $paymentEntries = $payment->apLedgers;
 
         return Pdf::loadView('purchase.invoices.payment-pdf', [
             'payment' => $payment,
@@ -325,7 +325,7 @@ class PurchaseInvoiceController extends Controller
 
         /** @var Collection<int, PaymentVoucher> $paymentEntries */
         $paymentEntries = PaymentVoucher::query()
-            ->with('lines')
+            ->with('apLedgers')
             ->where('reference_number', $documentNumber)
             ->get();
 
@@ -1127,9 +1127,12 @@ class PurchaseInvoiceController extends Controller
      * The rows are written per invoice, the way a sales invoice writes them: one
      * debit to the purchase account, one debit to the input tax account when
      * GST/VAT is enabled, and one credit to the supplier for what is owed. Every
-     * general ledger row has the identical payable ledger row beside it. The
-     * supplier discount is never written to its own account; it stays inside the
-     * cost of the purchase.
+     * general ledger row has a payable ledger row beside it carrying the same
+     * figure against the same account, so the payable ledger holds exactly the
+     * rows the general ledger holds for this invoice - the cost row reads as the
+     * cost account and only the payable row reads as the supplier's. The supplier
+     * discount is never written to its own account; it stays inside the cost of
+     * the purchase.
      *
      * @param  PurchaseInvoice  $invoice  The invoice being posted.
      *
@@ -1184,7 +1187,7 @@ class PurchaseInvoiceController extends Controller
                 $expenseTotal, '0.00'
             );
             $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $vendorChart, $currencyId,
+                $invoice, $firstLine, $cogsChart, $currencyId,
                 $expenseTotal, '0.00'
             );
         }
@@ -1197,7 +1200,7 @@ class PurchaseInvoiceController extends Controller
                 $taxTotal, '0.00'
             );
             $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $vendorChart, $currencyId,
+                $invoice, $firstLine, $inputTaxChart, $currencyId,
                 $taxTotal, '0.00'
             );
         }

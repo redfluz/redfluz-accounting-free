@@ -49,6 +49,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $name
  * @property string $account_name
  * @property string|null $asset_location_id
+ * @property numeric-string|null $float_amount
  * @property CarbonInterface|null $deleted_at
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
@@ -79,6 +80,7 @@ class CashAccount extends Model
         return [
             'chart_id' => 'string',
             'asset_location_id' => 'string',
+            'float_amount' => 'decimal:2',
         ];
     }
 

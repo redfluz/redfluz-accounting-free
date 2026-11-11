@@ -27,6 +27,7 @@
 namespace App\Models\Crm;
 
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Finance\Currency;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -131,5 +132,25 @@ class ArLedger extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    /**
+     * Keep only the rows booked against the receivable control account.
+     *
+     * The receivable ledger mirrors the general ledger row for row, so a receipt
+     * writes two rows: one against the account the money moved and one against
+     * the receivable. What a customer has paid, and what of it can still be
+     * given back, is measured on the receivable side alone, and that side is the
+     * account the chart configuration names. A configuration with no receivable
+     * account names nothing to read, so the narrowed query returns no rows.
+     *
+     * @param  Builder<self>  $query  The receivable ledger query being narrowed.
+     * @return Builder<self> The same query, limited to the control account.
+     */
+    public function scopeAgainstReceivableAccount(Builder $query): Builder
+    {
+        $controlChartId = ChartSetting::query()->first()?->client_chart_uuid;
+
+        return $query->where('chart_id', is_string($controlChartId) ? $controlChartId : '');
     }
 }

@@ -45,6 +45,16 @@
                         </button>
                     </form>
                 @endif
+                @if ($salesOrder->status === SalesOrderStatus::APPROVED && !$salesOrder->invoice && $salesOrder->deliveryOrders->isEmpty() && $canApprove)
+                    <form autocomplete="off" action="{{ route('sales.sales-orders.revert', $salesOrder) }}" method="POST"
+                        data-confirm-message="{{ __('sales_orders.messages.revert_confirm') }}" data-confirm-tone="warning">
+                        @csrf
+                        @method('PATCH')
+                        <button class="btn btn-solid theme-warning btn-sm" type="submit">
+                            <i class="me-1" data-lucide="rotate-ccw"></i>{{ __('sales_orders.actions.revert_to_draft') }}
+                        </button>
+                    </form>
+                @endif
                 @if (in_array($salesOrder->status, [SalesOrderStatus::APPROVED, SalesOrderStatus::PARTIALLY_DELIVERED], true) &&
                         !$salesOrder->invoice &&
                         $canDeliver)

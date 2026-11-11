@@ -48,4 +48,20 @@ return [
         'no_results' => 'No accounts found',
         'search_error' => 'Error searching accounts',
     ],
+    'pdf' => [
+        'company_placeholder' => 'YOUR COMPANY',
+        'date' => 'Date',
+        'amount' => 'Amount',
+        'authorised_signature' => 'Authorised Signature',
+    ],
+    'audit' => [
+        'role' => 'Role',
+        'name' => 'Name',
+        'date' => 'Date',
+        'signature' => 'Signature',
+        'created_by' => 'Created By',
+        'approved_by' => 'Approved By',
+        'cancelled_by' => 'Cancelled By',
+        'undone_by' => 'Restored By',
+    ],
 ];

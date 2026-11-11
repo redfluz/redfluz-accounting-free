@@ -40,7 +40,6 @@ use App\Http\Requests\Sales\ManualAdjustment\UpdateManualSalesAdjustmentRequest;
 use App\Http\Requests\Sales\ManualSalesAdjustment\BatchApproveManualSalesAdjustmentRequest;
 use App\Http\Requests\Sales\ManualSalesAdjustment\BatchCancelManualSalesAdjustmentRequest;
 use App\Models\ChartOfAccount\Chart;
-use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\ArLedger;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
@@ -59,11 +58,13 @@ use App\Support\Posting\Posting;
 use App\Support\Traits\AttributesDocuments;
 use App\Traits\ChecksFinancialPostingDate;
 use App\Traits\GeneratesDocumentNumber;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -163,6 +164,33 @@ class ManualSalesAdjustmentController extends Controller
             'isPosted',
             'indexRoute'
         ) + $this->financialPostingDateBounds());
+    }
+
+    /**
+     * Print one manual sales adjustment.
+     *
+     * @param  string  $documentNumber  The manual adjustment document number.
+     * @return Response The PDF download response for the adjustment.
+     */
+    public function pdf(string $documentNumber): Response
+    {
+        $this->allows(FileResources::MANUAL_SALES_ADJUSTMENTS);
+
+        /** @var ManualSalesAdjustment|null $adjustment */
+        $adjustment = ManualSalesAdjustment::query()
+            ->with(['company', 'charts'])
+            ->where('document_number', $documentNumber)
+            ->first();
+
+        abort_if($adjustment === null, 404);
+
+        return Pdf::loadView('sales.manual-adjustments.pdf', [
+            'adjustment' => $adjustment,
+            'documentNumber' => $documentNumber,
+            'setting' => Setting::query()->first(),
+        ])
+            ->setPaper('a4')
+            ->download("manual_sales_adjustment_$documentNumber.pdf");
     }
 
     /**
@@ -480,7 +508,7 @@ class ManualSalesAdjustmentController extends Controller
      * Approve a manual sales adjustment and post its chart lines into the ledgers.
      *
      * The general ledger receives every line as keyed, and the receivable
-     * sub-ledger receives the lines that touch the client chart, so the
+     * sub-ledger receives those same lines against those same accounts, so the
      * customer's statement moves with the note the same way a product
      * invoice's does. Nothing else is written: no stock moves and no money
      * ledger row is raised by approving a manual adjustment.
@@ -529,41 +557,47 @@ class ManualSalesAdjustmentController extends Controller
             }
 
             // GL: direct from manual_sales_adjustment_charts
-            /** @var Collection<string, string> $accountDescriptions */
-            $accountDescriptions = Chart::query()
+            /** @var Collection<string, Chart> $accounts */
+            $accounts = Chart::query()
                 ->whereIn('id', $charts->map(fn (ManualSalesAdjustmentChart $c): ?string => $c->chart_id)->filter()->unique())
-                ->pluck('name', 'id');
+                ->get()
+                ->keyBy('id');
+
+            /** @var Collection<string, string> $accountDescriptions */
+            $accountDescriptions = $accounts->pluck('name', 'id');
 
             $glDtos = [];
             foreach ($charts as $chart) {
                 $glDtos[] = GeneralLedgerData::fromManualSalesAdjustmentLine($adjustment, $chart, $accountDescriptions);
             }
 
-            // AR: only chart lines against the client (AR control) account, direct from chart table
+            // AR: every chart line, each against the account it was booked to, so
+            // the receivable ledger holds exactly the rows the general ledger holds
+            // for this adjustment - the control-account line among them, not only it.
             $arDtos = [];
-            $chartConfig = ChartSetting::query()->first();
-            if ($chartConfig !== null && $chartConfig->client_chart_uuid !== null) {
-                $clientChartId = (string) $chartConfig->client_chart_uuid;
-                $clientChart = Chart::query()->find($clientChartId);
-                $currencyId = (string) (DB::table('currencies')->where('is_default', true)->value('id') ?? '');
-                if ($clientChart !== null) {
-                    foreach ($charts as $chart) {
-                        if ((string) $chart->chart_id !== $clientChartId) {
-                            continue;
-                        }
-                        $debit = (string) ($chart->debit_amount ?? '0.00');
-                        $credit = (string) ($chart->credit_amount ?? '0.00');
-                        if (bccomp($debit, '0.00', 2) !== 0 || bccomp($credit, '0.00', 2) !== 0) {
-                            $arDtos[] = ArLedgerData::fromManualSalesAdjustmentChartLine(
-                                $adjustment,
-                                $chart,
-                                $clientChart,
-                                $currencyId,
-                                $debit,
-                                $credit,
-                            );
-                        }
-                    }
+            /** @var string|null $defaultCurrencyId */
+            $defaultCurrencyId = Currency::query()->where('is_default', true)->value('id');
+            $currencyId = is_string($defaultCurrencyId) ? $defaultCurrencyId : '';
+
+            foreach ($charts as $chart) {
+                $account = $accounts->get((string) $chart->chart_id);
+
+                if ($account === null) {
+                    continue;
+                }
+
+                $debit = (string) ($chart->debit_amount ?? '0.00');
+                $credit = (string) ($chart->credit_amount ?? '0.00');
+
+                if (bccomp($debit, '0.00', 2) !== 0 || bccomp($credit, '0.00', 2) !== 0) {
+                    $arDtos[] = ArLedgerData::fromManualSalesAdjustmentChartLine(
+                        $adjustment,
+                        $chart,
+                        $account,
+                        $currencyId,
+                        $debit,
+                        $credit,
+                    );
                 }
             }
 

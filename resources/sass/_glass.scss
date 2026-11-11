@@ -28,7 +28,89 @@
     --app-glass-chrome-bg: color-mix(in srgb, var(--bg-1) 68%, transparent);
     --app-glass-menu-bg: color-mix(in srgb, var(--bg-body) 82%, transparent);
 
-    --app-glass-border: color-mix(in srgb, var(--border-color) 66%, transparent);
+    // The outer edge has no colour at all now, so this token is only what is left
+    // of it: the topbar/footer hairlines and the card header separators, which are
+    // dividers between surfaces rather than a border around the wallpaper.
+    //
+    // Opaque, but effectively neutral. Mixing the palette edge halfway to white
+    // still carried its hue — on Verdant that came out as a green rim, which is
+    // the opposite of the soft light edge being asked for. At 15% the tint is a
+    // whisper and the rim reads as light on any palette, while the small amount of
+    // hue keeps it from looking like a foreign white line dropped onto a coloured
+    // theme.
+    --app-glass-border: color-mix(in srgb, var(--border-color) 15%, #fff);
+
+    // Inside band — one light stroke just inside the card's edge.
+    //
+    // Width is capped by the cards' own padding, which is not a token: the blades
+    // set it per page (`card-body p-4` resolves to 12px, a card header's horizontal
+    // padding to 16px). The band is an overlay, so anything wider than that sits on
+    // top of the padding and every heading looks flush to the edge — an 11px band
+    // left 1px of air on a 12px card. 5px keeps at least 7px clear everywhere
+    // without touching hundreds of Blade files.
+    //
+    // Colour comes from the theme's own ink, not a literal. A hardcoded light grey
+    // (`#d3d9df`) is only correct at one end of the range: on a pale card it is a
+    // soft frame, on a dark palette it is a bright foreign rim that no theme asked
+    // for — the "why sudden gray border" complaint. Mixing away from `--fg-body`
+    // keeps the same relationship at both ends because it is always the same
+    // distance from the surface it sits on: 16% of ink is a light grey on a white
+    // card (about rgb(224,215,222) on Pink Panther, ~30 below the surface) and a
+    // dark grey on a navy one (about rgb(62,71,87) on Dark, ~32 above it).
+    //
+    // Ink rather than `--border-color` on purpose: the border token carries the
+    // palette hue, which is what painted a green edge across all of Verdant. Ink is
+    // a near-neutral slate, so the band reads as grey on every theme. The alpha
+    // stays so the frame is part of the glass rather than a line drawn on top.
+    --app-beam-width: 5px;
+    --app-beam-band: color-mix(in srgb, var(--fg-body) 16%, transparent);
+
+    // Surfaces stacked *inside* a card. The card itself is translucent, but
+    // everything sitting on it was opaque: table cells repaint themselves from
+    // `--table-bg`, form controls from `--btn-input-bg`, accordions from
+    // `--accordion-bg`. A glass frame around solid slabs is what made the theme
+    // read as broken — the transparency was only ever visible in the strip of
+    // padding nobody looks at.
+    //
+    // Rows are the lightest (45%) because they cover the most area; the header band
+    // stays stronger (60%) so the ramp `_theme.scss` builds survives — band darker
+    // than rows, stripe a wash over the row.
+    --app-glass-row-bg: color-mix(in srgb, var(--bg-1) 45%, transparent);
+    --app-glass-band-bg: color-mix(in srgb, var(--primary-bg-muted) 60%, transparent);
+    --app-glass-field-bg: color-mix(in srgb, var(--bg-1) 55%, transparent);
+}
+
+// --- Wallpaper raises the surfaces, but only where the palette stays silent ----
+// At the default opacities a saturated photograph is what the user actually sees
+// rather than what they picked: a card is 76% surface and 24% photo, a header only
+// 58%, and `backdrop-filter` adds 160% saturate to whatever leaks through — so a
+// pink wallpaper paints every card pink no matter which palette is selected. The
+// palette survives on the solid controls, but the surfaces stop carrying it and the
+// theme reads as broken. Pulling them up to 90/86/88/94% gives the theme's own
+// colour back and leaves the image as depth at the edges.
+//
+// It is declared on `html` even though the `has-custom-background` class lives on
+// `body`, and that is the whole point. Three palettes author their own glass tokens
+// in `themes.css` — Zelda sets a dark green chrome, `rgb(23 60 43 / 97%)`, because
+// its menu labels are light gold — and a declaration on `body` always beats an
+// inherited one on `html`, whatever the specificity. The blanket override that used
+// to sit on the body repainted Zelda's topbar parchment and its pale gold labels
+// went with it: "can i read the menu ? i can't".
+//
+// `:where()` contributes no specificity, so this rule is exactly as strong as the
+// `:root` block above it and no stronger — the later of the two wins here, and the
+// palette blocks, same element and same weight but a stylesheet loaded after this
+// one, win over both. Palettes that chose a surface keep it wallpaper or not; the
+// twelve that did not still get the raise.
+:root:where(:has(body.has-custom-background)) {
+    --app-glass-card-bg: color-mix(in srgb, var(--bg-1) 90%, transparent);
+    --app-glass-card-header-bg: color-mix(in srgb, var(--bg-1) 86%, transparent);
+    --app-glass-chrome-bg: color-mix(in srgb, var(--bg-1) 88%, transparent);
+    --app-glass-menu-bg: color-mix(in srgb, var(--bg-body) 94%, transparent);
+
+    // No border override here on purpose. The edge is already opaque at the base
+    // token, and restating it at 80% would make the wallpaper case *weaker* than
+    // the plain one — the opposite of what this block is for.
 }
 
 // --- Topbar -----------------------------------------------------------------
@@ -49,9 +131,24 @@
 // --- Cards ------------------------------------------------------------------
 // `!important` is required because `_theme.scss` sets the card background with
 // the same weight. Both files are unlayered, so this later rule wins.
+//
+// The card's own edge is colourless: `border-color: transparent` keeps the 1px
+// box (so a card's geometry does not shift) while leaving the outline to the
+// inside band below.
+//
+// The curve is restated as 20px on the card alone. Bootstrap's default comes from
+// `--radius-7`, which form fields, toasts and popovers also read, so changing the
+// scale token would round half the application; `--card-border-radius` is the
+// card's own handle. It has to be that variable rather than a direct
+// `border-radius` too, because `--card-inner-border-radius` is derived from it and
+// that is what keeps a `.card-header`'s top corners on the same curve.
+//
+// The band needs this: its inner edge is `radius - width`, so 20 − 5 leaves a 15px
+// curve and both sides of the frame read as rounded.
 .card {
+    --card-border-radius: 1.25rem;
     background-color: var(--app-glass-card-bg) !important;
-    border-color: var(--app-glass-border) !important;
+    border-color: transparent !important;
     -webkit-backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
     backdrop-filter: blur(var(--app-glass-blur)) saturate(var(--app-glass-saturate));
 }
@@ -62,6 +159,76 @@
 // supported and lets this stay a CSS concern rather than a script hook.
 .card:has(.menu.show) {
     z-index: 2;
+}
+
+// --- Inside band --------------------------------------------------------------
+// A border cannot be 11px of soft light that also stops before the content does,
+// so the band is a box whose gradient is painted only into its own padding area:
+// `mask-composite: exclude` (with the older WebKit keyword for Safari) subtracts
+// the content box from the full box and leaves the `--app-beam-width` frame.
+// `pointer-events: none` stops it swallowing clicks on the card edge.
+//
+// The ring inherits the card's `border-radius`, so it is always exactly the card's
+// own curve whatever utility class the element carries. `z-index` is deliberately
+// unset: the band paints above the static header and body, but below positioned
+// descendants such as an open menu inside the card.
+
+.card::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    padding: var(--app-beam-width);
+    border-radius: inherit;
+    background-color: var(--app-beam-band);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+// --- What sits inside the glass ------------------------------------------------
+// `_theme.scss` sets the table tokens on the cells themselves, so a value on the
+// card cannot reach them by inheritance; the same selectors are restated here with
+// alpha, and this file is imported after that one, so matching specificity is
+// enough. `.table-form` is deliberately excluded from the base-row rules: those
+// grids are data entry, and an opaque cell behind an input is the point.
+//
+// `--btn-input-bg` and `--accordion-bg` are different: Bootstrap declares
+// `--control-bg: var(--btn-input-bg)` on the control, so repointing the *source*
+// token on the card is what changes the fill, and it only takes effect inside one.
+.table:not(.table-form) > thead > tr > th,
+.table:not(.table-form) > tfoot > tr > th,
+.table:not(.table-form) > tfoot > tr > td {
+    --table-bg: var(--app-glass-band-bg);
+}
+
+.table:not(.table-form) > tbody > tr > td {
+    --table-bg: var(--app-glass-row-bg);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > *,
+.table-striped-columns > :not(caption) > tr > :nth-child(2n) {
+    --table-bg-type: color-mix(in srgb, var(--primary-base) 10%, var(--app-glass-row-bg));
+}
+
+.table-hover > tbody > tr:hover > *,
+.table-active > * > * {
+    --table-bg-state: var(--app-glass-band-bg);
+}
+
+.card {
+    --btn-input-bg: var(--app-glass-field-bg);
+
+    // The accordion paints three separate surfaces: the item from `--accordion-bg`,
+    // the summary row from `--accordion-btn-bg`, and the open state from
+    // `--accordion-active-bg`. Repointing only the first left the Filters bar as an
+    // opaque slab inside a translucent card.
+    .accordion {
+        --accordion-bg: var(--app-glass-field-bg);
+        --accordion-btn-bg: var(--app-glass-field-bg);
+        --accordion-active-bg: var(--app-glass-band-bg);
+    }
 }
 
 .card-header,

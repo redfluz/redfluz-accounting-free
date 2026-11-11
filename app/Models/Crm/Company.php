@@ -196,9 +196,11 @@ class Company extends Model
             return ['outstanding_amount' => 0.00, 'due_date' => null];
         }
 
+        $dueDate = $result->getAttribute('due_date');
+
         return [
             'outstanding_amount' => (float) $outstandingAmount,
-            'due_date' => $result->due_date,
+            'due_date' => is_string($dueDate) ? $dueDate : null,
         ];
     }
 

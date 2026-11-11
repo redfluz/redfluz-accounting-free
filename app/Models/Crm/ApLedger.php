@@ -27,6 +27,7 @@
 namespace App\Models\Crm;
 
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Finance\Currency;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -131,5 +132,25 @@ class ApLedger extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    /**
+     * Keep only the rows booked against the payable control account.
+     *
+     * The payable ledger mirrors the general ledger row for row, so a payment
+     * voucher writes two rows: one against the payable and one against the
+     * account the money left. What a supplier was paid, and what of it can still
+     * be recovered, is measured on the payable side alone, and that side is the
+     * account the chart configuration names. A configuration with no payable
+     * account names nothing to read, so the narrowed query returns no rows.
+     *
+     * @param  Builder<self>  $query  The payable ledger query being narrowed.
+     * @return Builder<self> The same query, limited to the control account.
+     */
+    public function scopeAgainstPayableAccount(Builder $query): Builder
+    {
+        $controlChartId = ChartSetting::query()->first()?->vendor_chart_uuid;
+
+        return $query->where('chart_id', is_string($controlChartId) ? $controlChartId : '');
     }
 }

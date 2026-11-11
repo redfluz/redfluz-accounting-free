@@ -42,13 +42,16 @@ use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
 use App\Models\Sales\SalesInvoice;
+use App\Models\System\Setting;
 use App\Services\DecimalService;
 use App\Support\Data\Bank\ReceiptData;
 use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -69,9 +72,9 @@ class ReceiptController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = trim((string) $request->input('search', ''));
-        $startDate = (string) ($request->input('start_date') ?? '');
-        $endDate = (string) ($request->input('end_date') ?? '');
+        $search = trim($request->string('search')->toString());
+        $startDate = $request->string('start_date')->toString();
+        $endDate = $request->string('end_date')->toString();
 
         $receipts = Receipt::query()
             ->where('status', LedgerStatus::PENDING)
@@ -153,7 +156,7 @@ class ReceiptController extends Controller
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
-                'status' => $data->status ?? LedgerStatus::PENDING,
+                'status' => $data->status,
                 'payment_transfer_type' => $data->paymentTransferType ?? PaymentTransferType::CHEQUE,
                 'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
                 'notes' => $data->notes, 'total_amount' => $amount,
@@ -313,11 +316,11 @@ class ReceiptController extends Controller
     {
         $setting = ChartSetting::query()->first();
         $transferType = $receipt->payment_transfer_type ?? PaymentTransferType::CHEQUE;
-        $debitChartId = $transferType === PaymentTransferType::CASH
-            ? ($setting?->cash_chart_uuid ?? $setting?->bank_chart_uuid)
-            : ($transferType === PaymentTransferType::E_WALLET
-                ? ($setting?->e_wallet_chart_uuid ?? $setting?->bank_chart_uuid)
-                : $setting?->bank_chart_uuid);
+        $debitChartId = match ($transferType) {
+            PaymentTransferType::CASH => $setting?->cash_chart_uuid,
+            PaymentTransferType::E_WALLET => $setting?->e_wallet_chart_uuid,
+            default => null,
+        } ?? $setting?->bank_chart_uuid;
         $creditChartId = $setting?->client_chart_uuid;
         if (blank($debitChartId) || blank($creditChartId)) {
             throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
@@ -372,7 +375,6 @@ class ReceiptController extends Controller
         $search = trim($validated['search'] ?? '');
 
         $results = SalesInvoice::query()
-            ->where('status', LedgerStatus::POSTED)
             ->where('company_id', $validated['company_id'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($subQuery) use ($search): void {
@@ -396,5 +398,28 @@ class ReceiptController extends Controller
             ->values();
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Print one receipt.
+     *
+     * @param  string  $documentNumber  The document number of the receipt.
+     * @return Response Returns the PDF download response.
+     */
+    public function pdf(string $documentNumber): Response
+    {
+        $this->allows(FileResources::PAYMENTS);
+
+        $receipt = Receipt::query()
+            ->where('document_number', $documentNumber)
+            ->firstOrFail();
+
+        return Pdf::loadView('bank.receipt.pdf', [
+            'receipt' => $receipt,
+            'documentNumber' => $documentNumber,
+            'setting' => Setting::query()->first(),
+        ])
+            ->setPaper('a4')
+            ->download("receipt_$documentNumber.pdf");
     }
 }

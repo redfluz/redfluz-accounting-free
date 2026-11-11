@@ -31,12 +31,26 @@ body.app-background::before {
     pointer-events: none;
 }
 
-// A photograph is much stronger than the shipped paper mesh, so it is held back
-// a little further. The glass cards and topbar provide the rest of the scrim,
-// keeping text readable without hiding the image the user chose.
+// Back to full strength. The 0.6 here was set when the glass surfaces were
+// translucent enough for a saturated photo to tint every card — dimming the image
+// was the only way to keep the palette readable. The surfaces now carry that scrim
+// on their own, and holding the wallpaper back at the same time was double-muting:
+// the photograph itself was being blended into the pale body fill behind it, which
+// is what made the background look like it had an opacity applied while the card
+// edge looked solid.
+//
+// The image is now the image. Where it is not covered — the gutters and the strip
+// beside the cards — it reads at full colour; inside a card the surface does the
+// muting, which is the depth effect the fixed layer is for.
 body.app-background.has-custom-background::before {
-    opacity: 0.6;
+    opacity: 1;
 }
+
+// The surfaces this used to raise are raised in `_glass.scss` instead, on `html`.
+// Stated here they could only ever win: a value on `body` beats the inherited one
+// on `html` no matter how specific either is, so this block overrode the chrome and
+// card colours that `themes.css` authors per palette — including Zelda's dark green
+// topbar, which its light gold menu labels are sized against. See the block there.
 
 // The chrome must paint over the fixed layer. A stacking context is enough and
 // leaves the page content itself untouched.

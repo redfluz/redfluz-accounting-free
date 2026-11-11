@@ -105,7 +105,7 @@
                                 <td class="text-end">{{ (float)($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center fg-secondary">{{ $receipt->isPosted() ? '-' : __('common.messages.no_data') }}</td></tr>
+                            <tr><td colspan="5" class="text-center fg-secondary">{{ $receipt->isPosted() ? '-' : __('ledgers.no_records') }}</td></tr>
                         @endforelse
                     </tbody>
                     <tfoot class="bg-1 fw-bold border-top">

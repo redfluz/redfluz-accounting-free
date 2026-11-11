@@ -20,7 +20,7 @@
     <div class="fg-secondary small">{{ __('products.variants.hint') }}</div>
 </div>
 
-@for ($variantIndex = 0; $variantIndex < 10; $variantIndex++)
+@for ($variantIndex = 0; $variantIndex < $perPageGridDetail; $variantIndex++)
         <?php $variant = $variants[$variantIndex] ?? []; ?>
     <div class="variant-row mb-3 rounded border p-3" data-variant-row>
         @if (! empty($variant['id']))

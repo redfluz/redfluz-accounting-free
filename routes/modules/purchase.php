@@ -63,6 +63,7 @@ Route::patch('goods-receipt-adjustments/{entryId}/cancel', [GoodsReceiptAdjustme
 Route::patch('goods-receipt-adjustments/cancelled/{entryId}/uncancel', [GoodsReceiptAdjustmentController::class, 'uncancel'])->name('purchase.goods-receipt-adjustments.uncancel');
 Route::get('goods-receipts', [GoodsReceiptController::class, 'index'])->name('purchase.goods-receipts.index');
 Route::get('goods-receipts/create', [GoodsReceiptController::class, 'create'])->name('purchase.goods-receipts.create');
+Route::get('goods-receipts/products/search', [GoodsReceiptController::class, 'searchProducts'])->name('purchase.goods-receipts.products.search');
 Route::post('goods-receipts', [GoodsReceiptController::class, 'store'])->name('purchase.goods-receipts.store');
 Route::delete('goods-receipts/{documentNumber}', [GoodsReceiptController::class, 'destroy'])->name('purchase.goods-receipts.destroy');
 Route::get('goods-receipts/{documentNumber}/edit', [GoodsReceiptController::class, 'edit'])->name('purchase.goods-receipts.edit');
@@ -118,9 +119,11 @@ Route::get('manual-purchase-adjustments', [ManualPurchaseAdjustmentController::c
 Route::get('manual-purchase-adjustments/cancelled', [CancelledController::class, 'index'])->name('purchase.manual-adjustments.cancelled.index');
 Route::get('manual-purchase-adjustments/cancelled/export-excel', [CancelledController::class, 'exportExcel'])->name('purchase.manual-adjustments.cancelled.export-excel');
 Route::get('manual-purchase-adjustments/cancelled/export-pdf', [CancelledController::class, 'exportPdf'])->name('purchase.manual-adjustments.cancelled.export-pdf');
+Route::get('manual-purchase-adjustments/cancelled/{documentNumber}/pdf', [CancelledController::class, 'pdf'])->name('purchase.manual-adjustments.cancelled.pdf');
 Route::get('manual-purchase-adjustments/history', [HistoryController::class, 'index'])->name('purchase.manual-adjustments.history.index');
 Route::get('manual-purchase-adjustments/history/export-excel', [HistoryController::class, 'exportExcel'])->name('purchase.manual-adjustments.history.export-excel');
 Route::get('manual-purchase-adjustments/history/export-pdf', [HistoryController::class, 'exportPdf'])->name('purchase.manual-adjustments.history.export-pdf');
+Route::get('manual-purchase-adjustments/history/{documentNumber}/pdf', [HistoryController::class, 'pdf'])->name('purchase.manual-adjustments.history.pdf');
 Route::get('manual-purchase-adjustments/history/{documentNumber}', [HistoryController::class, 'show'])->name('purchase.manual-adjustments.history.show');
 Route::patch('manual-purchase-adjustments/cancelled/{documentNumber}/uncancel', [CancelledController::class, 'uncancel'])->name('purchase.manual-adjustments.cancelled.uncancel');
 Route::get('manual-purchase-adjustments/cancelled/{documentNumber}', [CancelledController::class, 'show'])->name('purchase.manual-adjustments.cancelled.show');
@@ -135,4 +138,5 @@ Route::patch('manual-purchase-adjustments/{documentNumber}/approve', [ManualPurc
 Route::patch('manual-purchase-adjustments/{documentNumber}/reverse', [ManualPurchaseAdjustmentController::class, 'reverse'])->name('purchase.manual-adjustments.reverse');
 Route::post('manual-purchase-adjustments/batch-approve', [ManualPurchaseAdjustmentController::class, 'batchApprove'])->name('purchase.manual-adjustments.batch-approve');
 Route::post('manual-purchase-adjustments/batch-cancel', [ManualPurchaseAdjustmentController::class, 'batchCancel'])->name('purchase.manual-adjustments.batch-cancel');
+Route::get('manual-purchase-adjustments/{documentNumber}/pdf', [ManualPurchaseAdjustmentController::class, 'pdf'])->name('purchase.manual-adjustments.pdf');
 Route::get('manual-purchase-adjustments/{documentNumber}', [ManualPurchaseAdjustmentController::class, 'show'])->name('purchase.manual-adjustments.show');

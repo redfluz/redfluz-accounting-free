@@ -30,6 +30,7 @@ namespace App\Http\Requests\Finance\JournalEntry;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Http\Controllers\Controller;
 
 /**
  * The fields a journal entry is created from.
@@ -67,7 +68,7 @@ class StoreJournalEntryRequest extends JournalEntryRequest
             'date' => ['required', 'date'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
-            'items' => ['required', 'array', 'size:10'],
+            'items' => ['required', 'array', 'size:'.Controller::detailGridRows()],
             'items.*.chart_id' => ['nullable', 'uuid'],
             'items.*.description' => ['nullable', 'string', 'max:255'],
             'items.*.debit_amount' => ['nullable', 'numeric', 'min:0'],

@@ -45,3 +45,6 @@
 .sortable-chosen {
     background-color: var(--bs-tertiary-bg);
 }
+.vc[data-vc="calendar"] {
+    z-index: var(--z-toast) !important;
+}

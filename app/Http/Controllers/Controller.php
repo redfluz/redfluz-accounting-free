@@ -51,4 +51,19 @@ class Controller extends BaseController
     protected const int PER_PAGE_GRID_NORMAL = 10;
 
     protected const int PER_PAGE_GRID_STANDARD = 500;
+
+    /**
+     * Number of detail rows rendered on create and edit forms.
+     */
+    protected const int PER_PAGE_GRID_DETAIL = 10;
+
+    /**
+     * Expose the detail-grid row count to views and validation rules.
+     *
+     * @return int The number of detail rows a master-detail form shows and accepts.
+     */
+    public static function detailGridRows(): int
+    {
+        return self::PER_PAGE_GRID_DETAIL;
+    }
 }

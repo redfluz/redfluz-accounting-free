@@ -103,4 +103,16 @@ return [
         'cancelled_by' => 'Cancelled By',
         'undone_by' => 'Restored By',
     ],
+
+    'coa_picker' => [
+        'title' => 'Select Account',
+        'search_placeholder' => 'Search by code, name, or type...',
+        'all_types' => 'All Types',
+        'code' => 'Code',
+        'name' => 'Name',
+        'type' => 'Type',
+        'type_to_search' => 'Type at least 2 characters to search',
+        'no_results' => 'No accounts found',
+        'search_error' => 'Error searching accounts',
+    ],
 ];

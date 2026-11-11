@@ -36,9 +36,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Finance\JournalEntry\BatchApproveJournalEntryRequest;
 use App\Http\Requests\Finance\JournalEntry\BatchCancelJournalEntryRequest;
 use App\Http\Requests\Finance\JournalEntry\ReverseJournalEntryRequest;
+use App\Http\Requests\Finance\JournalEntry\SearchJournalEntryChartsRequest;
 use App\Http\Requests\Finance\JournalEntry\StoreJournalEntryRequest;
 use App\Http\Requests\Finance\JournalEntry\UpdateJournalEntryRequest;
 use App\Models\ChartOfAccount\Chart;
+use App\Models\ChartOfAccount\ChartType;
 use App\Models\Finance\Currency;
 use App\Models\Finance\JournalEntry;
 use App\Models\Finance\JournalEntryChart;
@@ -50,6 +52,7 @@ use App\Traits\GeneratesDocumentNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -132,6 +135,11 @@ class JournalEntryController extends Controller
             ->orderBy('code')
             ->get(['id', 'code', 'name']);
 
+        /** @var Collection<int, ChartType> $chartTypes */
+        $chartTypes = ChartType::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         $prefillItems = [];
         $prefillDate = today()->format('Y-m-d');
         $prefillReference = null;
@@ -139,7 +147,7 @@ class JournalEntryController extends Controller
 
         return view(
             'finance.journal-entries.create',
-            compact('charts', 'prefillItems', 'prefillDate', 'prefillReference', 'prefillNotes')
+            compact('charts', 'chartTypes', 'prefillItems', 'prefillDate', 'prefillReference', 'prefillNotes')
                 + ['postingDateMin' => null, 'postingDateMax' => null]
         );
     }
@@ -248,7 +256,12 @@ class JournalEntryController extends Controller
             ->orderBy('code')
             ->get(['id', 'code', 'name']);
 
-        return view('finance.journal-entries.edit', compact('journalEntry', 'charts'));
+        /** @var Collection<int, ChartType> $chartTypes */
+        $chartTypes = ChartType::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('finance.journal-entries.edit', compact('journalEntry', 'charts', 'chartTypes'));
     }
 
     /**
@@ -790,6 +803,50 @@ class JournalEntryController extends Controller
         return redirect()
             ->route('finance.journal-entries.cancelled.index')
             ->with('success', __('common.messages.batch_cancelled', ['count' => $count]));
+    }
+
+    /**
+     * Search the chart of accounts for the journal entry account picker.
+     *
+     * The picker searches instead of listing every account in a dropdown, so this
+     * answers the typed text, matched against code, name or account type, and the
+     * optional type filter, with the accounts that fit. The list is ordered by
+     * code and capped, which is as much as the dialog's table can show at once.
+     *
+     * @param  SearchJournalEntryChartsRequest  $request  The search carrying the typed text and the optional account type filter.
+     * @return JsonResponse The matching accounts as id, code, name and type for the picker table.
+     */
+    public function searchCharts(SearchJournalEntryChartsRequest $request): JsonResponse
+    {
+        /** @var array{q?: string|null, type_id?: string|null} $validated */
+        $validated = $request->validated();
+
+        $search = trim((string) ($validated['q'] ?? ''));
+        $typeId = (string) ($validated['type_id'] ?? '');
+
+        /** @var Collection<int, Chart> $charts */
+        $charts = Chart::query()
+            ->with('chartType')
+            ->whereNotNull('code')
+            ->when($search !== '', function ($chartQuery) use ($search): void {
+                $chartQuery->where(function ($innerQuery) use ($search): void {
+                    $innerQuery->where('code', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhereHas('chartType', fn ($typeQuery) => $typeQuery->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($typeId !== '', fn ($chartQuery) => $chartQuery->where('chart_type_id', $typeId))
+            ->orderBy('code')
+            ->limit(50)
+            ->get()
+            ->map(fn (Chart $chart): array => [
+                'id' => $chart->id,
+                'code' => $chart->code,
+                'name' => $chart->name,
+                'type' => $chart->chartType->name ?? '',
+            ]);
+
+        return response()->json($charts);
     }
 
     /**

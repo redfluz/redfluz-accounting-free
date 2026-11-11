@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Enums\UploadType;
+use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 /**
@@ -79,7 +80,7 @@ class StorePurchaseInvoiceRequest extends PurchaseInvoiceRequest
             'credit_term_days' => ['required', 'integer', 'min:0', 'max:365'],
             'invoice_attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:5120'],
             'invoice_notes' => ['nullable', 'string'],
-            'lines' => ['required', 'array', 'size:10'],
+            'lines' => ['required', 'array', 'size:'.Controller::detailGridRows()],
             'lines.*.description' => ['nullable', 'string', 'max:1000'],
             'lines.*.quantity' => ['nullable', 'integer', 'min:1'],
             'lines.*.unit_price' => ['nullable', 'numeric', 'min:0'],

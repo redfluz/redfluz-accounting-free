@@ -47,9 +47,11 @@ use Throwable;
 /**
  * Seed traceable document flows to the general, receivable and payable ledgers.
  *
- * Sales invoices and sales adjustments write their counterparty leg to
- * ar_ledgers; purchase invoices and purchase notes write theirs to ap_ledgers.
- * Both sides of every posted entry go to ledgers.
+ * Sales documents write their rows to ar_ledgers and purchase documents to
+ * ap_ledgers, and they write the same rows the general ledger holds: every side
+ * of a posted entry appears in both ledgers, against the account that side was
+ * booked to. A statement read from the sub-ledger therefore holds exactly what
+ * the same document holds in the general ledger.
  */
 class SubLedgerSeeder extends Seeder
 {
@@ -582,11 +584,16 @@ class SubLedgerSeeder extends Seeder
     }
 
     /**
-     * Seed one balanced document to the general ledger and the appropriate
-     * sub-ledger (ar_ledgers for sales, ap_ledgers for purchases).
+     * Seed one balanced document to the general ledger and the party sub-ledger.
      *
-     * @param  array<string, mixed>  $document
-     * @param  Collection<string, stdClass>  $charts
+     * Sales documents go to ar_ledgers and purchase documents to ap_ledgers, and
+     * both ledgers receive the same two rows: the sub-ledger is a copy of the
+     * document's general ledger rows, filed under the party, rather than only the
+     * half of the entry that names them. A document that is not posted leaves no
+     * row in either ledger.
+     *
+     * @param  array<string, mixed>  $document  The document blueprint, with its number, accounts, amount and status.
+     * @param  Collection<string, stdClass>  $charts  The chart accounts, keyed by code.
      * @param  stdClass  $company  The company record for the document.
      * @param  stdClass  $product  The product record for the document.
      * @param  ?string  $currencyId  The default currency UUID.
@@ -652,37 +659,27 @@ class SubLedgerSeeder extends Seeder
             DB::table('ledgers')->updateOrInsert(['id' => $creditLineId], $creditRow);
 
             if ($isSales) {
-                DB::table('ar_ledgers')->updateOrInsert(
-                    ['id' => $debitLineId],
-                    [
-                        'chart_id' => $debitChart->id,
-                        'company_id' => $company->id,
-                        'currency_id' => $currencyId,
-                        'type' => $document['type']->value,
-                        'subtype' => $subtype->value,
-                        'document_number' => $document['document_number'],
-                        'date' => $document['date'],
-                        'reference_number' => $document['reference_number'],
-                        'chart_code' => $debitChart->code,
-                        'chart_name' => $debitChart->name,
-                        'chart_description' => null,
-                        'company_name' => $company->name,
-                        'description' => $document['notes'],
-                        'debit_amount' => $document['amount'],
-                        'credit_amount' => '0.00',
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                        'deleted_at' => null,
-                    ]
-                );
-                DB::table('ap_ledgers')
-                    ->where('document_number', $document['document_number'])
-                    ->delete();
+                $partyTable = 'ar_ledgers';
+                $otherTable = 'ap_ledgers';
             } else {
-                DB::table('ap_ledgers')->updateOrInsert(
-                    ['id' => $creditLineId],
+                $partyTable = 'ap_ledgers';
+                $otherTable = 'ar_ledgers';
+            }
+
+            // The sub-ledger holds the same rows as the general ledger, each
+            // against the account that row was booked to, so both sides of this
+            // entry are written rather than only the side that names the party.
+            $partyLines = [
+                ['id' => $debitLineId, 'chart' => $debitChart, 'debit_amount' => $document['amount'], 'credit_amount' => '0.00'],
+                ['id' => $creditLineId, 'chart' => $creditChart, 'debit_amount' => '0.00', 'credit_amount' => $document['amount']],
+            ];
+
+            /** @var array{id: string, chart: stdClass, debit_amount: string, credit_amount: string} $line */
+            foreach ($partyLines as $line) {
+                DB::table($partyTable)->updateOrInsert(
+                    ['id' => $line['id']],
                     [
-                        'chart_id' => $creditChart->id,
+                        'chart_id' => $line['chart']->id,
                         'company_id' => $company->id,
                         'currency_id' => $currencyId,
                         'type' => $document['type']->value,
@@ -690,22 +687,23 @@ class SubLedgerSeeder extends Seeder
                         'document_number' => $document['document_number'],
                         'date' => $document['date'],
                         'reference_number' => $document['reference_number'],
-                        'chart_code' => $creditChart->code,
-                        'chart_name' => $creditChart->name,
+                        'chart_code' => $line['chart']->code,
+                        'chart_name' => $line['chart']->name,
                         'chart_description' => null,
                         'company_name' => $company->name,
                         'description' => $document['notes'],
-                        'debit_amount' => '0.00',
-                        'credit_amount' => $document['amount'],
+                        'debit_amount' => $line['debit_amount'],
+                        'credit_amount' => $line['credit_amount'],
                         'created_at' => $now,
                         'updated_at' => $now,
                         'deleted_at' => null,
                     ]
                 );
-                DB::table('ar_ledgers')
-                    ->where('document_number', $document['document_number'])
-                    ->delete();
             }
+
+            DB::table($otherTable)
+                ->where('document_number', $document['document_number'])
+                ->delete();
         } else {
             DB::table('ledgers')->whereIn('id', [$debitLineId, $creditLineId])->delete();
             DB::table('ar_ledgers')

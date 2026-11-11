@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('quotations', [QuotationController::class, 'index'])->name('sales.quotations.index');
 Route::get('quotations/create', [QuotationController::class, 'create'])->name('sales.quotations.create');
+Route::get('quotations/products/search', [QuotationController::class, 'searchProducts'])->name('sales.quotations.products.search');
 Route::post('quotations/companies', [QuotationController::class, 'storeCompany'])->name('sales.quotations.companies.store');
 Route::post('quotations', [QuotationController::class, 'store'])->name('sales.quotations.store');
 Route::get('quotations/{quotationNumber}/edit', [QuotationController::class, 'edit'])->name('sales.quotations.edit');
@@ -48,12 +49,14 @@ Route::get('quotations/{quotationNumber}', [QuotationController::class, 'show'])
 
 Route::get('sales-orders', [SalesOrderController::class, 'index'])->name('sales.sales-orders.index');
 Route::get('sales-orders/create', [SalesOrderController::class, 'create'])->name('sales.sales-orders.create');
+Route::get('sales-orders/products/search', [SalesOrderController::class, 'searchProducts'])->name('sales.sales-orders.products.search');
 Route::post('sales-orders/companies', [SalesOrderController::class, 'storeCompany'])->name('sales.sales-orders.companies.store');
 Route::post('sales-orders', [SalesOrderController::class, 'store'])->name('sales.sales-orders.store');
 Route::get('sales-orders/{salesOrder}/edit', [SalesOrderController::class, 'edit'])->name('sales.sales-orders.edit');
 Route::put('sales-orders/{salesOrder}', [SalesOrderController::class, 'update'])->name('sales.sales-orders.update');
 Route::delete('sales-orders/{salesOrder}', [SalesOrderController::class, 'destroy'])->name('sales.sales-orders.destroy');
 Route::patch('sales-orders/{salesOrder}/approve', [SalesOrderController::class, 'approve'])->name('sales.sales-orders.approve');
+Route::patch('sales-orders/{salesOrder}/revert', [SalesOrderController::class, 'revert'])->name('sales.sales-orders.revert');
 Route::post('sales-orders/{salesOrder}/sales-invoice', [SalesOrderController::class, 'createSalesInvoice'])->name('sales.sales-orders.sales-invoice');
 Route::get('sales-orders/{salesOrder}/attachment', [SalesOrderController::class, 'downloadAttachment'])->name('sales.sales-orders.attachment');
 Route::get('sales-orders/{salesOrder}/pdf', [SalesOrderController::class, 'pdf'])->name('sales.sales-orders.pdf');
@@ -82,6 +85,7 @@ Route::get('sales-invoices/history/{documentNumber}/clone', [InvoiceHistoryContr
 Route::patch('sales-invoices/cancelled/{documentNumber}/uncancel', [InvoiceCancelledController::class, 'uncancel'])->name('sales.invoices.cancelled.uncancel');
 Route::get('sales-invoices/cancelled/{documentNumber}', [InvoiceCancelledController::class, 'show'])->name('sales.invoices.cancelled.show');
 Route::get('sales-invoices/create', [SalesInvoiceController::class, 'create'])->name('sales.invoices.create');
+Route::get('sales-invoices/products/search', [SalesInvoiceController::class, 'searchProducts'])->name('sales.invoices.products.search');
 Route::post('sales-invoices/companies', [SalesInvoiceController::class, 'storeCompany'])->name('sales.invoices.companies.store');
 Route::post('sales-invoices', [SalesInvoiceController::class, 'store'])->name('sales.invoices.store');
 Route::get('sales-invoices/{documentNumber}/edit', [SalesInvoiceController::class, 'edit'])->name('sales.invoices.edit');
@@ -105,9 +109,11 @@ Route::get('manual-sales-adjustments', [ManualSalesAdjustmentController::class, 
 Route::get('manual-sales-adjustments/cancelled', [CancelledController::class, 'index'])->name('sales.manual-adjustments.cancelled.index');
 Route::get('manual-sales-adjustments/cancelled/export-excel', [CancelledController::class, 'exportExcel'])->name('sales.manual-adjustments.cancelled.export-excel');
 Route::get('manual-sales-adjustments/cancelled/export-pdf', [CancelledController::class, 'exportPdf'])->name('sales.manual-adjustments.cancelled.export-pdf');
+Route::get('manual-sales-adjustments/cancelled/{documentNumber}/pdf', [CancelledController::class, 'pdf'])->name('sales.manual-adjustments.cancelled.pdf');
 Route::get('manual-sales-adjustments/history', [HistoryController::class, 'index'])->name('sales.manual-adjustments.history.index');
 Route::get('manual-sales-adjustments/history/export-excel', [HistoryController::class, 'exportExcel'])->name('sales.manual-adjustments.history.export-excel');
 Route::get('manual-sales-adjustments/history/export-pdf', [HistoryController::class, 'exportPdf'])->name('sales.manual-adjustments.history.export-pdf');
+Route::get('manual-sales-adjustments/history/{documentNumber}/pdf', [HistoryController::class, 'pdf'])->name('sales.manual-adjustments.history.pdf');
 Route::get('manual-sales-adjustments/history/{documentNumber}', [HistoryController::class, 'show'])->name('sales.manual-adjustments.history.show');
 Route::patch('manual-sales-adjustments/cancelled/{documentNumber}/uncancel', [CancelledController::class, 'uncancel'])->name('sales.manual-adjustments.cancelled.uncancel');
 Route::get('manual-sales-adjustments/cancelled/{documentNumber}', [CancelledController::class, 'show'])->name('sales.manual-adjustments.cancelled.show');
@@ -122,4 +128,5 @@ Route::patch('manual-sales-adjustments/{documentNumber}/approve', [ManualSalesAd
 Route::patch('manual-sales-adjustments/{documentNumber}/reverse', [ManualSalesAdjustmentController::class, 'reverse'])->name('sales.manual-adjustments.reverse');
 Route::post('manual-sales-adjustments/batch-approve', [ManualSalesAdjustmentController::class, 'batchApprove'])->name('sales.manual-adjustments.batch-approve');
 Route::post('manual-sales-adjustments/batch-cancel', [ManualSalesAdjustmentController::class, 'batchCancel'])->name('sales.manual-adjustments.batch-cancel');
+Route::get('manual-sales-adjustments/{documentNumber}/pdf', [ManualSalesAdjustmentController::class, 'pdf'])->name('sales.manual-adjustments.pdf');
 Route::get('manual-sales-adjustments/{documentNumber}', [ManualSalesAdjustmentController::class, 'show'])->name('sales.manual-adjustments.show');

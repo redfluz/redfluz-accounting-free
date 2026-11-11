@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Inventory\AcquisitionType;
 use App\Enums\UploadType;
+use App\Http\Controllers\Controller;
 use App\Models\Inventory\Product;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Validation\Rule;
@@ -103,7 +104,7 @@ class UpdateProductRequest extends ProductRequest
             'default_acquisition_type' => ['required', Rule::enum(AcquisitionType::class)],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'reorder_quantity' => ['nullable', 'numeric', 'min:0'],
-            'variants' => ['nullable', 'array', 'max:10'],
+            'variants' => ['nullable', 'array', 'max:'.Controller::detailGridRows()],
             'variants.*.id' => ['nullable', 'uuid', 'distinct'],
             'variants.*.variant_name' => ['nullable', 'string', 'max:255', 'required_with:variants.*.sku'],
             'variants.*.sku' => [

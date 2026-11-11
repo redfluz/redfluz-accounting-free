@@ -90,6 +90,7 @@ Route::get('receipts/cancelled/{documentNumber}/pdf', [ReceiptCancelledControlle
 Route::get('receipts/cancelled/{documentNumber}', [ReceiptCancelledController::class, 'show'])->name('bank.receipts.cancelled.show');
 Route::get('receipts/{documentNumber}/edit', [ReceiptController::class, 'edit'])->name('bank.receipts.edit');
 Route::delete('receipts/{documentNumber}', [ReceiptController::class, 'destroy'])->name('bank.receipts.destroy');
+Route::get('receipts/{documentNumber}/pdf', [ReceiptController::class, 'pdf'])->name('bank.receipts.pdf');
 Route::get('receipts/{documentNumber}', [ReceiptController::class, 'show'])->name('bank.receipts.show');
 
 // Payment Vouchers
@@ -115,6 +116,7 @@ Route::get('payment-vouchers/cancelled/{documentNumber}/pdf', [VoucherCancelledC
 Route::get('payment-vouchers/cancelled/{documentNumber}', [VoucherCancelledController::class, 'show'])->name('bank.payment-vouchers.cancelled.show');
 Route::get('payment-vouchers/{documentNumber}/edit', [PaymentVoucherController::class, 'edit'])->name('bank.payment-vouchers.edit');
 Route::delete('payment-vouchers/{documentNumber}', [PaymentVoucherController::class, 'destroy'])->name('bank.payment-vouchers.destroy');
+Route::get('payment-vouchers/{documentNumber}/pdf', [PaymentVoucherController::class, 'pdf'])->name('bank.payment-vouchers.pdf');
 Route::get('payment-vouchers/{documentNumber}', [PaymentVoucherController::class, 'show'])->name('bank.payment-vouchers.show');
 
 // Bank Journals

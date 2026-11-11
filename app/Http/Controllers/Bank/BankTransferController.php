@@ -36,6 +36,7 @@ use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Bank\Concerns\HandlesTransfers;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Bank\Transfer\StoreBankTransferRequest;
 use App\Http\Requests\Bank\Transfer\UpdateBankTransferRequest;
 use App\Models\Bank\Bank;
 use App\Models\Bank\Transfer;
@@ -162,16 +163,13 @@ class BankTransferController extends Controller
     /**
      * Record a new transfer, pending.
      *
-     * @param  Request  $request  The submitted transfer.
      *
      * @throws Throwable
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreBankTransferRequest $request): RedirectResponse
     {
-        $this->allows(FileResources::BANK_TRANSFERS, FileAction::ADD);
-
         /** @var array<string, mixed> $validated */
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
 
         $fields = $this->fields($validated);
         $bank = $this->resolveBank($fields['bankAccountId']);
@@ -205,7 +203,6 @@ class BankTransferController extends Controller
     /**
      * Change a transfer that has not been posted.
      *
-     * @param  UpdateBankTransferRequest  $request  The submitted transfer.
      * @param  string  $documentNumber  The transfer's document number.
      *
      * @throws Throwable
@@ -542,23 +539,6 @@ class BankTransferController extends Controller
             'referenceNumber' => is_string($referenceNumber) ? $referenceNumber : null,
             'description' => is_string($description) ? $description : null,
             'notes' => is_string($notes) ? $notes : null,
-        ];
-    }
-
-    /**
-     * The validation rules for a transfer in.
-     *
-     * @return array<string, mixed>
-     */
-    private function rules(): array
-    {
-        return [
-            'bank_account_id' => ['required', 'uuid'],
-            'date' => ['required', 'date'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
-            'reference_number' => ['nullable', 'string', 'max:100'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'notes' => ['nullable', 'string'],
         ];
     }
 }

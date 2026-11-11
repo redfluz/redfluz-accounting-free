@@ -5,6 +5,7 @@
     /** @var JournalEntry|null */
     'journalEntry' => null,
     'charts',
+    'chartTypes',
 ])
 
 @php
@@ -57,7 +58,7 @@
 </div>
 
 <div class="table-responsive rounded-5 mb-3 border">
-    <table class="table-striped table-sm mb-0 table align-middle">
+    <table class="table-striped table-sm mb-0 table align-middle" id="lines-table">
         <thead class="bg-1">
             <tr>
                 <th scope="col" style="width: 30%">{{ __('journal_entries.table.column_account') }}</th>
@@ -71,7 +72,7 @@
             </tr>
         </thead>
         <tbody>
-            @for ($i = 0; $i < 10; $i++)
+            @for ($i = 0; $i < $perPageGridDetail; $i++)
                 @php
                     if ($isEditing) {
                         $item = $journalEntry->charts->get($i);
@@ -86,44 +87,47 @@
                         $defaultCredit = $prefillItems[$i]['credit_amount'] ?? '0.00';
                     }
                     $selectedChartId = old('items.' . $i . '.chart_id', $defaultChartId);
+                    $selectedChart = filled($selectedChartId)
+                        ? $charts->first(fn ($chart) => (string) $chart->id === (string) $selectedChartId)
+                        : null;
                 @endphp
-                <tr>
+                <tr data-line-index="{{ $i }}">
                     <td>
-                        <label class="visually-hidden" for="chart_id_{{ $i }}">{{ __('journal_entries.table.column_account') }}</label>
-                        <select
-                            class="form-control form-control-sm js-chart-select @error('items.' . $i . '.chart_id') is-invalid @enderror"
-                            id="chart_id_{{ $i }}"
-                            name="items[{{ $i }}][chart_id]">
-                            <option value="">{{ __('common.actions.select_option') }}</option>
-                            @if (filled($selectedChartId) && !$charts->contains(fn($chart) => (string) $chart->id === (string) $selectedChartId))
-                                <option value="{{ $selectedChartId }}" selected>
-                                    {{ $selectedChartId }}
-                                </option>
-                            @endif
-                            @foreach ($charts as $chart)
-                                <option value="{{ $chart->id }}" @selected((string) $selectedChartId === (string) $chart->id)>
-                                    {{ $chart->code }}{{ $chart->name ? ' - ' . $chart->name : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="visually-hidden" for="line-{{ $i }}-chart_id">{{ __('journal_entries.table.column_account') }}</label>
+                        <div
+                            class="d-flex gap-2 align-items-center @error('items.' . $i . '.chart_id') is-invalid @enderror">
+                            <input id="line-{{ $i }}-chart_id" type="hidden" name="items[{{ $i }}][chart_id]"
+                                class="line-chart-id" value="{{ $selectedChartId }}" />
+                            <div
+                                class="line-chart-display form-control form-control-sm d-flex align-items-center justify-content-between">
+                                <span class="line-chart-label text-truncate">
+                                    {{ $selectedChart ? $selectedChart->code . ' - ' . $selectedChart->name : '' }}
+                                </span>
+                            </div>
+                            <button
+                                class="btn btn-sm btn-solid theme-primary line-chart-choose-btn flex-shrink-0"
+                                type="button" data-line-index="{{ $i }}">
+                                <i data-lucide="search"></i>
+                            </button>
+                        </div>
                         @error('items.' . $i . '.chart_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </td>
                     <td>
                         <div class="form-control form-adorn">
-                            <label class="visually-hidden" for="description_{{ $i }}">{{ __('journal_entries.table.column_description') }}</label>
+                            <label class="visually-hidden" for="line-{{ $i }}-description">{{ __('journal_entries.table.column_description') }}</label>
                             <input class="form-ghost form-control-sm"
-                                id="description_{{ $i }}"
+                                id="line-{{ $i }}-description"
                                 name="items[{{ $i }}][description]" type="text"
                                 value="{{ old('items.' . $i . '.description', $defaultDescription) }}" />
                         </div>
                     </td>
                     <td>
                         <div class="form-control form-adorn">
-                            <label class="visually-hidden" for="debit_{{ $i }}">{{ __('journal_entries.table.column_debit_amount') }}</label>
+                            <label class="visually-hidden" for="line-{{ $i }}-debit_amount">{{ __('journal_entries.table.column_debit_amount') }}</label>
                             <input class="form-ghost form-control-sm debit-input text-end"
-                                id="debit_{{ $i }}"
+                                id="line-{{ $i }}-debit_amount"
                                 name="items[{{ $i }}][debit_amount]" type="number"
                                 value="{{ old('items.' . $i . '.debit_amount', $defaultDebit) }}"
                                 step="0.01" min="0" oninput="calculateTotals()" />
@@ -131,9 +135,9 @@
                     </td>
                     <td>
                         <div class="form-control form-adorn">
-                            <label class="visually-hidden" for="credit_{{ $i }}">{{ __('journal_entries.table.column_credit_amount') }}</label>
+                            <label class="visually-hidden" for="line-{{ $i }}-credit_amount">{{ __('journal_entries.table.column_credit_amount') }}</label>
                             <input class="form-ghost form-control-sm credit-input text-end"
-                                id="credit_{{ $i }}"
+                                id="line-{{ $i }}-credit_amount"
                                 name="items[{{ $i }}][credit_amount]" type="number"
                                 value="{{ old('items.' . $i . '.credit_amount', $defaultCredit) }}"
                                 step="0.01" min="0" oninput="calculateTotals()" />
@@ -170,25 +174,111 @@
             document.getElementById('totalCreditDisplay').textContent = creditTotal.toFixed(2);
         }
 
-        function initializeCoaSelects() {
-            if (typeof window.initCombobox !== 'function') {
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTotals();
+
+            const chartsSearchUrl = @json(route('finance.journal-entries.charts.search'));
+            const typeToSearchText = @json(__('journal_entries.coa_picker.type_to_search'));
+            const noResultsText = @json(__('journal_entries.coa_picker.no_results'));
+            const searchErrorText = @json(__('journal_entries.coa_picker.search_error'));
+
+            const coaPickerDialog = document.getElementById('coaPickerDialog');
+            const coaSearchInput = document.getElementById('coa-search-input');
+            const coaTypeFilter = document.getElementById('coa-type-filter');
+            const coaSearchResults = document.getElementById('coa-search-results-table');
+            let currentCoaLineIndex = null;
+            let coaSearchTimeout = null;
+
+            function renderCoaPlaceholder(text) {
+                coaSearchResults.querySelector('tbody').innerHTML =
+                    '<tr><td colspan="3" class="text-center text-muted" style="font-size: 1.05rem; padding: 1rem;">' +
+                    text + '</td></tr>';
             }
 
-            document.querySelectorAll('.js-chart-select').forEach((element) => {
-                if (element.dataset.comboboxBound) {
+            function searchCoa() {
+                const search = coaSearchInput.value;
+                const typeId = coaTypeFilter.value;
+
+                if (search.length < 2 && !typeId) {
+                    renderCoaPlaceholder(typeToSearchText);
                     return;
                 }
 
-                window.initCombobox(element, {
-                    placeholder: @json(__('common.actions.select_option')),
+                fetch(chartsSearchUrl + '?q=' + encodeURIComponent(search) +
+                        '&type_id=' + encodeURIComponent(typeId))
+                    .then(response => response.json())
+                    .then(charts => {
+                        if (charts.length === 0) {
+                            renderCoaPlaceholder(noResultsText);
+                            return;
+                        }
+
+                        coaSearchResults.querySelector('tbody').innerHTML = charts.map(chart => `
+                            <tr style="cursor: pointer; font-size: 1.05rem;"
+                                data-chart-id="${chart.id}"
+                                data-chart-code="${chart.code.replace(/"/g, '&quot;')}"
+                                data-chart-name="${chart.name.replace(/"/g, '&quot;')}">
+                                <td style="padding: 1rem;">${chart.code}</td>
+                                <td style="padding: 1rem;">${chart.name}</td>
+                                <td style="padding: 1rem;">${chart.type || '-'}</td>
+                            </tr>
+                        `).join('');
+
+                        coaSearchResults.querySelectorAll('tbody tr[data-chart-id]').forEach(row => {
+                            row.addEventListener('click', function() {
+                                selectCoa(
+                                    this.dataset.chartId,
+                                    this.dataset.chartCode,
+                                    this.dataset.chartName
+                                );
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error searching accounts:', error);
+                        coaSearchResults.querySelector('tbody').innerHTML =
+                            '<tr><td colspan="3" class="text-center text-danger" style="font-size: 1.05rem; padding: 1rem;">' +
+                            searchErrorText + '</td></tr>';
+                    });
+            }
+
+            window.selectCoa = function(chartId, chartCode, chartName) {
+                if (currentCoaLineIndex === null) {
+                    return;
+                }
+
+                const row = document.querySelector(
+                    `#lines-table tbody tr[data-line-index="${currentCoaLineIndex}"]`);
+                if (!row) {
+                    return;
+                }
+
+                const chartInput = row.querySelector('.line-chart-id');
+                const chartLabel = row.querySelector('.line-chart-label');
+
+                if (chartInput) chartInput.value = chartId;
+                if (chartLabel) chartLabel.textContent = chartCode + ' - ' + chartName;
+
+                window.bootstrap.Dialog.getOrCreateInstance(coaPickerDialog).hide();
+            };
+
+            document.querySelectorAll('.line-chart-choose-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentCoaLineIndex = this.dataset.lineIndex;
+                    coaSearchInput.value = '';
+                    coaTypeFilter.value = '';
+                    renderCoaPlaceholder(typeToSearchText);
+                    window.bootstrap.Dialog.getOrCreateInstance(coaPickerDialog).show();
+                    setTimeout(() => coaSearchInput.focus(), 100);
                 });
             });
-        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeCoaSelects();
-            calculateTotals();
+            coaSearchInput.addEventListener('input', () => {
+                clearTimeout(coaSearchTimeout);
+                coaSearchTimeout = setTimeout(searchCoa, 300);
+            });
+
+            coaTypeFilter.addEventListener('change', searchCoa);
         });
     </script>
 @endsection

@@ -90,7 +90,6 @@ class HistoryController extends Controller
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('arLedgers.chart')
             ->firstOrFail();
 
         return view('bank.receipt.history.show', compact('receipt', 'documentNumber'));
@@ -109,7 +108,6 @@ class HistoryController extends Controller
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::POSTED)
-            ->with('arLedgers.chart')
             ->firstOrFail();
 
         return Pdf::loadView('bank.receipt.pdf', [

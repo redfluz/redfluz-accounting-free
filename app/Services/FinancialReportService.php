@@ -30,7 +30,6 @@ use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\ChartOfAccount\ChartReportTypeEnum;
 use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
 use App\Enums\ChartOfAccount\ChartTypeEnum;
-use App\Enums\Finance\LedgerStatus;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartReport;
 use App\Models\ChartOfAccount\ChartReportDetail;
@@ -851,8 +850,7 @@ class FinancialReportService
         Carbon $endDate,
         bool $excludeYearEndClosing = true
     ): Collection {
-        $query = Ledger::query()
-            ->where('status', LedgerStatus::POSTED);
+        $query = Ledger::query();
 
         if ($startDate !== null) {
             $query->whereDate('date', '>=', $startDate->toDateString());

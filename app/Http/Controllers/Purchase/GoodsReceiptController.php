@@ -40,6 +40,7 @@ use App\Http\Requests\Purchase\GoodsReceipt\StoreGoodsReceiptRequest;
 use App\Http\Requests\Purchase\GoodsReceipt\UpdateGoodsReceiptRequest;
 use App\Models\Inventory\GoodsReceiptAttachment;
 use App\Models\Inventory\Product;
+use App\Models\Inventory\ProductCategory;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Inventory\StockLocation;
 use App\Models\Purchase\PurchaseInvoice;
@@ -52,6 +53,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -213,6 +215,53 @@ class GoodsReceiptController extends Controller
             'purchase.goods-receipts.create',
             $this->formData($selectedOrderNumber)
         );
+    }
+
+    /**
+     * Search products for the goods receipt creation form.
+     * Returns a JSON array of products matching the search query.
+     *
+     * @param  Request  $request  The HTTP request instance containing the search query.
+     * @return JsonResponse JSON response with matching products.
+     */
+    public function searchProducts(Request $request): JsonResponse
+    {
+        $this->allows(FileResources::GOODS_RECEIPTS, FileAction::ADD);
+
+        $search = $request->string('search')->toString();
+        $categoryId = $request->string('category_id')->toString();
+        $typeId = $request->string('type_id')->toString();
+
+        $query = Product::query()
+            ->where('is_service', false)
+            ->with(['category', 'type']);
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search): void {
+                $subQuery->where('name', 'like', "%$search%")
+                    ->orWhere('sku', 'like', "%$search%");
+            });
+        }
+
+        if ($categoryId !== '') {
+            $query->where('product_category_id', $categoryId);
+        }
+
+        if ($typeId !== '') {
+            $query->where('product_type_id', $typeId);
+        }
+
+        $products = $query->orderBy('name')->limit(50)->get();
+
+        return response()->json($products->map(fn (Product $product): array => [
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'name' => $product->name,
+            'category' => $product->category->name ?? '',
+            'type' => $product->type->name ?? '',
+            'price' => (string) $product->base_price,
+            'description' => $product->description ?? '',
+        ]));
     }
 
     /**
@@ -901,6 +950,7 @@ class GoodsReceiptController extends Controller
                 ->where('is_service', false)
                 ->orderBy('name')
                 ->get(),
+            'categories' => ProductCategory::query()->with('types')->orderBy('name')->get(),
             'selectedInvoiceNumber' => $selectedInvoiceNumber,
             'invoiceLines' => $selectedInvoiceNumber !== ''
                 ? $this->purchaseInvoiceLines($selectedInvoiceNumber, $currentDocumentNumber)

@@ -31,6 +31,7 @@ namespace App\Http\Requests\Purchase\PurchaseInvoice;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Purchase\PurchaseOrderType;
+use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 /**
@@ -73,7 +74,7 @@ class UpdatePurchaseInvoiceRequest extends PurchaseInvoiceRequest
             'purchase_type' => ['required', Rule::enum(PurchaseOrderType::class)],
             'credit_term_days' => ['required', 'integer', 'min:0', 'max:365'],
             'invoice_notes' => ['nullable', 'string'],
-            'lines' => ['required', 'array', 'size:10'],
+            'lines' => ['required', 'array', 'size:'.Controller::detailGridRows()],
             'lines.*.description' => ['nullable', 'string', 'max:1000'],
             'lines.*.quantity' => ['nullable', 'integer', 'min:1'],
             'lines.*.unit_price' => ['nullable', 'numeric', 'min:0'],

@@ -598,7 +598,7 @@ class DeliveryOrderController extends Controller
             DB::table('sales_order_lines')->upsert($lineUpdates->all(), ['id'], ['delivered_quantity', 'updated_at']);
 
             $hasRemaining = $lineUpdates->contains(fn (array $line): bool => ! $line['is_service']
-                && bccomp((string) $line['ordered_quantity'], (string) $line['delivered_quantity'], 4) === 1);
+                && bccomp(DecimalService::normalize((string) $line['ordered_quantity']), DecimalService::normalize((string) $line['delivered_quantity']), 4) === 1);
             $salesOrder->update(['status' => $hasRemaining
                 ? SalesOrderStatus::PARTIALLY_DELIVERED
                 : SalesOrderStatus::DELIVERED]);

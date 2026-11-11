@@ -172,13 +172,15 @@ class ApLedgerData extends Data
      * Build an AP row for one purchase invoice posting.
      *
      * The payable is written per entry, the way the receivable is: the purchase
-     * cost, the tax when GST/VAT is being claimed, and what is owed to the
-     * supplier are each a row of their own against the supplier's account, so the
-     * payable ledger tells the same story as the general ledger row beside it.
+     * cost, the tax when GST/VAT is being claimed, and what is owed to the supplier
+     * are each a row of their own, so the payable ledger holds exactly the rows the
+     * general ledger holds for the same invoice. Each row carries the account its
+     * entry was booked against, so the cost row reads as the cost account and only
+     * the payable row wears the supplier's account.
      *
      * @param  PurchaseInvoice  $invoice  The invoice being posted.
      * @param  PurchaseInvoiceLine  $line  The line whose description the row carries.
-     * @param  Chart  $vendorChart  The payable account every row is booked to.
+     * @param  Chart  $chart  The account this entry was booked against.
      * @param  string  $currencyId  The currency the amount is expressed in.
      * @param  string  $debitAmount  What the entry settles.
      * @param  string  $creditAmount  What the entry leaves owed.
@@ -187,24 +189,24 @@ class ApLedgerData extends Data
     public static function fromPurchaseInvoiceLine(
         PurchaseInvoice $invoice,
         PurchaseInvoiceLine $line,
-        Chart $vendorChart,
+        Chart $chart,
         string $currencyId,
         string $debitAmount,
         string $creditAmount,
     ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: (string) $vendorChart->id,
+            chartId: (string) $chart->id,
             companyId: (string) ($invoice->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: LedgerSubType::PURCHASE_INVOICE->value,
             documentNumber: (string) $invoice->document_number,
-            date: $invoice->date?->format('Y-m-d'),
+            date: $invoice->date->format('Y-m-d'),
             referenceNumber: $invoice->reference_number,
-            chartCode: $vendorChart->code,
-            chartName: $vendorChart->name,
-            chartDescription: $vendorChart->description,
+            chartCode: $chart->code,
+            chartName: $chart->name,
+            chartDescription: $chart->description,
             companyName: $invoice->company_name,
             description: $line->description,
             debitAmount: $debitAmount,
@@ -215,32 +217,41 @@ class ApLedgerData extends Data
     /**
      * Build an AP row directly from a manual purchase adjustment chart line.
      *
-     * Simple, no legs: the chart line's debit/credit amounts are the AP movement.
+     * The line's own debit and credit figures are the movement, and the row is
+     * booked to the account the line names, so a manual adjustment writes the
+     * payable ledger with the same rows it writes the general ledger with.
+     * The reference and the wording are read the same way the general ledger row
+     * reads them, so one entry prints the same text in both tables.
      *
-     * @param  numeric-string  $debitAmount
-     * @param  numeric-string  $creditAmount
+     * @param  ManualPurchaseAdjustment  $adjustment  The adjustment being posted.
+     * @param  ManualPurchaseAdjustmentChart  $line  The chart line the row reads its figures from.
+     * @param  Chart  $chart  The account the line was booked against.
+     * @param  string  $currencyId  The currency the amount is expressed in.
+     * @param  numeric-string  $debitAmount  What the line debits.
+     * @param  numeric-string  $creditAmount  What the line credits.
+     * @return self The row.
      */
     public static function fromManualPurchaseAdjustmentChartLine(
         ManualPurchaseAdjustment $adjustment,
         ManualPurchaseAdjustmentChart $line,
-        Chart $apChart,
+        Chart $chart,
         string $currencyId,
         string $debitAmount,
         string $creditAmount,
     ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: (string) $apChart->id,
+            chartId: (string) $chart->id,
             companyId: (string) ($adjustment->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT->value,
             documentNumber: (string) $adjustment->document_number,
-            date: $adjustment->date?->format('Y-m-d'),
-            referenceNumber: $adjustment->reference_number,
-            chartCode: $apChart->code,
-            chartName: $apChart->name,
-            chartDescription: $apChart->description,
+            date: $adjustment->date->format('Y-m-d'),
+            referenceNumber: $line->reference_number ?? $adjustment->reference_number,
+            chartCode: $chart->code,
+            chartName: $chart->name,
+            chartDescription: $chart->description,
             companyName: $adjustment->company_name,
             description: $line->line_description ?? $line->description ?? $adjustment->notes,
             debitAmount: $debitAmount,

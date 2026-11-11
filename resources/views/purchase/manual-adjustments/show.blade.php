@@ -79,6 +79,12 @@
                     </form>
                 @endif
 
+                <a class="btn btn-solid theme-primary btn-sm text-nowrap"
+                    href="{{ route('purchase.manual-adjustments.pdf', $documentNumber) }}" target="_blank">
+                    <i class="me-1" data-lucide="printer"></i>
+                    {{ __('common.actions.print_pdf') }}
+                </a>
+
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route($indexRoute) }}">
                     <i class="me-1" data-lucide="arrow-left"></i>
                     {{ __('common.actions.back') }}

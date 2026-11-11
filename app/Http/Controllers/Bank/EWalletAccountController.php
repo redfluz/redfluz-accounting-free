@@ -177,7 +177,6 @@ class EWalletAccountController extends Controller
      */
     private function freeCharts(?EWalletAccount $eWalletAccount): Collection
     {
-        /** @var Collection<int, Chart> $charts */
         return Chart::query()->where('isBank', true)
             ->where(function ($query) use ($eWalletAccount): void {
                 /** @var Builder<Chart> $query */

@@ -134,7 +134,6 @@ class PurchaseInvoiceData extends Data
             referenceNumber: $model->reference_number,
             companyId: $model->company_id,
             companyName: $model->company_name,
-            amount: $model->total_amount,
             attachmentPath: $model->attachment_path,
             createdAt: self::moment($model->created_at),
             updatedAt: self::moment($model->updated_at),

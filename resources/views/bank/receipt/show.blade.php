@@ -54,7 +54,7 @@
                         {{ __('common.actions.edit') }}
                     </a>
                     <form autocomplete="off" action="{{ route('bank.receipts.destroy', $documentNumber) }}" method="POST"
-                        onsubmit="return confirm('{{ __('common.messages.confirm_delete') }}')">
+                        onsubmit="return confirm('{{ __('common.alerts.confirm_delete_message') }}')">
                         @csrf
                         @method('DELETE')
                         <button class="btn btn-solid theme-danger btn-sm" type="submit">
@@ -71,6 +71,12 @@
                         </button>
                     </form>
                 @endif
+
+                <a class="btn btn-solid theme-primary btn-sm text-nowrap"
+                    href="{{ route('bank.receipts.pdf', $documentNumber) }}" target="_blank">
+                    <i class="me-1" data-lucide="file-type-2"></i>
+                    {{ __('payments.actions.print_pdf') }}
+                </a>
 
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('bank.receipts.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>

@@ -58,7 +58,7 @@ class UpdateProfileRequest extends ProfileRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'locale' => ['required', 'string', 'max:255'],
-            'theme' => ['required', 'string', 'in:redfluz,cerulean,slate,ember,verdant,pinkpanther,ruby,paper,pastel_fantasy,electric_blast,rainbow_burst,dark'],
+            'theme' => ['required', 'string', 'in:redfluz,cerulean,slate,ember,verdant,pinkpanther,ruby,paper,pastel_fantasy,electric_blast,rainbow_burst,dark,cyberpunk,zelda,red_alert'],
             'picture' => ['nullable', 'image', UploadType::IMAGES->rule(), 'max:2048'],
             'background_image' => ['nullable', 'image', UploadType::IMAGES->rule(), 'max:4096'],
             'remove_background' => ['nullable', 'boolean'],

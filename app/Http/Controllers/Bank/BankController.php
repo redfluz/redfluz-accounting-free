@@ -29,8 +29,8 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Bank\Bank\ShowBankRequest;
 use App\Http\Requests\Bank\Bank\StoreBankRequest;
 use App\Http\Requests\Bank\Bank\UpdateBankRequest;
 use App\Models\Bank\Bank;
@@ -117,26 +117,22 @@ class BankController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  Request  $request  The HTTP request instance.
+     * @param  ShowBankRequest  $request  The HTTP request instance.
      * @param  Bank  $bank  The bank resource instance.
      * @return View Returns the rendered Blade view.
      */
-    public function show(Request $request, Bank $bank): View
+    public function show(ShowBankRequest $request, Bank $bank): View
     {
-        $this->allows(FileResources::BANKS);
         $bank->load('chart');
 
         /** @var array{year?: int} $validated */
-        $validated = $request->validate([
-            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-        ]);
+        $validated = $request->validated();
         $selectedYear = $validated['year'] ?? now()->year;
         $yearStart = Carbon::parse($selectedYear.'-01-01')->startOfDay();
         $yearEnd = $yearStart->copy()->endOfYear();
         $chartCode = $bank->chart()->first()?->code;
 
         $ledgerQuery = Ledger::query()
-            ->where('status', LedgerStatus::POSTED)
             ->where(function (Builder $query) use ($bank, $chartCode): void {
                 if (! filled($bank->chart_id) && ! filled($chartCode)) {
                     $query->whereRaw('1 = 0');
@@ -248,9 +244,26 @@ class BankController extends Controller
         $data->iban = filled($data->iban) ? strtoupper(str_replace(' ', '', $data->iban)) : null;
         $data->countryCode = strtoupper($data->countryCode ?? '');
         $data->isActive = $request->boolean('is_active');
-        $row = $data->toRow();
-        unset($row['id'], $row['created_at'], $row['updated_at'], $row['deleted_at']);
-        $bank->update($row);
+
+        $bank->chart_id = $data->chartId ?? '';
+        $bank->name = $data->name ?? '';
+        $bank->account_name = $data->accountName ?? '';
+        $bank->account_number = $data->accountNumber;
+        $bank->account_type = $data->accountType;
+        $bank->branch_name = $data->branchName;
+        $bank->bank_code = $data->bankCode;
+        $bank->swift_code = $data->swiftCode;
+        $bank->iban = $data->iban;
+        $bank->routing_number = $data->routingNumber;
+        $bank->country_code = $data->countryCode;
+        $bank->email = $data->email;
+        $bank->phone = $data->phone;
+        $bank->website = $data->website;
+        $bank->address = $data->address;
+        $bank->notes = $data->notes;
+        $bank->is_active = $data->isActive;
+        $bank->is_default = $data->isDefault ?? false;
+        $bank->save();
 
         return redirect()->route('bank.banks.show', $bank)
             ->with('success', FlashMessage::updated(FileResources::BANKS));
@@ -271,9 +284,8 @@ class BankController extends Controller
         $entries = $code === null
             ? 0
             : Ledger::query()
-                ->where(function (Builder $query) use ($code): void {
-                    $query->where('chart_code', $code);
-                })
+                ->whereNull('deleted_at')
+                ->where('chart_code', $code)
                 ->count();
 
         if ($entries > 0) {

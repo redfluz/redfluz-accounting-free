@@ -42,6 +42,7 @@ $canReverse = $canApprove && $isPosted && ! $invoice->reversal_id && ! $invoice-
     'indexRoute',
     'canDeductInventory' => false,
     'inventoryDeducted' => false,
+    'deductableLines' => collect(),
 ])
 
 @extends('layouts.app')
@@ -125,14 +126,11 @@ $canReverse = $canApprove && $isPosted && ! $invoice->reversal_id && ! $invoice-
                 @endif
 
                 @if ($canDeductInventory && $canUpdate)
-                    <form action="{{ route('sales.invoices.deduct-inventory', $documentNumber) }}" method="POST"
-                        data-confirm-message="{{ __('invoices.deduct_inventory.confirm') }}" data-confirm-tone="danger">
-                        @csrf
-                        <button class="btn btn-sm btn-solid theme-warning me-1" type="submit"
-                            title="{{ __('invoices.deduct_inventory.label') }}">
-                            <i data-lucide="package-minus"></i>
-                        </button>
-                    </form>
+                    <button class="btn btn-sm btn-solid theme-warning me-1" type="button"
+                        data-bs-toggle="dialog" data-bs-target="#deductInventoryModal"
+                        title="{{ __('invoices.deduct_inventory.label') }}">
+                        <i data-lucide="package-minus"></i>
+                    </button>
                 @endif
 
                 @if (!$isPosted && $canRemove)
@@ -293,5 +291,94 @@ $canReverse = $canApprove && $isPosted && ! $invoice->reversal_id && ! $invoice-
                 );
             </script>
         @endif
+    @endif
+
+    @if ($canDeductInventory && $canUpdate)
+        <dialog class="dialog dialog-lg" id="deductInventoryModal" aria-labelledby="deductInventoryModalLabel">
+            <form method="POST" action="{{ route('sales.invoices.deduct-inventory', $documentNumber) }}"
+                data-confirm-message="{{ __('invoices.deduct_inventory.confirm') }}" data-confirm-tone="danger">
+                @csrf
+                <div class="dialog-header">
+                    <h5 class="dialog-title" id="deductInventoryModalLabel">
+                        {{ __('invoices.deduct_inventory.title') }}
+                    </h5>
+                    <button class="btn-close" data-bs-dismiss="dialog" type="button"
+                        aria-label="{{ __('common.actions.close') }}"></button>
+                </div>
+                <div class="dialog-body">
+                    <div class="alert alert theme-warning">{{ __('invoices.deduct_inventory.description') }}</div>
+                    @error('line_ids')
+                        <div class="alert alert theme-danger">{{ $message }}</div>
+                    @enderror
+                    <div class="table-responsive rounded border">
+                        <table class="table-hover table-striped mb-0 table align-middle">
+                            <thead class="bg-1">
+                                <tr>
+                                    <th scope="col" style="width: 48px;">
+                                        <input class="form-check-input" id="deduct-select-all" type="checkbox">
+                                    </th>
+                                    <th scope="col">{{ __('ledgers.table.column_product') }}</th>
+                                    <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                                    <th scope="col" class="text-end">{{ __('invoices.deduct_inventory.quantity') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($deductableLines as $deductLine)
+                                    <tr>
+                                        <td>
+                                            <input class="form-check-input deduct-line-checkbox" type="checkbox"
+                                                name="line_ids[]" value="{{ $deductLine->id }}"
+                                                id="deduct-line-{{ $deductLine->id }}"
+                                                @checked(in_array($deductLine->id, old('line_ids', $deductableLines->pluck('id')->all()), true))>
+                                        </td>
+                                        <td>
+                                            <label class="mb-0" for="deduct-line-{{ $deductLine->id }}">
+                                                {{ $deductLine->product->name ?? ($deductLine->product_name ?? '-') }}
+                                            </label>
+                                        </td>
+                                        <td>{{ $deductLine->description ?? '-' }}</td>
+                                        <td class="text-end">{{ $deductLine->quantity }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="dialog-footer">
+                    <button class="btn btn-solid theme-secondary" data-bs-dismiss="dialog" type="button">
+                        {{ __('common.actions.cancel') }}</button>
+                    <button class="btn btn-solid theme-primary" type="submit" name="deduct_all" value="1">
+                        <i data-lucide="package-minus"></i> {{ __('invoices.deduct_inventory.deduct_all') }}
+                    </button>
+                    <button class="btn btn-solid theme-warning" type="submit">
+                        <i data-lucide="package-minus"></i> {{ __('invoices.deduct_inventory.deduct_selected') }}
+                    </button>
+                </div>
+            </form>
+        </dialog>
+        @if ($errors->has('line_ids'))
+            <script>
+                document.addEventListener('DOMContentLoaded', () =>
+                    bootstrap.Dialog.getOrCreateInstance(document.getElementById('deductInventoryModal')).show(),
+                );
+            </script>
+        @endif
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const modal = document.getElementById('deductInventoryModal');
+                const selectAll = document.getElementById('deduct-select-all');
+                if (!modal || !selectAll) return;
+                const boxes = () => Array.from(modal.querySelectorAll('.deduct-line-checkbox'));
+                const sync = () => {
+                    const all = boxes();
+                    selectAll.checked = all.length > 0 && all.every((b) => b.checked);
+                };
+                selectAll.addEventListener('change', () => boxes().forEach((b) => b.checked = selectAll.checked));
+                modal.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('deduct-line-checkbox')) sync();
+                });
+                sync();
+            });
+        </script>
     @endif
 @endsection

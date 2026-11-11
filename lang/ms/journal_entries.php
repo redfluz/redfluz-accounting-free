@@ -103,4 +103,16 @@ return [
         'cancelled_by' => 'Dibatalkan Oleh',
         'undone_by' => 'Dipulihkan Oleh',
     ],
+
+    'coa_picker' => [
+        'title' => 'Pilih Akaun',
+        'search_placeholder' => 'Cari mengikut kod, nama, atau jenis...',
+        'all_types' => 'Semua Jenis',
+        'code' => 'Kod',
+        'name' => 'Nama',
+        'type' => 'Jenis',
+        'type_to_search' => 'Taip sekurang-kurangnya 2 aksara untuk mencari',
+        'no_results' => 'Tiada akaun dijumpai',
+        'search_error' => 'Ralat semasa mencari akaun',
+    ],
 ];

@@ -171,14 +171,16 @@ class ArLedgerData extends Data
     /**
      * Build an AR row for one sales invoice entry.
      *
-     * The receivable is written per entry - gross, tax and discount - so the
-     * customer's debt shows the same figures the invoice lines add up to. Each
-     * row carries the amount its entry was built from, debit when the customer
-     * owes more and credit when the entry takes receivable back.
+     * The receivable is written per entry - gross, tax, discount and the net debt -
+     * so the customer's ledger shows the same rows the general ledger shows for the
+     * same invoice. Each row carries the amount its entry was built from and the
+     * account that entry was booked against, so a revenue row reads as revenue and
+     * a receivable row reads as the receivable, rather than every row wearing the
+     * customer's account.
      *
      * @param  SalesInvoice  $invoice  The invoice being posted.
      * @param  SalesInvoiceLine  $line  The line whose description the row carries.
-     * @param  Chart  $clientChart  The receivable account the entry moves.
+     * @param  Chart  $chart  The account this entry was booked against.
      * @param  string  $currencyId  The currency the amount is expressed in.
      * @param  numeric-string  $debitAmount  The amount the customer owes on this entry.
      * @param  numeric-string  $creditAmount  The amount this entry takes back from the customer.
@@ -186,24 +188,24 @@ class ArLedgerData extends Data
     public static function fromSalesInvoiceLine(
         SalesInvoice $invoice,
         SalesInvoiceLine $line,
-        Chart $clientChart,
+        Chart $chart,
         string $currencyId,
         string $debitAmount,
         string $creditAmount,
     ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: (string) $clientChart->id,
+            chartId: (string) $chart->id,
             companyId: (string) ($invoice->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: LedgerSubType::SALES_INVOICE->value,
             documentNumber: (string) $invoice->document_number,
-            date: $invoice->date?->format('Y-m-d'),
+            date: $invoice->date->format('Y-m-d'),
             referenceNumber: $invoice->reference_number,
-            chartCode: $clientChart->code,
-            chartName: $clientChart->name,
-            chartDescription: $clientChart->description,
+            chartCode: $chart->code,
+            chartName: $chart->name,
+            chartDescription: $chart->description,
             companyName: $invoice->company_name,
             description: $line->description,
             debitAmount: $debitAmount,
@@ -214,32 +216,41 @@ class ArLedgerData extends Data
     /**
      * Build an AR row directly from a manual sales adjustment chart line.
      *
-     * Simple, no legs: the chart line's debit/credit amounts are the AR movement.
+     * The line's own debit and credit figures are the movement, and the row is
+     * booked to the account the line names, so a manual adjustment writes the
+     * receivable ledger with the same rows it writes the general ledger with.
+     * The reference and the wording are read the same way the general ledger row
+     * reads them, so one entry prints the same text in both tables.
      *
-     * @param  numeric-string  $debitAmount
-     * @param  numeric-string  $creditAmount
+     * @param  ManualSalesAdjustment  $adjustment  The adjustment being posted.
+     * @param  ManualSalesAdjustmentChart  $line  The chart line the row reads its figures from.
+     * @param  Chart  $chart  The account the line was booked against.
+     * @param  string  $currencyId  The currency the amount is expressed in.
+     * @param  numeric-string  $debitAmount  What the line debits.
+     * @param  numeric-string  $creditAmount  What the line credits.
+     * @return self The row.
      */
     public static function fromManualSalesAdjustmentChartLine(
         ManualSalesAdjustment $adjustment,
         ManualSalesAdjustmentChart $line,
-        Chart $arChart,
+        Chart $chart,
         string $currencyId,
         string $debitAmount,
         string $creditAmount,
     ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: (string) $arChart->id,
+            chartId: (string) $chart->id,
             companyId: (string) ($adjustment->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: LedgerSubType::MANUAL_SALES_ADJUSTMENT->value,
             documentNumber: (string) $adjustment->document_number,
-            date: $adjustment->date?->format('Y-m-d'),
-            referenceNumber: $adjustment->reference_number,
-            chartCode: $arChart->code,
-            chartName: $arChart->name,
-            chartDescription: $arChart->description,
+            date: $adjustment->date->format('Y-m-d'),
+            referenceNumber: $line->reference_number ?? $adjustment->reference_number,
+            chartCode: $chart->code,
+            chartName: $chart->name,
+            chartDescription: $chart->description,
             companyName: $adjustment->company_name,
             description: $line->line_description ?? $line->description ?? $adjustment->notes,
             debitAmount: $debitAmount,

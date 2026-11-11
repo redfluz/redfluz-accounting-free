@@ -206,27 +206,31 @@
             </tr>
         </thead>
         <tbody>
-            @for ($index = 0; $index < 20; $index++)
+            @for ($index = 0; $index < $perPageGridDetail; $index++)
                 @php($line = $quotationLines->get($index))
-                <tr>
+                <tr data-line-index="{{ $index }}">
                     <td style="min-width: 220px">
-                        <select class="form-control quotation-product" name="lines[{{ $index }}][product_id]">
-                            <option value="">{{ __('common.actions.select_option') }}</option>
-                            @foreach ($products as $product)
-                                <option
-                                    data-description="{{ $product->description }}"
-                                    data-price="{{ $product->selling_price }}"
-                                    value="{{ $product->id }}"
-                                    @selected(old("lines.$index.product_id", $line?->product_id) === $product->id)
-                                >
-                                    {{ $product->sku }} - {{ $product->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="lines[{{ $index }}][product_id]"
+                                class="quotation-product-id"
+                                value="{{ old("lines.$index.product_id", $line?->product_id) }}">
+                            <div
+                                class="quotation-product-display form-control d-flex align-items-center justify-content-between">
+                                <span
+                                    class="quotation-product-label text-truncate">{{ old("lines.$index.product_id", $line?->product_id) ? $products->firstWhere('id', old("lines.$index.product_id", $line?->product_id))?->sku . ' - ' . $products->firstWhere('id', old("lines.$index.product_id", $line?->product_id))?->name : __('quotations.form.no_product_selected') }}</span>
+                            </div>
+                            <button class="btn btn-solid theme-primary quotation-product-choose-btn flex-shrink-0"
+                                type="button" data-line-index="{{ $index }}">
+                                <i data-lucide="search"></i>
+                            </button>
+                        </div>
                     </td>
                     <td style="min-width: 220px">
                         <div class="form-control form-adorn">
+                            <label class="visually-hidden"
+                                for="line-{{ $index }}-description">{{ __('quotations.form.description') }}</label>
                             <input
+                                id="line-{{ $index }}-description"
                                 class="form-ghost quotation-description"
                                 name="lines[{{ $index }}][description]"
                                 value="{{ old("lines.$index.description", $line?->description) }}"
@@ -235,7 +239,10 @@
                     </td>
                     <td style="min-width: 120px">
                         <div class="form-control form-adorn">
+                            <label class="visually-hidden"
+                                for="line-{{ $index }}-quantity">{{ __('quotations.form.quantity') }}</label>
                             <input
+                                id="line-{{ $index }}-quantity"
                                 class="form-ghost quotation-quantity"
                                 name="lines[{{ $index }}][quantity]"
                                 type="number"
@@ -247,7 +254,10 @@
                     </td>
                     <td style="min-width: 140px">
                         <div class="form-control form-adorn">
+                            <label class="visually-hidden"
+                                for="line-{{ $index }}-unit_price">{{ __('quotations.form.unit_price') }}</label>
                             <input
+                                id="line-{{ $index }}-unit_price"
                                 class="form-ghost quotation-price"
                                 name="lines[{{ $index }}][unit_price]"
                                 type="number"
@@ -274,6 +284,73 @@
         {{ $quotation === null ? __('common.actions.save') : __('common.actions.update') }}
     </button>
 </div>
+
+{{-- Product Selection Dialog --}}
+<dialog class="dialog" id="quotationProductPickerModal" aria-labelledby="quotationProductPickerModalLabel"
+    style="width: 90vw; max-width: 1200px; height: 85vh; max-height: 800px; padding: 0;">
+    <div class="dialog-header" style="padding: 1.5rem 2rem;">
+        <h4 class="dialog-title mb-0" id="quotationProductPickerModalLabel">
+            {{ __('quotations.form.select_product') }}</h4>
+        <button class="btn-close" data-bs-dismiss="dialog" type="button"></button>
+    </div>
+    <div class="dialog-body d-flex flex-column" style="padding: 1.5rem 2rem; min-height: 0;">
+        <div class="row g-3 mb-4 flex-shrink-0">
+            <div class="md:col-6">
+                <label class="visually-hidden" for="quotationProductSearchInput">Search Products</label><input
+                    type="text" class="form-control form-control-lg" id="quotationProductSearchInput"
+                    placeholder="{{ __('quotations.form.search_products') }}" style="font-size: 1.1rem;"
+                >
+            </div>
+            <div class="md:col-3">
+                <label class="visually-hidden" for="quotationProductCategoryFilter">Product Category</label><select
+                    class="form-control form-control-lg" id="quotationProductCategoryFilter"
+                    style="font-size: 1.1rem;">
+                    <option value="">{{ __('quotations.form.all_categories') }}</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="md:col-3">
+                <label class="visually-hidden" for="quotationProductTypeFilter">Product Type</label><select
+                    class="form-control form-control-lg" id="quotationProductTypeFilter" style="font-size: 1.1rem;">
+                    <option value="">{{ __('quotations.form.all_types') }}</option>
+                    @foreach ($categories as $category)
+                        @foreach ($category->types as $type)
+                            <option value="{{ $type->id }}" data-category-id="{{ $category->id }}">
+                                {{ $type->name }}</option>
+                        @endforeach
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="table-responsive flex-fill" style="overflow-y: auto; min-height: 0;">
+            <table class="table table-hover" style="font-size: 1.05rem;">
+                <thead class="sticky-top bg-body" style="font-size: 1.1rem;">
+                    <tr>
+                        <th scope="col" style="padding: 1rem;">{{ __('quotations.form.sku') }}</th>
+                        <th scope="col" style="padding: 1rem;">{{ __('quotations.form.product_name') }}</th>
+                        <th scope="col" style="padding: 1rem;">{{ __('quotations.form.category') }}</th>
+                        <th scope="col" class="text-end" style="padding: 1rem;">{{ __('quotations.form.price') }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="quotationProductPickerResults">
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5" style="font-size: 1.1rem;">
+                            {{ __('quotations.form.type_to_search') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="dialog-footer" style="padding: 1.5rem 2rem;">
+        <button class="btn btn-solid theme-primary btn-lg" data-bs-dismiss="dialog" type="button"
+            style="font-size: 1.1rem; padding: 0.75rem 2rem;">
+            {{ __('quotations.form.close_information') }}
+        </button>
+    </div>
+</dialog>
 
 @push('scripts')
     <script>
@@ -337,41 +414,172 @@
         quotationCompanySelect.addEventListener('change', filterQuotationContacts);
         filterQuotationContacts();
 
-        function refreshQuotationProductSelects() {
-            if (typeof window.initCombobox !== 'function') {
+        // Product Picker Modal - wait for bootstrap to be available
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.bootstrap) {
+                console.error('Bootstrap is not loaded');
                 return;
             }
 
-            document.querySelectorAll('.quotation-product').forEach((element) => {
-                window.initCombobox(element, {
-                    placeholder: @json(__('common.actions.select_option')),
+            const quotationProductPickerModal = window.bootstrap.Dialog.getOrCreateInstance(document.getElementById(
+                'quotationProductPickerModal'));
+            const quotationProductSearchInput = document.getElementById('quotationProductSearchInput');
+            const quotationProductCategoryFilter = document.getElementById('quotationProductCategoryFilter');
+            const quotationProductTypeFilter = document.getElementById('quotationProductTypeFilter');
+            const quotationProductPickerResults = document.getElementById('quotationProductPickerResults');
+            let quotationCurrentLineIndex = null;
+            let quotationSearchTimeout = null;
+
+            function filterQuotationProductTypes() {
+                const categoryId = quotationProductCategoryFilter.value;
+
+                Array.from(quotationProductTypeFilter.options).forEach((option) => {
+                    if (!option.dataset.categoryId) return;
+                    const belongsToCategory = option.dataset.categoryId === categoryId;
+                    option.hidden = !belongsToCategory;
+                    option.disabled = !belongsToCategory;
                 });
-            });
-        }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', refreshQuotationProductSelects);
-        } else {
-            refreshQuotationProductSelects();
-        }
+                if (quotationProductTypeFilter.selectedOptions[0]?.hidden) {
+                    quotationProductTypeFilter.value = '';
+                }
 
-        document.querySelectorAll('#quotation-lines tbody tr').forEach((row) => {
-            const product = row.querySelector('.quotation-product');
-            const quantity = row.querySelector('.quotation-quantity');
-            const price = row.querySelector('.quotation-price');
-            const total = row.querySelector('.quotation-line-total');
-            const updateTotal = () =>
-                (total.textContent = ((Number(quantity.value) || 0) * (Number(price.value) || 0)).toFixed(2));
-            product.addEventListener('change', () => {
-                const option = product.selectedOptions[0];
-                if (!option?.value) return;
-                row.querySelector('.quotation-description').value ||= option.dataset.description || '';
-                quantity.value ||= '1';
-                price.value ||= option.dataset.price || '0';
-                updateTotal();
+                quotationProductTypeFilter.disabled = categoryId === '';
+            }
+
+            function searchQuotationProducts() {
+                const query = quotationProductSearchInput.value;
+                const categoryId = quotationProductCategoryFilter.value;
+                const typeId = quotationProductTypeFilter.value;
+                const noProductsText = @json(__('quotations.form.no_products_found'));
+                const searchErrorText = @json(__('quotations.form.search_error'));
+
+                if (quotationSearchTimeout) {
+                    clearTimeout(quotationSearchTimeout);
+                }
+
+                quotationSearchTimeout = setTimeout(() => {
+                    fetch(
+                            `{{ route('sales.quotations.products.search') }}?search=${encodeURIComponent(query)}&category_id=${encodeURIComponent(categoryId)}&type_id=${encodeURIComponent(typeId)}`
+                            )
+                        .then(response => response.json())
+                        .then(products => {
+                            if (products.length === 0) {
+                                quotationProductPickerResults.innerHTML =
+                                    `<tr><td colspan="4" class="text-center text-muted py-5" style="font-size: 1.1rem;">${noProductsText}</td></tr>`;
+                            } else {
+                                quotationProductPickerResults.innerHTML = products.map(product => `
+                            <tr class="quotation-product-picker-row" data-product-id="${product.id}" data-product-sku="${escapeHtml(product.sku)}" data-product-name="${escapeHtml(product.name)}" data-product-price="${product.price}" data-product-description="${escapeHtml(product.description)}" style="cursor: pointer; font-size: 1.05rem;">
+                                <td style="padding: 1rem;">${escapeHtml(product.sku)}</td>
+                                <td style="padding: 1rem;">${escapeHtml(product.name)}</td>
+                                <td style="padding: 1rem;">${escapeHtml(product.category)}</td>
+                                <td class="text-end" style="padding: 1rem;">${quantity(product.price)}</td>
+                            </tr>
+                        `).join('');
+
+                                quotationProductPickerResults.querySelectorAll(
+                                    '.quotation-product-picker-row').forEach(row => {
+                                    row.addEventListener('click', () => {
+                                        const productId = row.dataset.productId;
+                                        const productSku = row.dataset.productSku;
+                                        const productName = row.dataset.productName;
+                                        const productPrice = row.dataset.productPrice;
+                                        const productDescription = row.dataset
+                                            .productDescription;
+
+                                        const targetRow = document.querySelector(
+                                            `tr[data-line-index="${quotationCurrentLineIndex}"]`
+                                        );
+                                        const productIdInput = targetRow.querySelector(
+                                            '.quotation-product-id');
+                                        const productLabel = targetRow.querySelector(
+                                            '.quotation-product-label');
+                                        const descriptionInput = targetRow
+                                            .querySelector('.quotation-description');
+                                        const priceInput = targetRow.querySelector(
+                                            '.quotation-price');
+                                        const quantityInput = targetRow.querySelector(
+                                            '.quotation-quantity');
+                                        const totalCell = targetRow.querySelector(
+                                            '.quotation-line-total');
+
+                                        productIdInput.value = productId;
+                                        productLabel.textContent =
+                                            `${productSku} - ${productName}`;
+                                        descriptionInput.value ||= productDescription;
+                                        quantityInput.value ||= '1';
+                                        priceInput.value ||= productPrice;
+
+                                        const newTotal = ((Number(quantityInput
+                                            .value) || 0) * (Number(priceInput
+                                            .value) || 0)).toFixed(2);
+                                        totalCell.textContent = newTotal;
+
+                                        quotationProductPickerModal.hide();
+                                    });
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error searching products:', error);
+                            quotationProductPickerResults.innerHTML =
+                                `<tr><td colspan="4" class="text-center text-danger py-5" style="font-size: 1.1rem;">${searchErrorText}</td></tr>`;
+                        });
+                }, 300);
+            }
+
+            const quantity = (value) =>
+                Number(value || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+            const escapeHtml = (value) =>
+                String(value).replace(
+                    /[&<>'"]/g,
+                    (character) =>
+                    ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        "'": '&#039;',
+                        '"': '&quot;',
+                    })[character],
+                );
+
+            document.querySelectorAll('#quotation-lines tbody tr').forEach((row) => {
+                const chooseBtn = row.querySelector('.quotation-product-choose-btn');
+                const quantity = row.querySelector('.quotation-quantity');
+                const price = row.querySelector('.quotation-price');
+                const total = row.querySelector('.quotation-line-total');
+
+                const updateTotal = () =>
+                    (total.textContent = ((Number(quantity.value) || 0) * (Number(price.value) || 0))
+                        .toFixed(2));
+
+                chooseBtn?.addEventListener('click', (e) => {
+                    quotationCurrentLineIndex = e.currentTarget.dataset.lineIndex;
+                    quotationProductSearchInput.value = '';
+                    quotationProductCategoryFilter.value = '';
+                    quotationProductTypeFilter.value = '';
+                    filterQuotationProductTypes();
+                    const typeToSearchText = @json(__('quotations.form.type_to_search'));
+                    quotationProductPickerResults.innerHTML =
+                        `<tr><td colspan="4" class="text-center text-muted py-5" style="font-size: 1.1rem;">${typeToSearchText}</td></tr>`;
+                    quotationProductPickerModal.show();
+                    setTimeout(() => quotationProductSearchInput.focus(), 500);
+                });
+
+                quantity.addEventListener('input', updateTotal);
+                price.addEventListener('input', updateTotal);
             });
-            quantity.addEventListener('input', updateTotal);
-            price.addEventListener('input', updateTotal);
+
+            quotationProductSearchInput.addEventListener('input', searchQuotationProducts);
+            quotationProductCategoryFilter.addEventListener('change', () => {
+                filterQuotationProductTypes();
+                searchQuotationProducts();
+            });
+            quotationProductTypeFilter.addEventListener('change', searchQuotationProducts);
+            filterQuotationProductTypes();
         });
 
     </script>

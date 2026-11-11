@@ -38,6 +38,7 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
     /** @var JournalEntry */
     'journalEntry',
     'charts',
+    'chartTypes',
 ])
 
 @extends('layouts.app')
@@ -106,6 +107,8 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
             </form>
         </div>
     </div>
+
+    @include('finance.journal-entries._coa-picker')
 
     <script type="module">
         document.addEventListener('click', function(e) {

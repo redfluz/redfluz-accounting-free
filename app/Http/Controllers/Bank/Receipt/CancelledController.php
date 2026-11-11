@@ -95,7 +95,6 @@ class CancelledController extends Controller
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::CANCELLED)
-            ->with('arLedgers.chart')
             ->firstOrFail();
 
         return view('bank.receipt.cancelled.show', compact('receipt', 'documentNumber'));
@@ -115,7 +114,6 @@ class CancelledController extends Controller
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
             ->where('status', LedgerStatus::CANCELLED)
-            ->with('arLedgers.chart')
             ->firstOrFail();
 
         return Pdf::loadView('bank.receipt.pdf', [

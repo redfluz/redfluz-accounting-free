@@ -146,7 +146,7 @@ abstract class PaymentVoucherRequest extends BaseFormRequest
      */
     protected function moneyAccountRules(): array
     {
-        $chosen = PaymentTransferType::tryFrom((string) $this->input('payment_transfer_type'))?->accountColumn();
+        $chosen = PaymentTransferType::tryFrom($this->string('payment_transfer_type')->toString())?->accountColumn();
 
         $rules = [];
 

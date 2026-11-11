@@ -37,6 +37,7 @@ use App\Models\Crm\ArLedger;
 use App\Models\Crm\Company;
 use App\Models\Crm\CompanyFile;
 use App\Support\Data\Crm\CompanyData;
+use App\Support\Traits\ResolvesLedgerSources;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -50,6 +51,8 @@ use Throwable;
 
 class CompanyController extends Controller
 {
+    use ResolvesLedgerSources;
+
     /**
      * Display a listing of the resource.
      *
@@ -115,6 +118,11 @@ class CompanyController extends Controller
         $arLedgers = $arLedgers->reverse()->values();
         $apLedgers = $apLedgers->reverse()->values();
 
+        // A statement row is a figure, so it links back to the document that
+        // produced it exactly as the general ledger does. One map serves both
+        // panes because a sub-ledger row id is a uuid and cannot collide.
+        $sourceUrls = $this->sourceUrls($arLedgers->concat($apLedgers));
+
         // --- CALENDAR LOGIC ---
         // 1. Determine the month
         $month = $request->input('month');
@@ -161,7 +169,8 @@ class CompanyController extends Controller
             'arLedgers',
             'apLedgers',
             'arTotals',
-            'apTotals'
+            'apTotals',
+            'sourceUrls'
         ));
     }
 

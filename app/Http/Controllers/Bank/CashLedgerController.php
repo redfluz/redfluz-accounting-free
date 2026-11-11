@@ -27,7 +27,6 @@
 namespace App\Http\Controllers\Bank;
 
 use App\Enums\Bank\BankAccountKind;
-use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Controllers\Bank\Concerns\ReadsMoneyLedger;
 use App\Http\Controllers\Controller;
@@ -73,7 +72,7 @@ class CashLedgerController extends Controller
      */
     public function index(Request $request): View
     {
-        $this->allows(FileResources::CASH_LEDGERS, FileAction::READ);
+        $this->allows(FileResources::CASH_LEDGERS);
 
         $filters = $this->filters($request);
 

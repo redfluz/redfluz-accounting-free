@@ -67,7 +67,6 @@ class HistoryController extends Controller
 
         return JournalEntry::query()
             ->with(['charts', 'reversal', 'reversalOf'])
-            ->where('status', LedgerStatus::POSTED)
             ->when(is_string($search) && $search !== '', function ($q) use ($search) {
                 $q->where(function ($sq) use ($search) {
                     $sq->where('document_number', 'like', "%$search%")

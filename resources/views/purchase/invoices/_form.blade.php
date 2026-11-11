@@ -114,20 +114,20 @@
     <label class="form-label fw-bold" for="invoice_attachment">
         {{ __('ledgers.table.column_attachment_path') }}
     </label>
-    @if ($invoice?->attachment_path)
-    @php($attachmentExtension = strtolower(pathinfo($invoice->attachment_path, PATHINFO_EXTENSION)))
+    @if ($purchaseInvoice?->attachment_path)
+    @php($attachmentExtension = strtolower(pathinfo($purchaseInvoice->attachment_path, PATHINFO_EXTENSION)))
     <div class="mb-2">
         <div class="form-text mb-1">{{ __('ledgers.form.current_attachment') }}</div>
         @if (in_array($attachmentExtension, ['jpg', 'jpeg', 'png', 'webp'], true))
-            <a href="{{ route('purchase.invoices.attachment', $documentNumber) }}" target="_blank">
+            <a href="{{ route('purchase.invoices.attachment', $purchaseInvoice->document_number) }}" target="_blank">
                 <img class="img-thumbnail rounded-3 border"
-                    src="{{ route('purchase.invoices.attachment', $documentNumber) }}"
-                    alt="{{ basename($invoice->attachment_path) }}" style="max-height: 140px" />
+                    src="{{ route('purchase.invoices.attachment', $purchaseInvoice->document_number) }}"
+                    alt="{{ basename($purchaseInvoice->attachment_path) }}" style="max-height: 140px" />
             </a>
         @else
             <a class="btn btn-sm btn-solid theme-secondary"
-                href="{{ route('purchase.invoices.attachment', $documentNumber) }}" target="_blank">
-                <i class="me-1" data-lucide="paperclip"></i>{{ basename($invoice->attachment_path) }}
+                href="{{ route('purchase.invoices.attachment', $purchaseInvoice->document_number) }}" target="_blank">
+                <i class="me-1" data-lucide="paperclip"></i>{{ basename($purchaseInvoice->attachment_path) }}
             </a>
         @endif
     </div>
@@ -166,11 +166,14 @@
                 </tr>
             </thead>
             <tbody>
-                @for ($lineIndex = 0; $lineIndex < 10; $lineIndex++)
+                @for ($lineIndex = 0; $lineIndex < $perPageGridDetail; $lineIndex++)
                     <tr>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
-                                <input class="form-ghost @error("lines.$lineIndex.description") is-invalid @enderror"
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-description">{{ __('ledgers.table.column_description') }}</label>
+                                <input id="line-{{ $lineIndex }}-description"
+                                    class="form-ghost @error("lines.$lineIndex.description") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][description]" type="text"
                                     value="{{ old("lines.$lineIndex.description") }}" />
                             </div>
@@ -180,7 +183,10 @@
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-quantity">{{ __('ledgers.table.column_quantity') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-quantity"
                                     class="form-ghost line-quantity @error("lines.$lineIndex.quantity") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][quantity]" type="number"
                                     value="{{ old("lines.$lineIndex.quantity") }}" min="1" />
@@ -191,7 +197,10 @@
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-unit_price">{{ __('ledgers.table.column_unit_price') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-unit_price"
                                     class="form-ghost line-unit-price @error("lines.$lineIndex.unit_price") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][unit_price]" type="number"
                                     value="{{ old("lines.$lineIndex.unit_price") }}" min="0" step="0.01" />
@@ -202,7 +211,10 @@
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-discount_amount">{{ __('ledgers.table.column_discount_amount') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-discount_amount"
                                     class="form-ghost line-discount-amount @error("lines.$lineIndex.discount_amount") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][discount_amount]" type="number"
                                     value="{{ old("lines.$lineIndex.discount_amount", 0) }}" min="0" step="0.01" />
@@ -210,7 +222,10 @@
                         </td>
                         <td>
                             <div class="form-control form-control-sm form-adorn">
+                                <label class="visually-hidden"
+                                    for="line-{{ $lineIndex }}-tax_amount">{{ __('ledgers.table.column_tax_amount') }}</label>
                                 <input
+                                    id="line-{{ $lineIndex }}-tax_amount"
                                     class="form-ghost line-tax-amount @error("lines.$lineIndex.tax_amount") is-invalid @enderror"
                                     name="lines[{{ $lineIndex }}][tax_amount]" type="number"
                                     value="{{ old("lines.$lineIndex.tax_amount", 0) }}" min="0" step="0.01" />

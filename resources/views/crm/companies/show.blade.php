@@ -343,156 +343,20 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
 
         {{-- TAB 3: Accounts Receivable Statement --}}
         <div class="tab-pane fade" id="ar-pane" role="tabpanel" aria-labelledby="ar-tab">
-            <div class="table-responsive">
-                <table class="table-hover table-striped mb-0 table align-middle">
-                    <thead class="bg-1">
-                        <tr>
-                            <th scope="col">{{ __('companies.statement.document_number') }}</th>
-                            <th scope="col">{{ __('companies.statement.date') }}</th>
-                            <th scope="col">{{ __('companies.statement.applied_to') }}</th>
-                            <th scope="col">{{ __('companies.statement.product') }}</th>
-                            <th scope="col">{{ __('companies.statement.type') }}</th>
-                            <th scope="col" class="text-end">{{ __('companies.statement.debit') }}</th>
-                            <th scope="col" class="text-end">{{ __('companies.statement.credit') }}</th>
-                            <th scope="col" class="text-end">{{ __('companies.statement.balance') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($arLedgers as $ledger)
-                            @php($subtype = $ledger->subtype->value ?? $ledger->subtype)
-
-                            <tr>
-                                <td class="fw-bold">{{ $ledger->document_number }}</td>
-                                <td>{{ $ledger->date->format(Setting::getDefaultDate()) }}</td>
-                                <td>
-                                    @if ($ledger->reference_number && $ledger->reference_number !== $ledger->document_number)
-                                        {{ $ledger->reference_number }}
-                                    @else
-                                        <span class="text-center"><i data-lucide="minus-circle"></i></span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($ledger->product_id)
-                                        <a href="{{ route('inventory.products.show', $ledger->product_id) }}">
-                                            {{ $ledger->product_name ?? __('companies.statement.unknown_product') }}
-                                        </a>
-                                    @else
-                                        <span class="text-center"><i data-lucide="minus-circle"></i></span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge theme-info"> {{ __('ledgers.sub_type.' . $subtype) }} </span>
-                                </td>
-                                <td class="text-end">{{ number_format((float) $ledger->debit_amount, 2) }}</td>
-                                <td class="text-end">{{ number_format((float) $ledger->credit_amount, 2) }}</td>
-                                <td class="fw-bold text-end">
-                                    <x-money :value="$ledger->running_balance" />
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td class="fg-secondary py-3 text-center" colspan="8">
-                                    {{ __('companies.messages.no_ar_transactions') }}
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-
-                    @if ($arLedgers->isNotEmpty())
-                        <tfoot class="bg-1 fw-bold">
-                            <tr>
-                                <td class="text-uppercase text-end" colspan="5">
-                                    {{ __('companies.statement.closing_balance') }}:
-                                </td>
-                                <td class="text-end">{{ number_format((float) $arTotals['debit'], 2) }}</td>
-                                <td class="text-end">{{ number_format((float) $arTotals['credit'], 2) }}</td>
-                                <td class="fs-xl text-end">
-                                    <x-money :value="$arTotals['balance']" />
-                                </td>
-                            </tr>
-                        </tfoot>
-                    @endif
-                </table>
-            </div>
+            @include('crm.companies._statement-table', [
+                'rows' => $arLedgers,
+                'emptyMessage' => __('companies.messages.no_ar_transactions'),
+                'sourceUrls' => $sourceUrls,
+            ])
         </div>
 
         {{-- TAB 4: Accounts Payable Statement --}}
         <div class="tab-pane fade" id="ap-pane" role="tabpanel" aria-labelledby="ap-tab">
-            <div class="table-responsive">
-                <table class="table-hover table-striped mb-0 table align-middle">
-                    <thead class="bg-1">
-                        <tr>
-                            <th scope="col">{{ __('companies.statement.document_number') }}</th>
-                            <th scope="col">{{ __('companies.statement.date') }}</th>
-                            <th scope="col">{{ __('companies.statement.applied_to') }}</th>
-                            <th scope="col">{{ __('companies.statement.product') }}</th>
-                            <th scope="col">{{ __('companies.statement.type') }}</th>
-
-                            <th scope="col" class="text-end">{{ __('companies.statement.debit') }}</th>
-                            <th scope="col" class="text-end">{{ __('companies.statement.credit') }}</th>
-                            <th scope="col" class="text-end">{{ __('companies.statement.balance') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($apLedgers as $ledger)
-                            @php($subtype = $ledger->subtype->value ?? $ledger->subtype)
-
-                            <tr>
-                                <td class="fw-bold">{{ $ledger->document_number }}</td>
-                                <td>{{ $ledger->date->format(Setting::getDefaultDate('short_date_format')) }}</td>
-                                <td class="text-center">
-                                    @if ($ledger->reference_number && $ledger->reference_number !== $ledger->document_number)
-                                        {{ $ledger->reference_number }}
-                                    @else
-                                        <span class="text-center"><i data-lucide="minus-circle"></i></span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    @if ($ledger->product_id)
-                                        <a href="{{ route('inventory.products.show', $ledger->product_id) }}">
-                                            {{ $ledger->product_name ?? __('companies.statement.unknown_product') }}
-                                        </a>
-                                    @else
-                                        <span class="text-center"><i data-lucide="minus-circle"></i></span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge theme-warning">
-                                        {{ __('ledgers.sub_type.' . $subtype) }}
-                                    </span>
-                                </td>
-
-                                <td class="text-end">{{ number_format((float) $ledger->debit_amount, 2) }}</td>
-                                <td class="text-end">{{ number_format((float) $ledger->credit_amount, 2) }}</td>
-                                <td class="fw-bold text-end">
-                                    <x-money :value="$ledger->running_balance" />
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td class="fg-secondary py-3 text-center" colspan="8">
-                                    {{ __('companies.messages.no_ap_transactions') }}
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-
-                    @if ($apLedgers->isNotEmpty())
-                        <tfoot class="bg-1 fw-bold">
-                            <tr>
-                                <td class="text-uppercase text-end" colspan="5">
-                                    {{ __('companies.statement.closing_balance') }}:
-                                </td>
-                                <td class="text-end">{{ number_format((float) $apTotals['debit'], 2) }}</td>
-                                <td class="text-end">{{ number_format((float) $apTotals['credit'], 2) }}</td>
-                                <td class="fs-xl text-end">
-                                    <x-money :value="$apTotals['balance']" />
-                                </td>
-                            </tr>
-                        </tfoot>
-                    @endif
-                </table>
-            </div>
+            @include('crm.companies._statement-table', [
+                'rows' => $apLedgers,
+                'emptyMessage' => __('companies.messages.no_ap_transactions'),
+                'sourceUrls' => $sourceUrls,
+            ])
         </div>
 
         {{-- TAB 5: Files --}}

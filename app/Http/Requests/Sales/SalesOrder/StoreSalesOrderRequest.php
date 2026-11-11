@@ -33,6 +33,7 @@ use App\Enums\FileResources;
 use App\Enums\Finance\DiscountType;
 use App\Enums\Finance\TaxMode;
 use App\Enums\UploadType;
+use App\Http\Controllers\Controller;
 use App\Models\Inventory\Product;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -82,7 +83,7 @@ class StoreSalesOrderRequest extends SalesOrderRequest
             'expected_delivery_date' => ['nullable', 'date', 'after_or_equal:order_date'],
             'notes' => ['nullable', 'string'],
             'attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:5120'],
-            'lines' => ['required', 'array', 'max:20'],
+            'lines' => ['required', 'array', 'max:'.Controller::detailGridRows()],
             'lines.*.product_id' => ['nullable', 'uuid', 'exists:products,id'],
             'lines.*.description' => ['nullable', 'string'],
             'lines.*.quantity' => ['nullable', 'numeric', 'min:0.0001'],

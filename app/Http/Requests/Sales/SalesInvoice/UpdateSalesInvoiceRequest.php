@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\DiscountType;
 use App\Enums\Finance\TaxMode;
+use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 /**
@@ -69,7 +70,7 @@ class UpdateSalesInvoiceRequest extends SalesInvoiceRequest
             'amount' => ['nullable', 'numeric', 'min:0.01'],
             'invoice_notes' => ['nullable', 'string'],
             'payment_notes' => ['nullable', 'string'],
-            'lines' => ['required', 'array', 'size:10'],
+            'lines' => ['required', 'array', 'size:'.Controller::detailGridRows()],
             'lines.*.product_id' => ['nullable', 'exists:products,id'],
             'lines.*.description' => ['nullable', 'string', 'max:1000'],
             'lines.*.quantity' => ['nullable', 'integer', 'min:1'],

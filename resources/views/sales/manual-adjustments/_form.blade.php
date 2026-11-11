@@ -171,8 +171,12 @@
         <tbody>
             @php
                 $adjustmentCharts = $adjustment?->charts?->values() ?? collect();
+
+                // The grid is the detail rows the request accepts, and a
+                // stored document is never shown with fewer rows than it has.
+                $lineCount = max($perPageGridDetail, $adjustmentCharts->count());
             @endphp
-            @for ($i = 0; $i < max($perPageGridDetail, $adjustmentCharts->count()); $i++)
+            @for ($i = 0; $i < $lineCount; $i++)
                 @php
                     $line = $adjustmentCharts->get($i);
                     $selectedChartId = old('lines.' . $i . '.chart_id', $line?->chart_id);
@@ -182,7 +186,7 @@
                     <td>
                         <div
                             class="d-flex gap-2 align-items-center @error('lines.' . $i . '.chart_id') is-invalid @enderror">
-                            <input type="hidden" name="lines[{{ $i }}][chart_id]"
+                            <input id="line-{{ $i }}-chart_id" type="hidden" name="lines[{{ $i }}][chart_id]"
                                 class="line-chart-id" value="{{ $selectedChartId }}" />
                             <div
                                 class="line-chart-display form-control form-control-sm d-flex align-items-center justify-content-between">
