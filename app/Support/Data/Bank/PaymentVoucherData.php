@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Bank;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
 use Carbon\CarbonImmutable;
@@ -120,7 +120,7 @@ class PaymentVoucherData extends Data
         // ---- what the form cannot supply ----
 
         #[MapName('status')]
-        public LedgerStatus $status = LedgerStatus::PENDING,
+        public DocumentStatus $status = DocumentStatus::PENDING,
 
         #[MapName('company_name')]
         public ?string $companyName = null,

@@ -29,7 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\Finance\LedgerStatus;
+
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use Illuminate\Database\Migrations\Migration;
@@ -42,25 +43,16 @@ return new class extends Migration
     {
         Schema::create('journal_entries', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('reversal_of_id')
-                ->nullable()
-                ->unique()
-                ->constrained('journal_entries')
-                ->nullOnDelete();
-            $table->foreignUuid('reversal_id')
-                ->nullable()
-                ->unique()
-                ->constrained('journal_entries')
-                ->nullOnDelete();
             $table->string('document_number')->unique();
             $table->string('reference_number')->nullable();
+            $table->string('document_original')->nullable();
             $table->date('date');
             $table->decimal('total_debit', 15)->default(0.00);
             $table->decimal('total_credit', 15)->default(0.00);
             $table->enum(
                 'status',
-                array_column(LedgerStatus::cases(), 'value')
-            )->default(LedgerStatus::PENDING->value);
+                array_column(DocumentStatus::cases(), 'value')
+            )->default(DocumentStatus::PENDING->value);
             $table->text('notes')->nullable();
             $table->uuid('created_by')->nullable();
             $table->string('created_name')->nullable();

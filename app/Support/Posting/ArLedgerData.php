@@ -31,8 +31,8 @@ namespace App\Support\Posting;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\ChartOfAccount\Chart;
-use App\Models\Finance\ManualSalesAdjustment;
-use App\Models\Finance\ManualSalesAdjustmentChart;
+use App\Models\Sales\ManualSalesAdjustment;
+use App\Models\Sales\ManualSalesAdjustmentChart;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use Carbon\CarbonInterface;
@@ -244,7 +244,7 @@ class ArLedgerData extends Data
             companyId: (string) ($adjustment->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
-            subtype: LedgerSubType::MANUAL_SALES_ADJUSTMENT->value,
+            subtype: $line->subtype->value,
             documentNumber: (string) $adjustment->document_number,
             date: $adjustment->date->format('Y-m-d'),
             referenceNumber: $line->reference_number ?? $adjustment->reference_number,

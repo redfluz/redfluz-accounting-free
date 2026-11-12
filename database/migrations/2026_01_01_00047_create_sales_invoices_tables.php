@@ -29,7 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\Finance\LedgerStatus;
+
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\PaymentTransferType;
 use App\Enums\Sales\SalesType;
 use Illuminate\Database\Migrations\Migration;
@@ -79,8 +80,8 @@ return new class extends Migration
             $table->string('contact_name')->nullable();
             $table->date('date');
             $table->date('due_date')->nullable();
-            $table->enum('status', array_column(LedgerStatus::cases(), 'value'))
-                ->default(LedgerStatus::PENDING->value);
+            $table->enum('status', array_column(DocumentStatus::cases(), 'value'))
+                ->default(DocumentStatus::PENDING->value);
             $table->string('attachment_path')->nullable();
             $table->enum('payment_transfer_type', array_column(PaymentTransferType::cases(), 'value'))->nullable();
             $table->string('payment_attachment_path')->nullable();
@@ -103,10 +104,6 @@ return new class extends Migration
             $table->uuid('undone_by')->nullable();
             $table->string('undone_name')->nullable();
             $table->timestamp('undone_at')->nullable();
-            // The reversing journal, once reversed. One reversal per document:
-            // a second press finds this filled and is refused instead of
-            // doubling the reversal back on top of the original.
-            $table->foreignUuid('reversal_id')->nullable()->constrained('journal_entries')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

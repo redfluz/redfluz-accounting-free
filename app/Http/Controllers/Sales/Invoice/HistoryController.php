@@ -28,24 +28,20 @@ namespace App\Http\Controllers\Sales\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
+use App\Enums\Finance\LedgerType;
 use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
+use App\Models\Crm\ArLedger;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Class HistoryController
@@ -54,34 +50,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class HistoryController extends Controller
 {
-    /**
-     * Build a filtered query for posted sales invoices.
-     *
-     * @param  Request  $request  The incoming request containing list filters.
-     * @return Builder<SalesInvoice> Returns the query builder instance.
-     */
-    private function buildQuery(Request $request): Builder
-    {
-        $search = $request->string('search')->toString();
-        $startDate = $request->string('start_date')->toString();
-        $endDate = $request->string('end_date')->toString();
-
-        return SalesInvoice::query()
-            ->with(['company', 'contact'])
-            ->where('status', LedgerStatus::POSTED)
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('document_number', 'like', "%$search%")
-                        ->orWhere('reference_number', 'like', "%$search%")
-                        ->orWhere('company_name', 'like', "%$search%")
-                        ->orWhereHas('lines.product', fn ($pq) => $pq->where('name', 'like', "%$search%"));
-                });
-            })
-            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
-            ->orderByDesc('date');
-    }
-
     /**
      * Display a listing of posted sales invoices.
      *
@@ -96,7 +64,20 @@ class HistoryController extends Controller
         $startDate = $request->string('start_date')->toString();
         $endDate = $request->string('end_date')->toString();
 
-        $entries = $this->buildQuery($request)
+        $entries = SalesInvoice::query()
+            ->with(['company', 'contact'])
+            ->where('status', DocumentStatus::POSTED)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('document_number', 'like', "%$search%")
+                        ->orWhere('reference_number', 'like', "%$search%")
+                        ->orWhere('company_name', 'like', "%$search%")
+                        ->orWhereHas('lines.product', fn ($pq) => $pq->where('name', 'like', "%$search%"));
+                });
+            })
+            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->orderByDesc('date')
             ->paginate(self::PER_PAGE_GRID_NORMAL)
             ->withQueryString();
 
@@ -122,7 +103,7 @@ class HistoryController extends Controller
         $invoice = SalesInvoice::query()
             ->with(['company', 'contact', 'lines.product'])
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::POSTED)
+            ->where('status', DocumentStatus::POSTED)
             ->first();
 
         if ($invoice === null) {
@@ -142,6 +123,59 @@ class HistoryController extends Controller
     }
 
     /**
+     * Stream the printable PDF for one posted sales invoice.
+     *
+     * @param  string  $documentNumber  The document number of the invoice.
+     * @return Response The streamed history invoice PDF.
+     */
+    public function pdf(string $documentNumber): Response
+    {
+        $this->allows(FileResources::SALES_INVOICES);
+
+        /** @var SalesInvoice|null $invoice */
+        $invoice = SalesInvoice::query()
+            ->with(['company', 'contact', 'lines.product'])
+            ->where('document_number', $documentNumber)
+            ->where('status', DocumentStatus::POSTED)
+            ->first();
+
+        abort_if($invoice === null, 404);
+
+        /** @var Collection<int, SalesInvoiceLine> $lines */
+        $lines = $invoice->lines;
+
+        /** @var Collection<int, ArLedger> $payments */
+        $payments = ArLedger::query()->againstReceivableAccount()
+            ->where('type', LedgerType::PAYMENT->value)
+            ->where('reference_number', $documentNumber)
+            ->orderBy('date')
+            ->get();
+
+        $amountPaid = $payments->reduce(
+            static fn (string $carry, ArLedger $payment): string => bcadd(
+                $carry,
+                bcsub((string) $payment->credit_amount, (string) $payment->debit_amount, 2),
+                2
+            ),
+            '0.00'
+        );
+        $amountPaid = bccomp($amountPaid, '0.00', 2) < 0 ? '0.00' : $amountPaid;
+
+        $balanceDue = bcsub(bcadd((string) $invoice->total_amount, '0', 2), $amountPaid, 2);
+        $balanceDue = bccomp($balanceDue, '0.00', 2) < 0 ? '0.00' : $balanceDue;
+
+        return Pdf::loadView('sales.invoices.history.pdf', [
+            'documentNumber' => $documentNumber,
+            'invoice' => $invoice,
+            'lines' => $lines,
+            'payments' => $payments,
+            'amountPaid' => $amountPaid,
+            'balanceDue' => $balanceDue,
+            'setting' => Setting::query()->firstOrNew(),
+        ])->setPaper('a4')->stream($documentNumber.'.pdf');
+    }
+
+    /**
      * Clone a posted sales invoice and redirect to create page with pre-filled data.
      *
      * @param  string  $documentNumber  The document number of the invoice to clone.
@@ -155,7 +189,7 @@ class HistoryController extends Controller
         $invoice = SalesInvoice::query()
             ->with(['lines'])
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::POSTED)
+            ->where('status', DocumentStatus::POSTED)
             ->first();
 
         if ($invoice === null) {
@@ -192,89 +226,5 @@ class HistoryController extends Controller
         ];
 
         return redirect()->route('sales.invoices.create')->with('clone_data', $cloneData);
-    }
-
-    /**
-     * Export posted sales invoices to PDF.
-     *
-     * @param  Request  $request  The incoming request containing list filters.
-     * @return Response Returns the PDF download response.
-     */
-    public function exportPdf(Request $request): Response
-    {
-        $this->allows(FileResources::SALES_INVOICES);
-
-        $entries = $this->buildQuery($request)->get();
-
-        $setting = Setting::query()->first();
-
-        return Pdf::loadView('sales.invoices.history.pdf', compact('entries') + ['setting' => $setting])
-            ->setPaper('a4', 'landscape')
-            ->download('posted_sales_invoices_'.now()->format('Ymd_His').'.pdf');
-    }
-
-    /**
-     * Export posted sales invoices to Excel.
-     *
-     * @param  Request  $request  The incoming request containing list filters.
-     * @return StreamedResponse Returns the Excel download response.
-     */
-    public function exportExcel(Request $request): StreamedResponse
-    {
-        $this->allows(FileResources::SALES_INVOICES);
-
-        $entries = $this->buildQuery($request)->get();
-        $spreadsheet = new Spreadsheet;
-        $spreadsheet->getProperties()
-            ->setCreator(is_string(config('app.name')) ? config('app.name') : '')
-            ->setTitle('Posted Sales Invoices');
-
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Posted Sales Invoices');
-
-        $headers = [
-            __('ledgers.table.column_document_number'),
-            __('ledgers.table.column_reference_number'),
-            __('ledgers.table.column_date'),
-            __('ledgers.table.column_company'),
-            __('ledgers.table.column_total_amount'),
-        ];
-
-        foreach ($headers as $index => $header) {
-            $sheet->setCellValue([$index + 1, 1], $header);
-        }
-        /**
-         * @var SalesInvoice $entry
-         */
-        foreach ($entries as $index => $entry) {
-            $row = $index + 2;
-            $sheet->setCellValue([1, $row], $entry->document_number);
-            $sheet->setCellValue([2, $row], $entry->reference_number ?? '-');
-            $sheet->setCellValue([3, $row], Carbon::parse($entry->date)->format('d/m/Y'));
-            $sheet->setCellValue([4, $row], $entry->company_name ?? '-');
-            $sheet->setCellValue([5, $row], (float) $entry->total_amount);
-        }
-
-        $lastRow = (int) max(1, $entries->count() + 1);
-        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:E1')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getStyle("E2:E$lastRow")->getNumberFormat()->setFormatCode('#,##0.00;[Red]-#,##0.00');
-        $sheet->freezePane('A2');
-        $sheet->setAutoFilter('A1:E'.$lastRow);
-
-        foreach (range('A', 'E') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-
-        $filename = 'posted_sales_invoices_'.now()->format('Ymd_His').'.xlsx';
-
-        return response()->streamDownload(
-            function () use ($spreadsheet): void {
-                new Xlsx($spreadsheet)->save('php://output');
-                $spreadsheet->disconnectWorksheets();
-            },
-            $filename,
-            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-        );
     }
 }

@@ -77,6 +77,7 @@ class UpdateReceiptRequest extends ReceiptRequest
                 'string',
                 Rule::in(array_column(PaymentTransferType::cases(), 'value')),
             ],
+            ...$this->moneyAccountRules(),
         ];
     }
 }

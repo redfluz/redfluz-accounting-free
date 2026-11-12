@@ -6,7 +6,7 @@ use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\DiscountType;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\TaxMode;
 use App\Enums\Sales\SalesOrderStatus;
@@ -576,7 +576,7 @@ class SalesOrderController extends Controller
                 'contact_name' => $lockedOrder->contact?->name,
                 'date' => $invoiceDate,
                 'due_date' => null,
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'attachment_path' => null,
                 'notes' => $lockedOrder->notes,
                 'subtotal' => $lockedOrder->subtotal,

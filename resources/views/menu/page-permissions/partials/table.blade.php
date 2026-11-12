@@ -26,17 +26,16 @@
                             <label class="text-capitalize small fw-bold" for="check-column-{{ $key }}">
                                 {{ $label }}
                             </label>
-                            <div class="m-0 p-0">
-<div class="switch">
-<input
-    class="check-column-header"
-    data-permission="{{ $key }}"
-    id="check-column-{{ $key }}"
-    role="switch"
-    type="checkbox"
-    {{ $allChecked ? 'checked' : '' }}
-    switch />
-</div>
+                            <div class="d-flex justify-content-center">
+                                <div class="switch">
+                                    <input
+                                        class="check-column-header"
+                                        data-permission="{{ $key }}"
+                                        id="check-column-{{ $key }}"
+                                        role="switch"
+                                        type="checkbox"
+                                        @checked($allChecked) />
+                                </div>
                             </div>
                         </div>
                     </th>
@@ -54,15 +53,16 @@
 
                     @foreach ($permissionKeys as $key)
                         <td class="text-center">
-                            <div class="switch d-inline-flex m-0 p-0">
-                                <input
-                                    class="check permission-checkbox float-none m-0"
-                                    data-id="{{ $permission->id }}"
-                                    data-permission="{{ $key }}"
-                                    role="switch"
-                                    type="checkbox"
-                                    {{ $permission->$key ? 'checked' : '' }}
-                                    switch />
+                            <div class="d-flex justify-content-center">
+                                <div class="switch">
+                                    <input
+                                        class="permission-checkbox"
+                                        data-id="{{ $permission->id }}"
+                                        data-permission="{{ $key }}"
+                                        role="switch"
+                                        type="checkbox"
+                                        @checked($permission->$key) />
+                                </div>
                             </div>
                         </td>
                     @endforeach

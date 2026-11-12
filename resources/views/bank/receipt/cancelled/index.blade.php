@@ -149,6 +149,11 @@ $canRestore = auth()->user()->hasFilePermission(FileResources::RECEIPTS_CANCELLE
                                             title="{{ __('payments.actions.view_and_print') }}">
                                             <i data-lucide="eye"></i>
                                         </a>
+                                        <a class="btn btn-sm btn-solid theme-primary"
+                                            href="{{ route('bank.receipts.cancelled.pdf', $receipt->document_number) }}"
+                                            target="_blank" title="{{ __('payments.actions.print_pdf') }}">
+                                            <i data-lucide="printer"></i>
+                                        </a>
 
                                         @if ($canRestore)
                                             <form autocomplete="off"

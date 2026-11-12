@@ -103,8 +103,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $displayEntries = $refund->relationLoaded('arLedgers') ? $refund->arLedgers : collect(); @endphp
-                        @forelse ($displayEntries as $line)
+                         @forelse ($ledgers as $line)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ (float)($line->debit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>

@@ -44,6 +44,16 @@ return [
         'credit' => 'Credit',
     ],
 
+    'history' => [
+        'title' => 'Bank Transfer History',
+        'subtitle' => 'Transfers the bank has already credited',
+    ],
+
+    'cancelled' => [
+        'title' => 'Cancelled Bank Transfers',
+        'subtitle' => 'Transfers cancelled before posting',
+    ],
+
     'validation' => [
         'account_inactive' => 'That bank account is not available.',
         'transit_empty' => 'Nothing is in cash in transit, so there is nothing to transfer.',

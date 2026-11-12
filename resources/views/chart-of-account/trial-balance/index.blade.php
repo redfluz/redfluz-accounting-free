@@ -72,18 +72,7 @@
                     {{ __('financial_reports.trial_balance.subtitle', ['period' => $periodLabel]) }}
                 </div>
             </div>
-            <div class="d-flex gap-1">
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('chart-of-account.trial-balance.export-excel', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i>
-                    {{ __('financial_reports.actions.excel') }}
-                </a>
-                <a class="btn btn-solid theme-info btn-sm"
-                    href="{{ route('chart-of-account.trial-balance.export-pdf', request()->query()) }}" target="_blank">
-                    <i class="me-1" data-lucide="file-text"></i>
-                    {{ __('financial_reports.actions.pdf') }}
-                </a>
-            </div>
+
         </div>
 
         <div class="card-body">

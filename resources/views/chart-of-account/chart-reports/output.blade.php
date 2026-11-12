@@ -31,17 +31,6 @@
                     <i class="me-1" data-lucide="list"></i>
                     {{ __('chart_reports.title') }}
                 </a>
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('chart-of-account.chart-reports.output.excel', [$chartReport, ...request()->query()]) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i>
-                    {{ __('financial_reports.actions.excel') }}
-                </a>
-                <a class="btn btn-solid theme-info btn-sm"
-                    href="{{ route('chart-of-account.chart-reports.output.pdf', [$chartReport, ...request()->query()]) }}"
-                    target="_blank">
-                    <i class="me-1" data-lucide="file-text"></i>
-                    {{ __('financial_reports.actions.pdf') }}
-                </a>
             </div>
         </div>
 

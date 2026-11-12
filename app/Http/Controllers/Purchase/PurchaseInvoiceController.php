@@ -29,8 +29,8 @@ namespace App\Http\Controllers\Purchase;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\GeneralLedgerEntryType;
-use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Purchase\PurchaseOrderType;
@@ -110,7 +110,7 @@ class PurchaseInvoiceController extends Controller
         $endDate = $request->string('end_date')->value();
 
         $entries = PurchaseInvoice::query()
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->addSelect([
                 'paid_amount' => PaymentVoucher::query()
                     ->selectRaw('COALESCE(SUM(total_amount), 0)')
@@ -132,7 +132,7 @@ class PurchaseInvoiceController extends Controller
             ->withQueryString();
 
         $entries->getCollection()->each(function (PurchaseInvoice $entry): void {
-            $entry->setAttribute('is_posted', $entry->status === LedgerStatus::POSTED);
+            $entry->setAttribute('is_posted', $entry->status === DocumentStatus::POSTED);
         });
 
         return view('purchase.invoices.index', compact(
@@ -206,10 +206,36 @@ class PurchaseInvoiceController extends Controller
 
         abort_if($invoice === null, 404);
 
+        // Posted invoices are historical documents and print through their own
+        // view so the pending and posted designs stay separate.
+        if ($invoice->status === DocumentStatus::POSTED) {
+            return redirect()->route('purchase.invoices.history.pdf', $documentNumber);
+        }
+
         /** @var Collection<int, PurchaseInvoiceLine> $lines */
         $lines = $invoice->lines;
 
-        $design = null;
+        // Payable-side payment rows for this invoice (payment vouchers debit
+        // AP, supplier refunds credit AP and reduce net paid / increase balance).
+        /** @var Collection<int, ApLedger> $payments */
+        $payments = ApLedger::query()->againstPayableAccount()
+            ->where('type', LedgerType::PAYMENT->value)
+            ->where('reference_number', $documentNumber)
+            ->orderBy('date')
+            ->get();
+
+        $amountPaid = $payments->reduce(
+            static fn (string $carry, ApLedger $payment): string => bcadd(
+                $carry,
+                bcsub((string) $payment->debit_amount, (string) $payment->credit_amount, 2),
+                2
+            ),
+            '0.00'
+        );
+        $amountPaid = bccomp($amountPaid, '0.00', 2) < 0 ? '0.00' : $amountPaid;
+
+        $balanceDue = bcsub(bcadd((string) $invoice->total_amount, '0', 2), $amountPaid, 2);
+        $balanceDue = bccomp($balanceDue, '0.00', 2) < 0 ? '0.00' : $balanceDue;
 
         $setting = Setting::query()->first();
 
@@ -217,6 +243,9 @@ class PurchaseInvoiceController extends Controller
             'documentNumber' => $documentNumber,
             'invoice' => $invoice,
             'lines' => $lines,
+            'payments' => $payments,
+            'amountPaid' => $amountPaid,
+            'balanceDue' => $balanceDue,
             'setting' => $setting,
         ])->setPaper('a4')->stream($documentNumber.'.pdf');
     }
@@ -337,7 +366,7 @@ class PurchaseInvoiceController extends Controller
         );
 
         /** @var PaymentVoucher|null $paymentDebit */
-        $paymentDebit = $paymentEntries->firstWhere('status', LedgerStatus::POSTED);
+        $paymentDebit = $paymentEntries->firstWhere('status', DocumentStatus::POSTED);
         /** @var PaymentVoucher|null $paymentCredit */
         $paymentCredit = $paymentDebit;
 
@@ -458,7 +487,7 @@ class PurchaseInvoiceController extends Controller
                 'company_id' => $data->companyId,
                 'contact_id' => $data->contactId,
                 'purchase_type' => $purchaseTypeValue,
-                'status' => LedgerStatus::PENDING->value,
+                'status' => DocumentStatus::PENDING->value,
                 'document_number' => $docNumber,
                 'reference_number' => $invoiceReferenceNumber,
                 'company_name' => $companyName,
@@ -784,7 +813,7 @@ class PurchaseInvoiceController extends Controller
 
             $this->postInvoice($invoice);
 
-            $invoice->forceFill(['status' => LedgerStatus::POSTED]);
+            $invoice->forceFill(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($invoice);
         });
 
@@ -815,7 +844,6 @@ class PurchaseInvoiceController extends Controller
                 ->first();
 
             abort_if($invoice === null, 404);
-            abort_if($invoice->reversal_id !== null, 409, __('journal_entries.reversal_already_exists'));
             abort_if($invoice->undone_at !== null, 409, __('journal_entries.reversal_already_exists'));
 
             /** @var Collection<int, PurchaseInvoiceLine> $lines */
@@ -923,13 +951,13 @@ class PurchaseInvoiceController extends Controller
 
             // Create the reversal journal entry header
             $reversalEntry = JournalEntry::query()->create([
-                'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $documentNumber,
+                'document_original' => $documentNumber,
                 'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'notes' => $validated['reason'],
             ]);
 
@@ -1033,7 +1061,6 @@ class PurchaseInvoiceController extends Controller
                 $this->posting->accountPayableLedger($apReversalDtos);
             }
 
-            $invoice->update(['reversal_id' => $reversalEntry->id]);
             $this->attributeUndone($invoice);
         });
 
@@ -1071,7 +1098,7 @@ class PurchaseInvoiceController extends Controller
                     ]);
                 }
 
-                if ($invoice->status === LedgerStatus::POSTED) {
+                if ($invoice->status === DocumentStatus::POSTED) {
                     throw ValidationException::withMessages([
                         'document_numbers' => __('common.batch_rejected.already_posted', ['number' => $documentNumber]),
                     ]);
@@ -1088,7 +1115,7 @@ class PurchaseInvoiceController extends Controller
 
                 $this->postInvoice($invoice);
 
-                $invoice->forceFill(['status' => LedgerStatus::POSTED]);
+                $invoice->forceFill(['status' => DocumentStatus::POSTED]);
                 $this->attributeApproved($invoice);
 
                 $count++;
@@ -1113,8 +1140,8 @@ class PurchaseInvoiceController extends Controller
 
         $affected = PurchaseInvoice::query()
             ->whereIn('document_number', $validated['document_numbers'])
-            ->where('status', LedgerStatus::PENDING)
-            ->update(['status' => LedgerStatus::CANCELLED]);
+            ->where('status', DocumentStatus::PENDING)
+            ->update(['status' => DocumentStatus::CANCELLED]);
 
         return redirect()
             ->route('purchase.invoices.cancelled.index')
@@ -1182,39 +1209,63 @@ class PurchaseInvoiceController extends Controller
         // DR Purchase Expense
         if ($cogsChart instanceof Chart && bccomp($expenseTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::COGS, $cogsChart,
-                $expenseTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::COGS,
+                $cogsChart,
+                $expenseTotal,
+                '0.00'
             );
             $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $cogsChart, $currencyId,
-                $expenseTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $cogsChart,
+                $currencyId,
+                $expenseTotal,
+                '0.00'
             );
         }
 
         // DR Input Tax - only while GST/VAT is enabled
         if ($chartConfig->is_tax_enabled && $inputTaxChart instanceof Chart && bccomp($taxTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::TAX, $inputTaxChart,
-                $taxTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::TAX,
+                $inputTaxChart,
+                $taxTotal,
+                '0.00'
             );
             $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $inputTaxChart, $currencyId,
-                $taxTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $inputTaxChart,
+                $currencyId,
+                $taxTotal,
+                '0.00'
             );
         }
 
         // CR Payable = invoice total
         if (bccomp($invoiceTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::PAYABLE, $vendorChart,
-                '0.00', $invoiceTotal
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::PAYABLE,
+                $vendorChart,
+                '0.00',
+                $invoiceTotal
             );
             $apDtos[] = ApLedgerData::fromPurchaseInvoiceLine(
-                $invoice, $firstLine, $vendorChart, $currencyId,
-                '0.00', $invoiceTotal
+                $invoice,
+                $firstLine,
+                $vendorChart,
+                $currencyId,
+                '0.00',
+                $invoiceTotal
             );
         }
 

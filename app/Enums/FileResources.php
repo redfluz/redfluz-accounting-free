@@ -176,6 +176,8 @@ enum FileResources: string
     case SUPPLIER_REFUNDS_CANCELLED = 'bank.supplier-refunds.cancelled.index';
     case CASH_TRANSFERS = 'bank.cash-transfers.index';
     case BANK_TRANSFERS = 'bank.bank-transfers.index';
+    case BANK_TRANSFERS_HISTORY = 'bank.bank-transfers.history.index';
+    case BANK_TRANSFERS_CANCELLED = 'bank.bank-transfers.cancelled.index';
     case CASH_LEDGERS = 'bank.cash-ledger.index';
     case BANK_LEDGERS = 'bank.bank-ledger.index';
     case E_WALLET_LEDGERS = 'bank.e-wallet-ledger.index';
@@ -410,6 +412,8 @@ enum FileResources: string
             self::SUPPLIER_REFUNDS_CANCELLED => 'Cancelled Supplier Refund',
             self::CASH_TRANSFERS => 'Cash Transfer',
             self::BANK_TRANSFERS => 'Bank Transfer',
+            self::BANK_TRANSFERS_HISTORY => 'Bank Transfer History',
+            self::BANK_TRANSFERS_CANCELLED => 'Cancelled Bank Transfer',
             self::CASH_LEDGERS => 'Cash Ledger',
             self::BANK_LEDGERS => 'Bank Ledger',
             self::E_WALLET_LEDGERS => 'E-Wallet Ledger',

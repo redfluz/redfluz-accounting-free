@@ -3,8 +3,9 @@
     use App\Enums\Finance\LedgerType;
     use App\Models\Finance\Ledger;
 
-    $totalDebit = $ledgers->sum('debit_amount');
-    $totalCredit = $ledgers->sum('credit_amount');
+    $totalDebit = $totalDebit ?? $ledgers->sum('debit_amount');
+    $totalCredit = $totalCredit ?? $ledgers->sum('credit_amount');
+    $totalBalance = $totalBalance ?? bcsub((string) $totalDebit, (string) $totalCredit, 2);
 @endphp
 
 @props([
@@ -27,14 +28,6 @@
                 <p class="fg-secondary small mb-0">{{ __('ledgers.subtitle') }}</p>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('finance.ledgers.export-excel', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i> {{ __('ledgers.export_excel') }}
-                </a>
-                <a class="btn btn-solid theme-info btn-sm"
-                    href="{{ route('finance.ledgers.export-pdf', request()->query()) }}" target="_blank">
-                    <i class="me-1" data-lucide="file-text"></i> {{ __('ledgers.export_pdf') }}
-                </a>
             </div>
         </div>
 
@@ -120,6 +113,35 @@
                     </div>
                 @endif
 
+                <div class="accordion mb-3 accordion-gap">
+                    <details class="accordion-item">
+                        <summary class="accordion-header">
+                            <i class="me-2" data-lucide="bar-chart-3"></i>
+                            <span class="fw-bold">Summary</span>
+                            <i class="accordion-icon" data-lucide="chevron-down"></i>
+                        </summary>
+                        <div class="accordion-body py-3">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                <div class="d-flex flex-wrap align-items-center gap-4 gap-lg-5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-uppercase small fg-secondary">IN</span>
+                                        <span class="fs-5 fw-semibold fg-success">{{ number_format((float) $totalDebit, 2) }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-uppercase small fg-secondary">OUT</span>
+                                        <span class="fs-5 fw-semibold fg-danger">{{ number_format((float) $totalCredit, 2) }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-uppercase small fg-secondary">BALANCE</span>
+                                        <span class="fs-5 fw-semibold">{{ number_format((float) $totalBalance, 2) }}</span>
+                                    </div>
+                                </div>
+                                <div id="ledgers-summary-spark" style="width: 140px; height: 120px;"></div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
                 <div class="table-responsive rounded-5 overflow-hidden border">
                     <table class="table-hover table-striped mb-0 table align-middle">
                         <thead class="bg-1">
@@ -201,10 +223,10 @@
                                         <small>{{ $ledger->description ?? '-' }}</small>
                                     </td>
                                     <td class="fw-bold fg-success text-end">
-                                        {{ $ledger->debit_amount > 0 ? number_format($ledger->debit_amount, 2) : '-' }}
+                                        {{ number_format((float) $ledger->debit_amount, 2) }}
                                     </td>
                                     <td class="fw-bold fg-danger text-end">
-                                        {{ $ledger->credit_amount > 0 ? number_format($ledger->credit_amount, 2) : '-' }}
+                                        {{ number_format((float) $ledger->credit_amount, 2) }}
                                     </td>
                                 </tr>
                             @empty
@@ -229,3 +251,42 @@
             </div>
         </div>
     @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof echarts === 'undefined') return;
+            const el = document.getElementById('ledgers-summary-spark');
+            if (!el) return;
+            const inVal = {{ (float) $totalDebit }};
+            const outVal = {{ (float) $totalCredit }};
+            const balVal = {{ (float) $totalBalance }};
+            const balLabel = balVal >= 0 ? 'BALANCE' : 'BALANCE (-)';
+            const chart = echarts.init(el);
+            const grad = (c1, c2) => new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: c1 }, { offset: 1, color: c2 }]);
+            const data = [];
+            if (Number(inVal) > 0) data.push({ value: inVal, name: 'IN', itemStyle: { color: grad('#34d399', '#059669') } });
+            if (Number(outVal) > 0) data.push({ value: outVal, name: 'OUT', itemStyle: { color: grad('#fb7185', '#e11d48') } });
+            if (Number(balVal) !== 0) data.push({ value: Math.abs(balVal), name: balLabel, itemStyle: { color: balVal >= 0 ? grad('#60a5fa', '#2563eb') : grad('#fbbf24', '#ea580c') } });
+            if (data.length === 0) data.push({ value: 1, name: 'NO DATA', itemStyle: { color: grad('#e9ecef', '#dee2e6') }, tooltip: { show: false } });
+            chart.setOption({
+                animation: true,
+                tooltip: { trigger: 'item', formatter: (p) => p.name === 'NO DATA' ? '' : `${p.name}: ${p.value}` },
+                series: [{
+                    type: 'pie',
+                    roseType: data.length === 1 && data[0].name === 'NO DATA' ? false : 'area',
+                    radius: ['16%', '92%'],
+                    center: ['50%', '50%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2, shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.15)' },
+                    emphasis: { scale: true, scaleSize: 6, itemStyle: { shadowBlur: 20, shadowColor: 'rgba(0,0,0,0.25)' } },
+                    label: { show: false },
+                    labelLine: { show: false },
+                    data
+                }]
+            });
+            window.addEventListener('resize', () => chart.resize());
+        });
+    </script>
+@endpush

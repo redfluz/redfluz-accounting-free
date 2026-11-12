@@ -27,19 +27,19 @@
 namespace App\Models\Bank;
 
 use App\Enums\Bank\BankAccountKind;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -72,7 +72,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property numeric-string $amount
  * @property string|null $description
  * @property string|null $notes
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property string|null $created_by
  * @property string|null $created_name
  * @property string|null $updated_by
@@ -106,17 +106,35 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Table('bank_journals', key: 'id')]
 #[Fillable([
-    'bank_account_id', 'cash_account_id', 'e_wallet_account_id',
+    'bank_account_id',
+    'cash_account_id',
+    'e_wallet_account_id',
     'direction',
-    'document_number', 'date',
-    'offset_chart_id', 'amount',
-    'description', 'notes', 'status',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
+    'document_number',
+    'date',
+    'offset_chart_id',
+    'amount',
+    'description',
+    'notes',
+    'status',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
     'id',
 ])]
 class BankJournal extends Model
@@ -132,7 +150,7 @@ class BankJournal extends Model
     {
         return [
             'date' => 'date',
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'amount' => 'decimal:2',
             'approved_at' => 'datetime',
             'cancelled_at' => 'datetime',
@@ -236,7 +254,7 @@ class BankJournal extends Model
      */
     public function isPosted(): bool
     {
-        return $this->status === LedgerStatus::POSTED;
+        return $this->status === DocumentStatus::POSTED;
     }
 
     /**
@@ -255,6 +273,6 @@ class BankJournal extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->status === LedgerStatus::CANCELLED;
+        return $this->status === DocumentStatus::CANCELLED;
     }
 }

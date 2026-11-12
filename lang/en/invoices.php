@@ -74,6 +74,9 @@ return [
         'success' => 'Inventory deducted successfully.',
         'quantity' => 'Quantity',
     ],
+    'payment_received' => 'Amount Paid',
+    'balance_due' => 'Balance Due',
+    'no_payments' => 'No payments recorded.',
     'validation' => [
         'accounts_must_differ' => 'The debit and credit accounts must be different.',
         'contact_company_invalid' => 'The selected contact does not belong to the selected company.',

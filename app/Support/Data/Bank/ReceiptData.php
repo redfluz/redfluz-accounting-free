@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Bank;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Receipt;
 use Carbon\CarbonImmutable;
@@ -96,6 +96,17 @@ class ReceiptData extends Data
         #[MapName('payment_transfer_type')]
         public ?PaymentTransferType $paymentTransferType = null,
 
+        // The account the money is received into. Only the one matching the transfer
+        // type is kept; all three arrive on the form.
+        #[MapName('bank_account_id')]
+        public ?string $bankAccountId = null,
+
+        #[MapName('cash_account_id')]
+        public ?string $cashAccountId = null,
+
+        #[MapName('e_wallet_account_id')]
+        public ?string $eWalletAccountId = null,
+
         #[MapName('attachment')]
         public mixed $attachment = null,
 
@@ -107,7 +118,7 @@ class ReceiptData extends Data
         // ---- what the form cannot supply ----
 
         #[MapName('status')]
-        public LedgerStatus $status = LedgerStatus::PENDING,
+        public DocumentStatus $status = DocumentStatus::PENDING,
 
         #[MapName('company_name')]
         public ?string $companyName = null,
@@ -210,6 +221,9 @@ class ReceiptData extends Data
             referenceNumber: $model->reference_number,
             notes: $model->notes,
             paymentTransferType: $model->payment_transfer_type,
+            bankAccountId: $model->bank_account_id,
+            cashAccountId: $model->cash_account_id,
+            eWalletAccountId: $model->e_wallet_account_id,
             documentNumber: $model->document_number,
             status: $model->status,
             companyName: $model->company_name,
@@ -258,6 +272,9 @@ class ReceiptData extends Data
             'id' => $this->id,
             'document_number' => $this->documentNumber,
             'company_id' => $this->companyId,
+            'bank_account_id' => $this->bankAccountId,
+            'cash_account_id' => $this->cashAccountId,
+            'e_wallet_account_id' => $this->eWalletAccountId,
             'company_name' => $this->companyName,
             'date' => $this->date?->format('Y-m-d'),
             'status' => $this->status->value,
@@ -281,6 +298,9 @@ class ReceiptData extends Data
             'document_number' => $this->documentNumber,
             'company_id' => $this->companyId,
             'contact_id' => $this->contactId,
+            'bank_account_id' => $this->bankAccountId,
+            'cash_account_id' => $this->cashAccountId,
+            'e_wallet_account_id' => $this->eWalletAccountId,
             'company_name' => $this->companyName,
             'contact_name' => $this->contactName,
             'date' => $this->date?->format('Y-m-d'),

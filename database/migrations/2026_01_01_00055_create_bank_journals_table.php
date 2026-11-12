@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -67,8 +67,8 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('description')->nullable();
             $table->text('notes')->nullable();
-            $table->enum('status', array_column(LedgerStatus::cases(), 'value'))
-                ->default(LedgerStatus::PENDING->value);
+            $table->enum('status', array_column(DocumentStatus::cases(), 'value'))
+                ->default(DocumentStatus::PENDING->value);
             // Who raised this document. The name is a snapshot taken at the
             // moment it was created, so the record of who prepared a document
             // survives that user being renamed or removed. created_at alone

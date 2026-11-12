@@ -27,7 +27,6 @@
 return [
     'title' => 'Bagan Akun',
     'subtitle' => 'Kelola kode akun dan klasifikasi sistem akuntansi.',
-    'export_excel' => 'Ekspor Excel',
     'yes' => 'Ya',
     'no' => 'Tidak',
     'all_types' => 'Semua Jenis',
@@ -46,6 +45,14 @@ return [
         'report_group_help' => 'Mengatur di mana akun ini muncul dalam laporan keuangan. Grup yang tersedia disaring berdasarkan jenis chart terpilih.',
         'report_group_select_type' => 'Pilih jenis chart terlebih dahulu',
         'report_group_empty' => 'Tidak ada grup laporan untuk jenis chart ini',
+    ],
+    'chart_type' => [
+        'asset' => 'Aset',
+        'liability' => 'Liabilitas',
+        'equity' => 'Ekuitas',
+        'income' => 'Pendapatan',
+        'expenses' => 'Beban',
+        'none' => 'Tidak Ada',
     ],
     'report_group' => [
         'property_plant_equipment' => 'Properti, Pabrik dan Peralatan',

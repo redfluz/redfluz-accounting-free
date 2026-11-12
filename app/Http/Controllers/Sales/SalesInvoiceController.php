@@ -30,8 +30,8 @@ use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\Finance\DiscountType;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\GeneralLedgerEntryType;
-use App\Enums\Finance\LedgerStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Finance\TaxMode;
@@ -121,7 +121,7 @@ class SalesInvoiceController extends Controller
 
         $entries = SalesInvoice::query()
             ->with(['company', 'contact'])
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('document_number', 'like', "%$search%")
@@ -181,7 +181,7 @@ class SalesInvoiceController extends Controller
             ->where('type', LedgerType::PAYMENT)
             ->where('reference_number', $documentNumber)->whereNotNull('chart_code')->orderBy('date')->get();
 
-        $isPosted = $invoice->status === LedgerStatus::POSTED;
+        $isPosted = $invoice->status === DocumentStatus::POSTED;
 
         $indexRoute = 'sales.invoices.index';
 
@@ -332,10 +332,36 @@ class SalesInvoiceController extends Controller
 
         abort_if($invoice === null, 404);
 
+        // Posted invoices are historical documents and print through their own
+        // view so the pending and posted designs stay separate.
+        if ($invoice->status === DocumentStatus::POSTED) {
+            return redirect()->route('sales.invoices.history.pdf', $documentNumber);
+        }
+
         /** @var Collection<int, SalesInvoiceLine> $lines */
         $lines = $invoice->lines;
 
-        $design = null;
+        // Receivable-side payment rows for this invoice (receipts credit AR,
+        // customer refunds debit AR and reduce net paid / increase balance due).
+        /** @var Collection<int, ArLedger> $payments */
+        $payments = ArLedger::query()->againstReceivableAccount()
+            ->where('type', LedgerType::PAYMENT->value)
+            ->where('reference_number', $documentNumber)
+            ->orderBy('date')
+            ->get();
+
+        $amountPaid = $payments->reduce(
+            static fn (string $carry, ArLedger $payment): string => bcadd(
+                $carry,
+                bcsub((string) $payment->credit_amount, (string) $payment->debit_amount, 2),
+                2
+            ),
+            '0.00'
+        );
+        $amountPaid = bccomp($amountPaid, '0.00', 2) < 0 ? '0.00' : $amountPaid;
+
+        $balanceDue = bcsub(bcadd((string) $invoice->total_amount, '0', 2), $amountPaid, 2);
+        $balanceDue = bccomp($balanceDue, '0.00', 2) < 0 ? '0.00' : $balanceDue;
 
         $setting = Setting::query()->firstOrNew();
 
@@ -343,6 +369,9 @@ class SalesInvoiceController extends Controller
             'documentNumber' => $documentNumber,
             'invoice' => $invoice,
             'lines' => $lines,
+            'payments' => $payments,
+            'amountPaid' => $amountPaid,
+            'balanceDue' => $balanceDue,
             'setting' => $setting,
         ])->setPaper('a4')->stream($documentNumber.'.pdf');
     }
@@ -496,7 +525,7 @@ class SalesInvoiceController extends Controller
             ->first();
 
         abort_if($invoice === null, 404);
-        abort_if($invoice->status === LedgerStatus::POSTED, 409);
+        abort_if($invoice->status === DocumentStatus::POSTED, 409);
 
         /** @var Collection<int, SalesInvoiceLine> $invoiceLines */
         $invoiceLines = $invoice->lines;
@@ -709,7 +738,7 @@ class SalesInvoiceController extends Controller
                 'company_name' => $companyName,
                 'date' => $data->date,
                 'due_date' => $invoiceDueDate,
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'attachment_path' => $invoiceAttachmentPath,
                 'payment_transfer_type' => $data->paymentTransferType,
                 'payment_attachment_path' => $paymentAttachmentPath,
@@ -812,7 +841,7 @@ class SalesInvoiceController extends Controller
             ->first();
 
         abort_if($invoice === null, 404);
-        abort_if($invoice->status === LedgerStatus::POSTED, 409);
+        abort_if($invoice->status === DocumentStatus::POSTED, 409);
 
         /** @var array<int, array<string, mixed>> $submittedLines */
         $submittedLines = $request->validated('lines');
@@ -999,7 +1028,7 @@ class SalesInvoiceController extends Controller
                 ->first();
 
             abort_if($invoice === null, 404);
-            abort_if($invoice->status === LedgerStatus::POSTED, 409);
+            abort_if($invoice->status === DocumentStatus::POSTED, 409);
 
             /** @var Collection<int, ProductLedger> $productMovements */
             $productMovements = ProductLedger::query()
@@ -1056,7 +1085,7 @@ class SalesInvoiceController extends Controller
             // Stock is not moved here: it moves when the deduct-inventory button is
             // pressed or when a delivery order posts, so approving a document never
             // minuses stock by itself.
-            $invoice->forceFill(['status' => LedgerStatus::POSTED]);
+            $invoice->forceFill(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($invoice);
         });
 
@@ -1087,7 +1116,6 @@ class SalesInvoiceController extends Controller
                 ->first();
 
             abort_if($invoice === null, 404);
-            abort_if($invoice->reversal_id !== null, 409, __('journal_entries.reversal_already_exists'));
             abort_if($invoice->undone_at !== null, 409, __('journal_entries.reversal_already_exists'));
 
             /** @var Collection<int, SalesInvoiceLine> $lines */
@@ -1204,13 +1232,13 @@ class SalesInvoiceController extends Controller
 
             // Create the reversal journal entry header
             $reversalEntry = JournalEntry::query()->create([
-                'reversal_of_id' => null,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
                 'reference_number' => $documentNumber,
+                'document_original' => $documentNumber,
                 'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'notes' => $validated['reason'],
             ]);
 
@@ -1314,7 +1342,6 @@ class SalesInvoiceController extends Controller
                 $this->posting->accountReceivableLedger($arReversalDtos);
             }
 
-            $invoice->update(['reversal_id' => $reversalEntry->id]);
             $this->attributeUndone($invoice);
         });
 
@@ -1355,7 +1382,7 @@ class SalesInvoiceController extends Controller
                     ]);
                 }
 
-                if ($invoice->status === LedgerStatus::POSTED) {
+                if ($invoice->status === DocumentStatus::POSTED) {
                     throw ValidationException::withMessages([
                         'document_numbers' => __('common.batch_rejected.already_posted', ['number' => $documentNumber]),
                     ]);
@@ -1372,7 +1399,7 @@ class SalesInvoiceController extends Controller
 
                 $this->postInvoice($invoice);
 
-                $invoice->forceFill(['status' => LedgerStatus::POSTED]);
+                $invoice->forceFill(['status' => DocumentStatus::POSTED]);
                 $this->attributeApproved($invoice);
 
                 $count++;
@@ -1397,8 +1424,8 @@ class SalesInvoiceController extends Controller
 
         $affected = SalesInvoice::query()
             ->whereIn('document_number', $validated['document_numbers'])
-            ->where('status', LedgerStatus::PENDING)
-            ->update(['status' => LedgerStatus::CANCELLED]);
+            ->where('status', DocumentStatus::PENDING)
+            ->update(['status' => DocumentStatus::CANCELLED]);
 
         return redirect()
             ->route('sales.invoices.cancelled.index')
@@ -1454,26 +1481,42 @@ class SalesInvoiceController extends Controller
         // CR Revenue
         if ($incomeChart instanceof Chart && bccomp($grossTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::REVENUE, $incomeChart,
-                '0.00', $grossTotal
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::REVENUE,
+                $incomeChart,
+                '0.00',
+                $grossTotal
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $incomeChart, $currencyId,
-                '0.00', $grossTotal
+                $invoice,
+                $firstLine,
+                $incomeChart,
+                $currencyId,
+                '0.00',
+                $grossTotal
             );
         }
 
         // CR Tax - only while GST/VAT is enabled
         if ($chartConfig->is_tax_enabled && $outputTaxChart instanceof Chart && bccomp($taxTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::TAX, $outputTaxChart,
-                '0.00', $taxTotal
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::TAX,
+                $outputTaxChart,
+                '0.00',
+                $taxTotal
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $outputTaxChart, $currencyId,
-                '0.00', $taxTotal
+                $invoice,
+                $firstLine,
+                $outputTaxChart,
+                $currencyId,
+                '0.00',
+                $taxTotal
             );
         }
 
@@ -1481,26 +1524,42 @@ class SalesInvoiceController extends Controller
         $discountChart = $this->getDiscountChart();
         if ($discountChart instanceof Chart && bccomp($discountTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::DISCOUNT, $discountChart,
-                $discountTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::DISCOUNT,
+                $discountChart,
+                $discountTotal,
+                '0.00'
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $discountChart, $currencyId,
-                $discountTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $discountChart,
+                $currencyId,
+                $discountTotal,
+                '0.00'
             );
         }
 
         // DR Receivable = invoice total
         if (bccomp($invoiceTotal, '0.00', 2) !== 0) {
             $glDtos[] = GeneralLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $chartConfig,
-                GeneralLedgerEntryType::RECEIVABLE, $clientChart,
-                $invoiceTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $chartConfig,
+                GeneralLedgerEntryType::RECEIVABLE,
+                $clientChart,
+                $invoiceTotal,
+                '0.00'
             );
             $arDtos[] = ArLedgerData::fromSalesInvoiceLine(
-                $invoice, $firstLine, $clientChart, $currencyId,
-                $invoiceTotal, '0.00'
+                $invoice,
+                $firstLine,
+                $clientChart,
+                $currencyId,
+                $invoiceTotal,
+                '0.00'
             );
         }
 

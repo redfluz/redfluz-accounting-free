@@ -36,7 +36,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BalanceSheetController extends Controller
 {
@@ -86,41 +85,6 @@ class BalanceSheetController extends Controller
     }
 
     /**
-     * Download the formula-driven Balance Sheet as PDF.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return Response Returns the HTTP response.
-     */
-    public function exportPdf(Request $request): Response
-    {
-        $this->allows(FileResources::LEDGERS);
-
-        [$asOfDate, $periodLabel, $filters, $comparison] = $this->periods->asOf($request);
-        $report = $this->reports->balanceSheet($asOfDate);
-
-        if ($comparison !== null) {
-            $report = $this->reports->withComparison(
-                $report,
-                $this->reports->balanceSheet($comparison['date']),
-                $comparison['label'],
-            );
-        }
-        $reportView = $filters['reportView'];
-        $report = $this->addPeriodColumns($report, is_string($reportView) ? $reportView : '');
-        $report = $this->withoutBalanceCheck($report);
-
-        $setting = Setting::query()->first();
-
-        $pdf = Pdf::loadView('chart-of-account.balance-sheet.pdf', [
-            ...$report,
-            'periodLabel' => $periodLabel,
-            'setting' => $setting,
-        ])->setPaper('a4', isset($report['periodColumns']) ? 'landscape' : 'portrait');
-
-        return $pdf->download('balance_sheet_'.$asOfDate->format('Ymd').'.pdf');
-    }
-
-    /**
      * Download the clean Balance Sheet as PDF.
      *
      * @param  Request  $request  The HTTP request instance.
@@ -150,37 +114,7 @@ class BalanceSheetController extends Controller
             'setting' => $setting,
         ])->setPaper('a4');
 
-        return $pdf->download('balance_sheet_clean_'.$asOfDate->format('Ymd').'.pdf');
-    }
-
-    /**
-     * Download the formula-driven Balance Sheet as Excel.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return StreamedResponse Returns the HTTP response.
-     */
-    public function exportExcel(Request $request): StreamedResponse
-    {
-        $this->allows(FileResources::LEDGERS);
-
-        [$asOfDate, $periodLabel, $filters, $comparison] = $this->periods->asOf($request);
-        $report = $this->reports->balanceSheet($asOfDate);
-
-        if ($comparison !== null) {
-            $report = $this->reports->withComparison(
-                $report,
-                $this->reports->balanceSheet($comparison['date']),
-                $comparison['label'],
-            );
-        }
-        $reportView = $filters['reportView'];
-        $report = $this->addPeriodColumns($report, is_string($reportView) ? $reportView : '');
-        $report = $this->withoutBalanceCheck($report);
-
-        return $this->excel->balanceSheet(
-            $report,
-            $periodLabel,
-        );
+        return $pdf->stream('balance_sheet_clean_'.$asOfDate->format('Ymd').'.pdf');
     }
 
     /** @param array<string, mixed> $report  The report data structure.

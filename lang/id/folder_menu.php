@@ -27,6 +27,9 @@
 return [
 
     'BANK' => 'Bank',
+    'BANK TRANSFER' => 'Transfer Bank',
+    'LEDGERS' => 'Buku Besar',
+    'ACCOUNTS' => 'Akun',
     'CHART OF ACCOUNTS' => 'Bagan Akun',
     'CRM' => 'CRM',
     'FINANCE' => 'Keuangan',

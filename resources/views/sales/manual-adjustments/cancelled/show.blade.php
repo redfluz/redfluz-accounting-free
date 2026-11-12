@@ -8,7 +8,7 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Models\Finance\ManualSalesAdjustment;
+    use App\Models\Sales\ManualSalesAdjustment;
     use App\Models\System\Setting;
 
     $canApprove = auth()->user()->hasFilePermission(FileResources::MANUAL_SALES_ADJUSTMENTS, FileAction::APPROVE);
@@ -65,7 +65,7 @@
             <div class="row mb-4">
                 <div class="md:col-6">
                     <span class="fg-secondary small">{{ __('manual_sales_adjustments.form.note_type') }}:</span>
-                    <span class="fw-bold">{{ $adjustment->subtype->label() }}</span>
+                    <span class="fw-bold">{{ __('ledgers.sub_type.' . $adjustment->subtype->value) }}</span>
                 </div>
                 @if ($adjustment->reference_number)
                     <div class="md:col-6">

@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use Illuminate\Database\Migrations\Migration;
@@ -23,14 +23,17 @@ return new class extends Migration
                 LedgerSubType::INCREASE_ADJUSTMENT->value,
                 LedgerSubType::DECREASE_ADJUSTMENT->value,
                 LedgerSubType::MANUAL_SALES_ADJUSTMENT->value,
+                LedgerSubType::SALES_DEBIT_NOTE->value,
+                LedgerSubType::SALES_CREDIT_NOTE->value,
             ]);
             $table->string('reference_number')->nullable()->index();
+            $table->string('document_original')->nullable();
             $table->foreignUuid('sales_invoice_id')->nullable()->constrained('sales_invoices')->nullOnDelete();
             $table->string('company_name')->nullable();
             $table->string('contact_name')->nullable();
             $table->date('date');
-            $table->enum('status', array_column(LedgerStatus::cases(), 'value'))
-                ->default(LedgerStatus::PENDING->value);
+            $table->enum('status', array_column(DocumentStatus::cases(), 'value'))
+                ->default(DocumentStatus::PENDING->value);
             $table->string('attachment_path')->nullable();
             $table->decimal('subtotal', 15)->default(0);
             $table->decimal('total_amount', 15)->default(0);
@@ -51,7 +54,6 @@ return new class extends Migration
             $table->uuid('undone_by')->nullable();
             $table->string('undone_name')->nullable();
             $table->timestamp('undone_at')->nullable();
-            $table->foreignUuid('reversal_journal_id')->nullable()->constrained('journal_entries')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();
@@ -97,14 +99,17 @@ return new class extends Migration
                 LedgerSubType::INCREASE_ADJUSTMENT->value,
                 LedgerSubType::DECREASE_ADJUSTMENT->value,
                 LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT->value,
+                LedgerSubType::PURCHASE_DEBIT_NOTE->value,
+                LedgerSubType::PURCHASE_CREDIT_NOTE->value,
             ]);
             $table->string('reference_number')->nullable()->index();
+            $table->string('document_original')->nullable();
             $table->foreignUuid('purchase_invoice_id')->nullable()->constrained('purchase_invoices')->nullOnDelete();
             $table->string('company_name')->nullable();
             $table->string('contact_name')->nullable();
             $table->date('date');
-            $table->enum('status', array_column(LedgerStatus::cases(), 'value'))
-                ->default(LedgerStatus::PENDING->value);
+            $table->enum('status', array_column(DocumentStatus::cases(), 'value'))
+                ->default(DocumentStatus::PENDING->value);
             $table->string('attachment_path')->nullable();
             $table->decimal('subtotal', 15)->default(0);
             $table->decimal('total_amount', 15)->default(0);
@@ -125,7 +130,6 @@ return new class extends Migration
             $table->uuid('undone_by')->nullable();
             $table->string('undone_name')->nullable();
             $table->timestamp('undone_at')->nullable();
-            $table->foreignUuid('reversal_journal_id')->nullable()->constrained('journal_entries')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

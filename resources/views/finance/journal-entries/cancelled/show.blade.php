@@ -3,7 +3,7 @@
     use App\Enums\FileAction;
     use App\Enums\FileResources;
     $canApprove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
-    use App\Enums\Finance\LedgerStatus;
+    use App\Enums\Finance\DocumentStatus;
 @endphp
 
 @props(['journalEntry'])
@@ -19,6 +19,11 @@
             </div>
             <div class="d-flex gap-2">
                 <span class="badge theme-danger d-flex align-items-center"> {{ __('ledgers.status_cancelled') }} </span>
+                <a class="btn btn-solid theme-primary btn-sm"
+                    href="{{ route('finance.journal-entries.cancelled.pdf', $journalEntry) }}" target="_blank"
+                    title="{{ __('common.actions.print_pdf') }}">
+                    <i class="me-1" data-lucide="printer"></i>{{ __('common.actions.print_pdf') }}
+                </a>
                 @if ($canApprove)
                     <form autocomplete="off" action="{{ route('finance.journal-entries.cancelled.uncancel', $journalEntry) }}"
                         method="POST" data-confirm-message="{{ __('common.messages.uncancel_confirm') }}"

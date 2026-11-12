@@ -35,7 +35,6 @@ use App\Http\Requests\Inventory\Brand\UpdateBrandRequest;
 use App\Models\Inventory\Brand;
 use App\Support\Data\Inventory\BrandData;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -53,7 +52,7 @@ class BrandController extends Controller
         $this->allows(FileResources::BRANDS);
         $search = $request->string('search')->toString();
         $brands = Brand::query()
-            ->withCount(['products' => fn (Builder $query) => $query->whereNull('parent_product_id')])
+            ->withCount(['products' => fn ($query) => $query->whereNull('parent_product_id')])
             ->when($search !== '', fn ($query) => $query->where(
                 fn ($subQuery) => $subQuery->where('name', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%")

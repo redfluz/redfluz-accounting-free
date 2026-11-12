@@ -30,7 +30,7 @@ use App\Constants\FlashMessage;
 use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
@@ -92,13 +92,13 @@ class BankJournalController extends Controller
     {
         $this->allows(FileResources::BANK_JOURNALS);
 
-        $statusInput = $request->input('status', LedgerStatus::PENDING->value);
-        $status = is_string($statusInput) ? $statusInput : LedgerStatus::PENDING->value;
+        $statusInput = $request->input('status', DocumentStatus::PENDING->value);
+        $status = is_string($statusInput) ? $statusInput : DocumentStatus::PENDING->value;
 
-        $allowed = array_column(LedgerStatus::cases(), 'value');
+        $allowed = array_column(DocumentStatus::cases(), 'value');
 
         if (! in_array($status, $allowed, true)) {
-            $status = LedgerStatus::PENDING->value;
+            $status = DocumentStatus::PENDING->value;
         }
 
         $searchInput = $request->input('search', '');
@@ -220,7 +220,7 @@ class BankJournalController extends Controller
             'amount' => $amount,
             'description' => $fields['description'],
             'notes' => $fields['notes'],
-            'status' => LedgerStatus::PENDING,
+            'status' => DocumentStatus::PENDING,
         ], $fkColumns));
 
         return redirect()
@@ -250,7 +250,7 @@ class BankJournalController extends Controller
 
         $fields = $this->fields($validated);
 
-        [$account, $offsetChart, , $kind] = $this->resolveAccounts(
+        [$account, $offsetChart,, $kind] = $this->resolveAccounts(
             $fields['bankAccountId'],
             $fields['offsetChartId']
         );
@@ -293,7 +293,7 @@ class BankJournalController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            abort_if($journal->status !== LedgerStatus::PENDING, 409);
+            abort_if($journal->status !== DocumentStatus::PENDING, 409);
             abort_if($journal->direction !== 'in' && $journal->direction !== 'out', 422);
 
             $accountId = $journal->bank_account_id
@@ -304,7 +304,7 @@ class BankJournalController extends Controller
                 abort(422);
             }
 
-            [$account, , $moneyChartId, $kind] = $this->resolveAccounts($accountId, $journal->offset_chart_id);
+            [$account,, $moneyChartId, $kind] = $this->resolveAccounts($accountId, $journal->offset_chart_id);
 
             $rawAmount = $journal->getAttribute('amount');
 
@@ -337,7 +337,7 @@ class BankJournalController extends Controller
                 description: $journal->description,
             );
 
-            $journal->update(['status' => LedgerStatus::POSTED]);
+            $journal->update(['status' => DocumentStatus::POSTED]);
 
             // Recorded after the posting so an approver is never recorded against
             // a journal that did not post. The attribution saves the journal
@@ -370,7 +370,7 @@ class BankJournalController extends Controller
         DB::transaction(function () use ($documentNumber): void {
             $journal = BankJournal::query()
                 ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::PENDING)
+                ->where('status', DocumentStatus::PENDING)
                 ->lockForUpdate()
                 ->first();
 
@@ -379,7 +379,7 @@ class BankJournalController extends Controller
             // cancellation that did not happen.
             abort_if($journal === null, 404);
 
-            $journal->update(['status' => LedgerStatus::CANCELLED]);
+            $journal->update(['status' => DocumentStatus::CANCELLED]);
 
             $this->attributeCancelled($journal);
         });
@@ -407,7 +407,7 @@ class BankJournalController extends Controller
         DB::transaction(function () use ($documentNumber): void {
             $journal = BankJournal::query()
                 ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::CANCELLED)
+                ->where('status', DocumentStatus::CANCELLED)
                 ->lockForUpdate()
                 ->first();
 
@@ -416,7 +416,7 @@ class BankJournalController extends Controller
             // a restore that did not happen.
             abort_if($journal === null, 404);
 
-            $journal->update(['status' => LedgerStatus::PENDING]);
+            $journal->update(['status' => DocumentStatus::PENDING]);
 
             $this->attributeUndone($journal);
         });
@@ -443,7 +443,7 @@ class BankJournalController extends Controller
             ->where('document_number', $documentNumber)
             ->firstOrFail();
 
-        abort_if($journal->status !== LedgerStatus::PENDING, 409);
+        abort_if($journal->status !== DocumentStatus::PENDING, 409);
 
         $journal->delete();
 

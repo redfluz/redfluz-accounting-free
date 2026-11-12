@@ -55,7 +55,6 @@ return [
         'filter' => 'Filter',
         'locked' => 'Terkunci',
         'markAllAsRead' => 'Tandai semua telah dibaca',
-        'export_excel' => 'Ekspor Excel',
         'export_pdf' => 'Ekspor PDF',
         'select_all' => 'Pilih Semua',
         'deselect_all' => 'Batalkan Pilihan Semua',

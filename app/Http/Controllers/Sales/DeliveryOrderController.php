@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Sales;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Inventory\ProductMovementDirection;
@@ -23,6 +23,7 @@ use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
 use App\Models\Crm\CompanyAddress;
+use App\Models\Finance\Currency;
 use App\Models\Finance\Ledger;
 use App\Models\Inventory\ProductLedger;
 use App\Models\Inventory\StockLocation;
@@ -530,18 +531,22 @@ class DeliveryOrderController extends Controller
                     ->update(['deduct_inventory' => true, 'updated_at' => now()]);
             }
 
-            $currencyId = DB::table('settings')->value('currency_id')
-                ?? DB::table('currencies')->where('is_default', true)->value('id');
+            $currencyId = Setting::query()->value('currency_id')
+                ?? Currency::query()->where('is_default', true)->value('id');
 
-            $ledgerRows = $movementRows->flatMap(function (array $movement) use ($cogsChart, $inventoryChart, $currencyId): array {
+            // The deduction is a document of its own: one number for this
+            // delivery, with the delivery order kept in reference_number.
+            $deductionNumber = $this->generateDocumentNumber(LedgerSubType::INVENTORY_DEDUCTION);
+
+            $ledgerRows = $movementRows->flatMap(function (array $movement) use ($cogsChart, $inventoryChart, $currencyId, $deductionNumber): array {
                 $common = [
                     'company_id' => $movement['company_id'],
                     'currency_id' => $currencyId,
                     'company_name' => $movement['company_name'],
-                    'document_number' => $movement['document_number'],
-                    'reference_number' => $movement['reference_number'],
-                    'type' => LedgerType::JOURNAL->value,
-                    'subtype' => LedgerSubType::JOURNAL->value,
+                    'document_number' => $deductionNumber,
+                    'reference_number' => $movement['document_number'],
+                    'type' => LedgerType::INVENTORY->value,
+                    'subtype' => LedgerSubType::INVENTORY_DEDUCTION->value,
                     'date' => $movement['date'],
                     'description' => __('product_ledgers.entries.cogs_posting', ['document' => $movement['document_number']]),
                     'line_description' => $movement['notes'],
@@ -652,7 +657,7 @@ class DeliveryOrderController extends Controller
                 'contact_name' => $salesOrder->contact?->name,
                 'date' => $lockedDelivery->getRawOriginal('delivery_date'),
                 'due_date' => null,
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'attachment_path' => null,
                 'notes' => $lockedDelivery->notes,
                 'subtotal' => $lockedDelivery->lines->reduce(

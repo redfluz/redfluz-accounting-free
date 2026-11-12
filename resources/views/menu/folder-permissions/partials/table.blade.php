@@ -13,14 +13,13 @@
                     <label class="fw-bold" for="check-all-header">
                         {{ __('folder_permissions.table.column_can_read') }}
                     </label>
-                    <div class="m-0 p-0">
+                    <div class="d-flex justify-content-center">
                         <div class="switch">
                             <input
                                 id="check-all-header"
                                 type="checkbox"
                                 role="switch"
-                                {{ $permissions->count() > 0 && $permissions->every(fn($permission) => $permission->can_read) ? 'checked' : '' }}
-                                switch/>
+                                @checked($permissions->count() > 0 && $permissions->every(fn($permission) => $permission->can_read)) />
                         </div>
                     </div>
                 </div>
@@ -38,14 +37,15 @@
                     {{ $permission->folder->name ?? 'Folder #' . $permission->folder_id }}
                 </td>
                 <td class="col-action text-center">
-                    <div class="switch d-inline-flex m-0 p-0">
-                        <input
-                            class="check permission-checkbox float-none m-0"
-                            data-id="{{ $permission->id }}"
-                            type="checkbox"
-                            role="switch"
-                            {{ $permission->can_read ? 'checked' : '' }}
-                            switch/>
+                    <div class="d-flex justify-content-center">
+                        <div class="switch">
+                            <input
+                                class="permission-checkbox"
+                                data-id="{{ $permission->id }}"
+                                type="checkbox"
+                                role="switch"
+                                @checked($permission->can_read) />
+                        </div>
                     </div>
                 </td>
             </tr>

@@ -343,6 +343,85 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
 
         {{-- TAB 3: Accounts Receivable Statement --}}
         <div class="tab-pane fade" id="ar-pane" role="tabpanel" aria-labelledby="ar-tab">
+            <div class="accordion mb-3 accordion-gap">
+                <details class="accordion-item" @if (filled($arFilters['search'] ?? null) || filled($arFilters['start_date'] ?? null) || filled($arFilters['end_date'] ?? null) || filled($arFilters['type'] ?? null)) open @endif>
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="list-filter"></i>
+                        <span class="fw-bold">{{ __('common.actions.filter') }}</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body">
+                        <form autocomplete="off" class="row g-2" method="GET" action="{{ route('crm.companies.show', $company) }}">
+                            <input type="hidden" name="tab" value="ar" />
+                            @if (request('month'))
+                                <input type="hidden" name="month" value="{{ request('month') }}" />
+                            @endif
+                            @foreach (['ap_search', 'ap_start_date', 'ap_end_date', 'ap_type'] as $keep)
+                                @if (filled(request($keep)))
+                                    <input type="hidden" name="{{ $keep }}" value="{{ request($keep) }}" />
+                                @endif
+                            @endforeach
+                            <div class="md:col-3">
+                                <input class="form-control" name="ar_search" type="text" value="{{ $arFilters['search'] ?? '' }}" placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
+                            </div>
+                            <div class="md:col-2">
+                                <select class="form-control" name="ar_type" aria-label="{{ __('ledgers.all_types') }}">
+                                    <option value="">{{ __('ledgers.all_types') }}</option>
+                                    @foreach (\App\Enums\Finance\LedgerType::cases() as $ledgerType)
+                                        <option value="{{ $ledgerType->value }}" @selected(($arFilters['type'] ?? '') === $ledgerType->value)>{{ __('ledgers.type.' . $ledgerType->value) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="md:col-2">
+                                <div class="form-control form-adorn">
+                                    <div class="form-adorn-icon" aria-hidden="true"><i data-lucide="calendar"></i></div>
+                                    <input class="form-ghost" name="ar_start_date" type="text" data-bs-toggle="datepicker" autocomplete="off" value="{{ $arFilters['start_date'] ?? '' }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
+                                </div>
+                            </div>
+                            <div class="md:col-2">
+                                <div class="form-control form-adorn">
+                                    <div class="form-adorn-icon" aria-hidden="true"><i data-lucide="calendar"></i></div>
+                                    <input class="form-ghost" name="ar_end_date" type="text" data-bs-toggle="datepicker" autocomplete="off" value="{{ $arFilters['end_date'] ?? '' }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
+                                </div>
+                            </div>
+                            <div class="md:col-3 d-flex gap-1">
+                                <button class="btn btn-solid theme-secondary flex-grow-1" type="submit"><i class="me-1" data-lucide="search"></i> {{ __('common.actions.filter') }}</button>
+                                @if (filled($arFilters['search'] ?? null) || filled($arFilters['start_date'] ?? null) || filled($arFilters['end_date'] ?? null) || filled($arFilters['type'] ?? null))
+                                    <a class="btn btn-solid theme-secondary" href="{{ route('crm.companies.show', array_filter(array_merge(['company' => $company, 'tab' => 'ar', 'month' => request('month')], collect(['ap_search','ap_start_date','ap_end_date','ap_type'])->mapWithKeys(fn($k)=>[$k=>request($k)])->all()))) }}" title="{{ __('common.actions.reset') }}"><i data-lucide="x"></i></a>
+                                @endif
+                            </div>
+                        </form>
+                    </div>
+                </details>
+            </div>
+            <div class="accordion mb-3 accordion-gap">
+                <details class="accordion-item">
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="bar-chart-3"></i>
+                        <span class="fw-bold">Summary</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body py-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div class="d-flex flex-wrap align-items-center gap-4 gap-lg-5">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-uppercase small fg-secondary">IN</span>
+                                    <span class="fs-5 fw-semibold fg-success">{{ number_format((float) ($arTotals['debit'] ?? 0), 2) }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-uppercase small fg-secondary">OUT</span>
+                                    <span class="fs-5 fw-semibold fg-danger">{{ number_format((float) ($arTotals['credit'] ?? 0), 2) }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-uppercase small fg-secondary">BALANCE</span>
+                                    <span class="fs-5 fw-semibold">{{ number_format((float) ($arTotals['balance'] ?? 0), 2) }}</span>
+                                </div>
+                            </div>
+                            <div id="ar-summary-spark" style="width: 140px; height: 120px;"></div>
+                        </div>
+                    </div>
+                </details>
+            </div>
             @include('crm.companies._statement-table', [
                 'rows' => $arLedgers,
                 'emptyMessage' => __('companies.messages.no_ar_transactions'),
@@ -352,6 +431,85 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
 
         {{-- TAB 4: Accounts Payable Statement --}}
         <div class="tab-pane fade" id="ap-pane" role="tabpanel" aria-labelledby="ap-tab">
+            <div class="accordion mb-3 accordion-gap">
+                <details class="accordion-item" @if (filled($apFilters['search'] ?? null) || filled($apFilters['start_date'] ?? null) || filled($apFilters['end_date'] ?? null) || filled($apFilters['type'] ?? null)) open @endif>
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="list-filter"></i>
+                        <span class="fw-bold">{{ __('common.actions.filter') }}</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body">
+                        <form autocomplete="off" class="row g-2" method="GET" action="{{ route('crm.companies.show', $company) }}">
+                            <input type="hidden" name="tab" value="ap" />
+                            @if (request('month'))
+                                <input type="hidden" name="month" value="{{ request('month') }}" />
+                            @endif
+                            @foreach (['ar_search', 'ar_start_date', 'ar_end_date', 'ar_type'] as $keep)
+                                @if (filled(request($keep)))
+                                    <input type="hidden" name="{{ $keep }}" value="{{ request($keep) }}" />
+                                @endif
+                            @endforeach
+                            <div class="md:col-3">
+                                <input class="form-control" name="ap_search" type="text" value="{{ $apFilters['search'] ?? '' }}" placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
+                            </div>
+                            <div class="md:col-2">
+                                <select class="form-control" name="ap_type" aria-label="{{ __('ledgers.all_types') }}">
+                                    <option value="">{{ __('ledgers.all_types') }}</option>
+                                    @foreach (\App\Enums\Finance\LedgerType::cases() as $ledgerType)
+                                        <option value="{{ $ledgerType->value }}" @selected(($apFilters['type'] ?? '') === $ledgerType->value)>{{ __('ledgers.type.' . $ledgerType->value) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="md:col-2">
+                                <div class="form-control form-adorn">
+                                    <div class="form-adorn-icon" aria-hidden="true"><i data-lucide="calendar"></i></div>
+                                    <input class="form-ghost" name="ap_start_date" type="text" data-bs-toggle="datepicker" autocomplete="off" value="{{ $apFilters['start_date'] ?? '' }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
+                                </div>
+                            </div>
+                            <div class="md:col-2">
+                                <div class="form-control form-adorn">
+                                    <div class="form-adorn-icon" aria-hidden="true"><i data-lucide="calendar"></i></div>
+                                    <input class="form-ghost" name="ap_end_date" type="text" data-bs-toggle="datepicker" autocomplete="off" value="{{ $apFilters['end_date'] ?? '' }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
+                                </div>
+                            </div>
+                            <div class="md:col-3 d-flex gap-1">
+                                <button class="btn btn-solid theme-secondary flex-grow-1" type="submit"><i class="me-1" data-lucide="search"></i> {{ __('common.actions.filter') }}</button>
+                                @if (filled($apFilters['search'] ?? null) || filled($apFilters['start_date'] ?? null) || filled($apFilters['end_date'] ?? null) || filled($apFilters['type'] ?? null))
+                                    <a class="btn btn-solid theme-secondary" href="{{ route('crm.companies.show', array_filter(array_merge(['company' => $company, 'tab' => 'ap', 'month' => request('month')], collect(['ar_search','ar_start_date','ar_end_date','ar_type'])->mapWithKeys(fn($k)=>[$k=>request($k)])->all()))) }}" title="{{ __('common.actions.reset') }}"><i data-lucide="x"></i></a>
+                                @endif
+                            </div>
+                        </form>
+                    </div>
+                </details>
+            </div>
+            <div class="accordion mb-3 accordion-gap">
+                <details class="accordion-item">
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="bar-chart-3"></i>
+                        <span class="fw-bold">Summary</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body py-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div class="d-flex flex-wrap align-items-center gap-4 gap-lg-5">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-uppercase small fg-secondary">IN</span>
+                                    <span class="fs-5 fw-semibold fg-success">{{ number_format((float) ($apTotals['debit'] ?? 0), 2) }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-uppercase small fg-secondary">OUT</span>
+                                    <span class="fs-5 fw-semibold fg-danger">{{ number_format((float) ($apTotals['credit'] ?? 0), 2) }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-uppercase small fg-secondary">BALANCE</span>
+                                    <span class="fs-5 fw-semibold">{{ number_format((float) ($apTotals['balance'] ?? 0), 2) }}</span>
+                                </div>
+                            </div>
+                            <div id="ap-summary-spark" style="width: 140px; height: 120px;"></div>
+                        </div>
+                    </div>
+                </details>
+            </div>
             @include('crm.companies._statement-table', [
                 'rows' => $apLedgers,
                 'emptyMessage' => __('companies.messages.no_ap_transactions'),
@@ -459,6 +617,54 @@ $canRemoveContact = auth()->user()->hasFilePermission(FileResources::CONTACTS, F
                     }
                 });
             });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab) {
+                const btn = document.querySelector(`[data-bs-target="#${tab}-pane"]`);
+                if (btn && window.bootstrap && bootstrap.Tab) {
+                    bootstrap.Tab.getOrCreateInstance(btn).show();
+                } else if (btn) {
+                    btn.click();
+                }
+            }
+
+            if (typeof echarts === 'undefined') return;
+            function renderSpark(id, inVal, outVal, balVal) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const chart = echarts.init(el);
+                const balLabel = balVal >= 0 ? 'BALANCE' : 'BALANCE (-)';
+                const grad = (c1, c2) => new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: c1 }, { offset: 1, color: c2 }]);
+                const data = [];
+                if (Number(inVal) > 0) data.push({ value: inVal, name: 'IN', itemStyle: { color: grad('#34d399', '#059669') } });
+                if (Number(outVal) > 0) data.push({ value: outVal, name: 'OUT', itemStyle: { color: grad('#fb7185', '#e11d48') } });
+                if (Number(balVal) !== 0) data.push({ value: Math.abs(balVal), name: balLabel, itemStyle: { color: balVal >= 0 ? grad('#60a5fa', '#2563eb') : grad('#fbbf24', '#ea580c') } });
+                if (data.length === 0) data.push({ value: 1, name: 'NO DATA', itemStyle: { color: grad('#e9ecef', '#dee2e6') }, tooltip: { show: false } });
+                chart.setOption({
+                    animation: true,
+                    tooltip: { trigger: 'item', formatter: (p) => p.name === 'NO DATA' ? '' : `${p.name}: ${p.value}` },
+                    series: [{
+                        type: 'pie',
+                        roseType: data.length === 1 && data[0].name === 'NO DATA' ? false : 'area',
+                        radius: ['16%', '92%'],
+                        center: ['50%', '50%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2, shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.15)' },
+                        emphasis: { scale: true, scaleSize: 6, itemStyle: { shadowBlur: 20, shadowColor: 'rgba(0,0,0,0.25)' } },
+                        label: { show: false },
+                        labelLine: { show: false },
+                        data
+                    }]
+                });
+                window.addEventListener('resize', () => chart.resize());
+            }
+            renderSpark('ar-summary-spark', {{ (float) ($arTotals['debit'] ?? 0) }}, {{ (float) ($arTotals['credit'] ?? 0) }}, {{ (float) ($arTotals['balance'] ?? 0) }});
+            renderSpark('ap-summary-spark', {{ (float) ($apTotals['debit'] ?? 0) }}, {{ (float) ($apTotals['credit'] ?? 0) }}, {{ (float) ($apTotals['balance'] ?? 0) }});
         });
     </script>
 @endpush

@@ -30,7 +30,7 @@ namespace App\Http\Requests\Purchase\ManualAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use Illuminate\Validation\Rule;
 
@@ -66,6 +66,8 @@ class UpdateManualPurchaseAdjustmentRequest extends ManualPurchaseAdjustmentRequ
                 'required',
                 'string',
                 Rule::in([
+                    LedgerSubType::PURCHASE_DEBIT_NOTE->value,
+                    LedgerSubType::PURCHASE_CREDIT_NOTE->value,
                     LedgerSubType::INCREASE_ADJUSTMENT->value,
                     LedgerSubType::DECREASE_ADJUSTMENT->value,
                 ]),
@@ -75,7 +77,7 @@ class UpdateManualPurchaseAdjustmentRequest extends ManualPurchaseAdjustmentRequ
                 'required',
                 'uuid',
                 Rule::exists('purchase_invoices', 'id')
-                    ->where('status', LedgerStatus::POSTED->value)
+                    ->where('status', DocumentStatus::POSTED->value)
                     ->where('company_id', $this->inputStringOrEmpty('company_id')),
             ],
             'notes' => ['nullable', 'string'],

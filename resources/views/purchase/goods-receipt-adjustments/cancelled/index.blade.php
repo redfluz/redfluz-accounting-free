@@ -88,6 +88,14 @@
                                         >
                                             <i data-lucide="file-text"></i>
                                         </a>
+                                        <a
+                                            class="btn btn-sm btn-solid theme-primary"
+                                            href="{{ route('purchase.goods-receipt-adjustments.cancelled.pdf', $entry->id) }}"
+                                            target="_blank"
+                                            title="{{ __('common.actions.print_pdf') }}"
+                                        >
+                                            <i data-lucide="printer"></i>
+                                        </a>
                                         @if ($canCancel)
                                             <a
                                                 class="btn btn-sm btn-outline theme-success"

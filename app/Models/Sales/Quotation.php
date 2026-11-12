@@ -34,7 +34,6 @@ use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -99,18 +99,37 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Table('quotations', key: 'id')]
 #[Fillable([
-    'company_id', 'contact_id',
+    'company_id',
+    'contact_id',
     'status',
-    'document_number', 'company_name', 'contact_name',
-    'reference_number', 'date', 'expiry_date',
-    'attachment_path', 'is_converted', 'converted_at',
+    'document_number',
+    'company_name',
+    'contact_name',
+    'reference_number',
+    'date',
+    'expiry_date',
+    'attachment_path',
+    'is_converted',
+    'converted_at',
     'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
 ])]
 class Quotation extends Model
 {

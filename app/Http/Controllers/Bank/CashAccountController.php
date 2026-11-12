@@ -37,8 +37,8 @@ use App\Models\ChartOfAccount\Chart;
 use App\Models\Inventory\StockLocation;
 use App\Support\Data\Bank\CashAccountData;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -191,14 +191,14 @@ class CashAccountController extends Controller
                 if ($cashAccount !== null) {
                     $query->whereKey($cashAccount->chart_id)->orWhereNotExists(
                         function ($subQuery): void {
-                            /** @var \Illuminate\Database\Query\Builder $subQuery */
+                            /** @var Builder $subQuery */
                             $subQuery->selectRaw('1')->from('cash_accounts')->whereColumn('cash_accounts.chart_id', 'charts.id');
                         }
                     );
                 } else {
                     $query->whereNotExists(
                         function ($subQuery): void {
-                            /** @var \Illuminate\Database\Query\Builder $subQuery */
+                            /** @var Builder $subQuery */
                             $subQuery->selectRaw('1')->from('cash_accounts')->whereColumn('cash_accounts.chart_id', 'charts.id');
                         }
                     );

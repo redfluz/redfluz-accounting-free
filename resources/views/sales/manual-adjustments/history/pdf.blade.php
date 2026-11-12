@@ -109,7 +109,7 @@
                 <tr>
                     <td class="fw-bold">{{ $entry->document_number }}</td>
                     <td>{{ $entry->reference_number ?? '-' }}</td>
-                    <td>{{ $entry->subtype->label() }}</td>
+                    <td>{{ __('ledgers.sub_type.' . $entry->subtype->value) }}</td>
                     <td>{{ \Carbon\Carbon::parse($entry->date)->format(Setting::getDefaultDate()) }}</td>
                     <td>{{ $entry->company_name ?? '-' }}</td>
                     <td class="text-end">{{ number_format((float) $entry->total_amount, 2) }}</td>

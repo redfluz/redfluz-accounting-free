@@ -1,5 +1,5 @@
 @php
-    use App\Enums\Finance\LedgerStatus;
+    use App\Enums\Finance\DocumentStatus;
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
@@ -152,7 +152,7 @@
                 <i class="me-1" data-lucide="arrow-left"></i>
                 {{ __('ledgers.back') }}
             </a>
-            @if ($transfer->status === LedgerStatus::PENDING && $canRemove)
+            @if ($transfer->status === DocumentStatus::PENDING && $canRemove)
                 <form autocomplete="off" action="{{ route('bank.cash-transfers.destroy', $transfer->document_number) }}"
                     method="POST" data-confirm-message="{{ __('common.alerts.confirm_delete') }}"
                     data-confirm-tone="danger">

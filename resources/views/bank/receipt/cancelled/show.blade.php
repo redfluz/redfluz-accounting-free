@@ -45,7 +45,7 @@
                 </span>
                 <a class="btn btn-solid theme-primary btn-sm text-nowrap"
                     href="{{ route('bank.receipts.cancelled.pdf', $documentNumber) }}" target="_blank">
-                    <i class="me-1" data-lucide="file-type-2"></i>
+                    <i class="me-1" data-lucide="printer"></i>
                     {{ __('payments.actions.print_pdf') }}
                 </a>
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('bank.receipts.cancelled.index') }}">
@@ -81,45 +81,6 @@
                         <strong>{{ $receipt->payment_transfer_type?->label() ?? '-' }}</strong>
                     </div>
                 </div>
-            </div>
-
-            <div class="table-responsive rounded border mb-4">
-                <table class="table-hover table-striped mb-0 table align-middle">
-                    <thead class="bg-1">
-                        <tr>
-                            <th scope="col">{{ __('payments.table.column_entry') }}</th>
-                            <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
-                            <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
-                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
-                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $displayEntries = $receipt->relationLoaded('arLedgers') ? $receipt->arLedgers : collect(); @endphp
-                        @forelse ($displayEntries as $line)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ (float)($line->debit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td>{{ (float)($line->credit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td class="text-end">{{ (float)($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
-                                <td class="text-end">{{ (float)($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="text-center fg-secondary">{{ $receipt->isPosted() ? '-' : __('ledgers.no_records') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                    <tfoot class="bg-1 fw-bold border-top">
-                        <tr>
-                            <td colspan="3" class="text-end">{{ __('common.labels.total') }}:</td>
-                            <td class="text-end">
-                                {{ number_format((float) $receipt->total_amount, 2) }}
-                            </td>
-                            <td class="text-end">
-                                {{ number_format((float) $receipt->total_amount, 2) }}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
             </div>
 
             @if ($receipt->notes)

@@ -149,6 +149,11 @@ $canRestore = auth()->user()->hasFilePermission(FileResources::PAYMENT_VOUCHERS_
                                             title="{{ __('payments.actions.view_and_print') }}">
                                             <i data-lucide="eye"></i>
                                         </a>
+                                        <a class="btn btn-sm btn-solid theme-primary"
+                                            href="{{ route('bank.payment-vouchers.cancelled.pdf', $voucher->document_number) }}"
+                                            target="_blank" title="{{ __('payments.actions.print_pdf') }}">
+                                            <i data-lucide="printer"></i>
+                                        </a>
 
                                         @if ($canRestore)
                                             <form autocomplete="off"

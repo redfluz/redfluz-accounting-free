@@ -2,7 +2,7 @@
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\Finance\LedgerStatus;
+    use App\Enums\Finance\DocumentStatus;
     use App\Models\Finance\JournalEntry;
     use Carbon\Carbon;
 
@@ -169,9 +169,9 @@
                     <tbody>
                         @forelse ($entries as $entry)
                             @php
-                                $isPosted = $entry->status === LedgerStatus::POSTED;
-                                $isReversal = $entry->reversal_of_id !== null;
-                                $isReversed = $entry->reversal !== null;
+                                $isPosted = $entry->status === DocumentStatus::POSTED;
+                                $isReversal = $entry->document_original !== null;
+                                $isReversed = $entry->undone_at !== null;
                                 $statusLabel = $isReversal
                                     ? __('journal_entries.reversal_status')
                                     : ($isReversed

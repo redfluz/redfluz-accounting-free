@@ -26,7 +26,7 @@
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Models\Finance\JournalEntry;
 
 $canApprove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
@@ -49,8 +49,8 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
             <h4 class="fw-bold m-0">
                 {{ __('journal_entries.edit_journal_title') }} - {{ $journalEntry->document_number }}
             </h4>
-            <span class="badge {{ $journalEntry->status === LedgerStatus::POSTED ? 'theme-success' : 'theme-warning' }}">
-                {{ $journalEntry->status === LedgerStatus::POSTED ? __('journal_entries.status_approved') : __('journal_entries.status_pending') }}
+            <span class="badge {{ $journalEntry->status === DocumentStatus::POSTED ? 'theme-success' : 'theme-warning' }}">
+                {{ $journalEntry->status === DocumentStatus::POSTED ? __('journal_entries.status_approved') : __('journal_entries.status_pending') }}
             </span>
         </div>
 
@@ -76,7 +76,7 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                             </button>
                         @endif
 
-                        @if ($journalEntry->status !== LedgerStatus::POSTED && $canApprove)
+                        @if ($journalEntry->status !== DocumentStatus::POSTED && $canApprove)
                             <button class="btn btn-solid theme-success" type="button"
                                 onclick="document.getElementById('approve-form').submit()">
                                 <i class="me-1" data-lucide="check"></i>
@@ -92,7 +92,7 @@ $canRemove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, F
                 </div>
             </form>
 
-            @if ($journalEntry->status !== LedgerStatus::POSTED)
+            @if ($journalEntry->status !== DocumentStatus::POSTED)
                 <form autocomplete="off" class="d-none" id="approve-form"
                     action="{{ route('finance.journal-entries.approve', $journalEntry) }}" method="POST">
                     @csrf

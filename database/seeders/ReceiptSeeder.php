@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Receipt;
@@ -126,10 +126,10 @@ class ReceiptSeeder extends Seeder
                     // one rather than a posted receipt nobody approved.
                     'created_name' => 'System Seeder',
                     'created_at' => $receipt['date'],
-                    'approved_name' => $receipt['status'] === LedgerStatus::POSTED ? 'Manager User' : null,
-                    'approved_at' => $receipt['status'] === LedgerStatus::POSTED ? $receipt['date'] : null,
-                    'cancelled_name' => $receipt['status'] === LedgerStatus::CANCELLED ? 'Manager User' : null,
-                    'cancelled_at' => $receipt['status'] === LedgerStatus::CANCELLED ? $receipt['date'] : null,
+                    'approved_name' => $receipt['status'] === DocumentStatus::POSTED ? 'Manager User' : null,
+                    'approved_at' => $receipt['status'] === DocumentStatus::POSTED ? $receipt['date'] : null,
+                    'cancelled_name' => $receipt['status'] === DocumentStatus::CANCELLED ? 'Manager User' : null,
+                    'cancelled_at' => $receipt['status'] === DocumentStatus::CANCELLED ? $receipt['date'] : null,
                 ]);
 
                 $this->postSeededDocument(
@@ -171,7 +171,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1100',
                 'credit_code' => '1200',
                 'amount' => '1500.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'Tradenet Financial Terminals',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt recorded and awaiting posting.',
@@ -188,7 +188,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1000',
                 'credit_code' => '1200',
                 'amount' => '260.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'Horizon Wealth Management',
                 'transfer_type' => PaymentTransferType::CASH,
                 'notes' => 'Cash taken at the counter and held in the drawer.',
@@ -204,7 +204,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1100',
                 'credit_code' => '1200',
                 'amount' => '3000.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt posted against IV-DEMO-0001.',
@@ -216,7 +216,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1110',
                 'credit_code' => '1200',
                 'amount' => '425.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'party' => 'Horizon Wealth Management',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Cancelled receipt: the deposit was reversed by the bank.',
@@ -231,7 +231,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1110',
                 'credit_code' => '1200',
                 'amount' => '12500.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt deposited into CIMB Bank.',
@@ -243,7 +243,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1120',
                 'credit_code' => '1200',
                 'amount' => '18000.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt deposited into Public Bank.',
@@ -255,7 +255,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1100',
                 'credit_code' => '1200',
                 'amount' => '8200.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt deposited into Maybank.',
@@ -267,7 +267,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1110',
                 'credit_code' => '1200',
                 'amount' => '14600.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt deposited into CIMB Bank.',
@@ -279,7 +279,7 @@ class ReceiptSeeder extends Seeder
                 'debit_code' => '1120',
                 'credit_code' => '1200',
                 'amount' => '9800.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer receipt deposited into Public Bank.',

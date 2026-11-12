@@ -8,7 +8,7 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Models\Finance\ManualSalesAdjustment;
+    use App\Models\Sales\ManualSalesAdjustment;
     use App\Models\System\Setting;
     use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -148,7 +148,7 @@
                                 </td>
                                 <td>{{ $adjustment->date->format(Setting::getDefaultDate()) }}</td>
                                 <td>{{ $adjustment->company->name ?? '-' }}</td>
-                                <td>{{ $adjustment->subtype->label() }}</td>
+                                <td>{{ __('ledgers.sub_type.' . $adjustment->subtype->value) }}</td>
                                 <td class="text-end">{{ number_format((float) $adjustment->total_debit, 2) }}</td>
                                 <td class="text-end">{{ number_format((float) $adjustment->total_credit, 2) }}</td>
                                 <td class="text-center">{{ $adjustment->charts_count }}</td>

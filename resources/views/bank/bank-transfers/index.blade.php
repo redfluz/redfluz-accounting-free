@@ -9,7 +9,7 @@
     $canCancel = auth()->user()->hasFilePermission($resource, FileAction::CANCEL);
 @endphp
 
-@props(['transfers', 'search', 'status'])
+@props(['transfers', 'search', 'startDate', 'endDate'])
 
 @extends('layouts.app')
 
@@ -33,37 +33,56 @@
         <div class="card-body">
             @include('partials.alerts')
 
-            <ul class="nav nav-tabs mb-4">
-                @foreach (['pending', 'posted', 'cancelled'] as $tab)
-                    <li class="nav-item">
-                        <a class="nav-link {{ $status === $tab ? 'active' : '' }}"
-                            href="{{ route('bank.bank-transfers.index', ['status' => $tab]) }}">
-                            {{ __('bank_transfers.tabs.' . $tab) }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-
-            <form autocomplete="off" action="{{ route('bank.bank-transfers.index') }}" method="GET" class="mb-4">
-                <input name="status" type="hidden" value="{{ $status }}" />
-                <div class="row g-2 align-items-center">
-                    <div class="md:col-9">
-                        <input class="form-control" name="search" type="text" value="{{ $search }}"
-                            placeholder="{{ __('common.actions.search') }}" aria-label="{{ __('common.actions.search') }}" />
+            <div class="accordion mb-4 accordion-gap">
+                <details class="accordion-item">
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="list-filter"></i>
+                        <span class="fw-bold">{{ __('financial_reports.form.filters') }}</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body">
+                        <form autocomplete="off" action="{{ route('bank.bank-transfers.index') }}" method="GET">
+                            <div class="row g-2 align-items-center">
+                                <div class="md:col-3">
+                                    <label class="visually-hidden" for="bt-search">{{ __('common.actions.search') }}</label>
+                                    <input class="form-control" id="bt-search" name="search" type="text" value="{{ $search }}"
+                                        placeholder="{{ __('common.actions.search') }}" />
+                                </div>
+                                <div class="md:col-3">
+                                    <div class="form-control form-adorn">
+                                        <div class="form-adorn-icon" aria-hidden="true">
+                                            <i data-lucide="calendar"></i>
+                                        </div>
+                                        <label class="visually-hidden" for="bt-start-date">{{ __('financial_reports.form.start_date') }}</label>
+                                        <input class="form-ghost" id="bt-start-date" name="start_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
+                                            value="{{ $startDate }}" placeholder="{{ __('financial_reports.form.start_date') }}" />
+                                    </div>
+                                </div>
+                                <div class="md:col-3">
+                                    <div class="form-control form-adorn">
+                                        <div class="form-adorn-icon" aria-hidden="true">
+                                            <i data-lucide="calendar"></i>
+                                        </div>
+                                        <label class="visually-hidden" for="bt-end-date">{{ __('financial_reports.form.end_date') }}</label>
+                                        <input class="form-ghost" id="bt-end-date" name="end_date" type="text" data-bs-toggle="datepicker" autocomplete="off"
+                                            value="{{ $endDate }}" placeholder="{{ __('financial_reports.form.end_date') }}" />
+                                    </div>
+                                </div>
+                                <div class="md:col-3 d-flex gap-2">
+                                    <button class="btn btn-solid theme-primary flex-fill" type="submit">
+                                        <i class="me-1" data-lucide="filter"></i>
+                                        {{ __('common.actions.search') }}
+                                    </button>
+                                    <a class="btn btn-outline flex-fill border" href="{{ route('bank.bank-transfers.index') }}">
+                                        <i class="me-1" data-lucide="rotate-ccw"></i>
+                                        {{ __('common.actions.reset') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="md:col-3 d-flex gap-2">
-                        <button class="btn btn-solid theme-primary flex-fill" type="submit">
-                            <i class="me-1" data-lucide="filter"></i>
-                            {{ __('common.actions.search') }}
-                        </button>
-                        <a class="btn btn-outline flex-fill border"
-                            href="{{ route('bank.bank-transfers.index', ['status' => $status]) }}">
-                            <i class="me-1" data-lucide="rotate-ccw"></i>
-                            {{ __('common.actions.reset') }}
-                        </a>
-                    </div>
-                </div>
-            </form>
+                </details>
+            </div>
 
             <div class="table-responsive rounded-5 overflow-hidden border">
                 <table class="table-hover table-striped mb-0 table align-middle">
@@ -116,7 +135,7 @@
                                             </form>
                                         @endif
 
-                                        @if ($status === 'pending' && $canCancel)
+                                        @if ($canCancel)
                                             <form autocomplete="off"
                                                 action="{{ route('bank.bank-transfers.cancel', $transfer->document_number) }}"
                                                 method="POST"

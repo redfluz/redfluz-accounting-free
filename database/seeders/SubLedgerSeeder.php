@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use Database\Seeders\Concerns\SeedsDocumentSequences;
@@ -138,22 +138,24 @@ class SubLedgerSeeder extends Seeder
     {
         $now = now();
 
-        foreach ([
+        foreach (
             [
-                'document_number' => 'IV-CANCEL-0001',
-                'date' => '2026-07-10',
-                'subtotal' => '3600.00',
-                'total_amount' => '3600.00',
-                'notes' => 'Cancelled sales invoice — customer changed mind before approval.',
-            ],
-            [
-                'document_number' => 'IV-CANCEL-0002',
-                'date' => '2026-08-15',
-                'subtotal' => '5200.00',
-                'total_amount' => '5200.00',
-                'notes' => 'Cancelled sales invoice — duplicate entry voided.',
-            ],
-        ] as $invoice) {
+                [
+                    'document_number' => 'IV-CANCEL-0001',
+                    'date' => '2026-07-10',
+                    'subtotal' => '3600.00',
+                    'total_amount' => '3600.00',
+                    'notes' => 'Cancelled sales invoice — customer changed mind before approval.',
+                ],
+                [
+                    'document_number' => 'IV-CANCEL-0002',
+                    'date' => '2026-08-15',
+                    'subtotal' => '5200.00',
+                    'total_amount' => '5200.00',
+                    'notes' => 'Cancelled sales invoice — duplicate entry voided.',
+                ],
+            ] as $invoice
+        ) {
             $existingId = DB::table('sales_invoices')
                 ->where('document_number', $invoice['document_number'])
                 ->value('id');
@@ -199,32 +201,34 @@ class SubLedgerSeeder extends Seeder
             throw new LogicException('Demo sales invoices require a seeded product.');
         }
 
-        foreach ([
+        foreach (
             [
-                'document_number' => 'IV-DEMO-0001',
-                'date' => '2026-08-01',
-                'status' => 'posted',
-                'subtotal' => '4500.00',
-                'total_amount' => '4500.00',
-                'notes' => 'Demo posted sales invoice — HP Pavilion 15 Laptop.',
-            ],
-            [
-                'document_number' => 'IV-DEMO-0002',
-                'date' => '2026-08-25',
-                'status' => 'pending',
-                'subtotal' => '3200.00',
-                'total_amount' => '3200.00',
-                'notes' => 'Demo pending sales invoice — awaiting approval.',
-            ],
-            [
-                'document_number' => 'IV-RMA-DEMO-0001',
-                'date' => now()->subDays(45)->toDateString(),
-                'status' => 'posted',
-                'subtotal' => '4500.00',
-                'total_amount' => '4500.00',
-                'notes' => 'Posted hardware invoice reserved for the repeatable RMA inspection and repair demo.',
-            ],
-        ] as $invoice) {
+                [
+                    'document_number' => 'IV-DEMO-0001',
+                    'date' => '2026-08-01',
+                    'status' => 'posted',
+                    'subtotal' => '4500.00',
+                    'total_amount' => '4500.00',
+                    'notes' => 'Demo posted sales invoice — HP Pavilion 15 Laptop.',
+                ],
+                [
+                    'document_number' => 'IV-DEMO-0002',
+                    'date' => '2026-08-25',
+                    'status' => 'pending',
+                    'subtotal' => '3200.00',
+                    'total_amount' => '3200.00',
+                    'notes' => 'Demo pending sales invoice — awaiting approval.',
+                ],
+                [
+                    'document_number' => 'IV-RMA-DEMO-0001',
+                    'date' => now()->subDays(45)->toDateString(),
+                    'status' => 'posted',
+                    'subtotal' => '4500.00',
+                    'total_amount' => '4500.00',
+                    'notes' => 'Posted hardware invoice reserved for the repeatable RMA inspection and repair demo.',
+                ],
+            ] as $invoice
+        ) {
             $existingId = DB::table('sales_invoices')
                 ->where('document_number', $invoice['document_number'])
                 ->value('id');
@@ -332,7 +336,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '4500.00',
                 'amount' => '4500.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'notes' => 'Posted sales invoice used to demonstrate client-ledger to GL drill-down.',
             ],
@@ -347,7 +351,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 2,
                 'unit_price' => '900.00',
                 'amount' => '1800.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Ingram Micro Malaysia Sdn Bhd',
                 'notes' => 'Posted purchase invoice used to demonstrate supplier document flow.',
@@ -363,7 +367,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '2200.00',
                 'amount' => '2200.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'use_product' => true,
                 'notes' => 'Pending sales invoice intentionally kept outside the General Ledger.',
             ],
@@ -378,7 +382,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '4500.00',
                 'amount' => '4500.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'notes' => 'Posted hardware invoice reserved for the repeatable RMA inspection and repair demo.',
             ],
@@ -394,7 +398,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '3850.00',
                 'amount' => '3850.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Kumpulan Wang Simpanan Pekerja (KWSP)',
                 'notes' => 'Outstanding statutory contribution payable to KWSP.',
@@ -411,7 +415,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 2,
                 'unit_price' => '2300.00',
                 'amount' => '4600.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Ingram Micro Malaysia Sdn Bhd',
                 'notes' => 'Outstanding inventory purchase payable to Ingram Micro Malaysia.',
@@ -428,7 +432,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 3,
                 'unit_price' => '1450.00',
                 'amount' => '4350.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'VSTECS Berhad',
                 'notes' => 'Outstanding inventory purchase payable to VSTECS Berhad.',
@@ -445,7 +449,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 4,
                 'unit_price' => '330.00',
                 'amount' => '1320.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'SNS Network (M) Sdn Bhd',
                 'notes' => 'Outstanding inventory purchase payable to SNS Network.',
@@ -462,7 +466,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '1275.00',
                 'amount' => '1275.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Pertubuhan Keselamatan Sosial (PERKESO / SOCSO)',
                 'notes' => 'Outstanding statutory contribution payable to PERKESO / SOCSO.',
@@ -479,7 +483,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '4650.00',
                 'amount' => '4650.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Lembaga Hasil Dalam Negeri Malaysia (LHDN)',
                 'notes' => 'Outstanding PCB remittance payable to LHDN.',
@@ -496,7 +500,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '980.00',
                 'amount' => '980.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Human Resources Development Corporation (HRD Corp)',
                 'notes' => 'Outstanding statutory levy payable to HRD Corp.',
@@ -513,7 +517,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '620.00',
                 'amount' => '620.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'use_product' => true,
                 'party_name' => 'Perbadanan Tabung Pendidikan Tinggi Nasional (PTPTN)',
                 'notes' => 'Outstanding payroll deduction payable to PTPTN.',
@@ -529,7 +533,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 2,
                 'unit_price' => '1800.00',
                 'amount' => '3600.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'use_product' => true,
                 'notes' => 'Cancelled sales invoice — customer changed mind before approval.',
             ],
@@ -544,7 +548,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '5200.00',
                 'amount' => '5200.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'use_product' => true,
                 'notes' => 'Cancelled sales invoice — duplicate entry voided.',
             ],
@@ -559,7 +563,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 1,
                 'unit_price' => '2750.00',
                 'amount' => '2750.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'use_product' => true,
                 'party_name' => 'Ingram Micro Malaysia Sdn Bhd',
                 'notes' => 'Cancelled purchase invoice — wrong supplier selected.',
@@ -575,7 +579,7 @@ class SubLedgerSeeder extends Seeder
                 'quantity' => 3,
                 'unit_price' => '680.00',
                 'amount' => '2040.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'use_product' => true,
                 'party_name' => 'VSTECS Berhad',
                 'notes' => 'Cancelled purchase invoice — order never confirmed by supplier.',
@@ -633,7 +637,7 @@ class SubLedgerSeeder extends Seeder
             'updated_at' => $now,
         ];
 
-        if ($document['status'] === LedgerStatus::POSTED) {
+        if ($document['status'] === DocumentStatus::POSTED) {
             $debitRow = $common + [
                 'id' => $debitLineId,
                 'chart_id' => $debitChart->id,

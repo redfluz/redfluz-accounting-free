@@ -57,7 +57,6 @@ return [
         'filter' => 'Tapis',
         'locked' => 'Kunci',
         'markAllAsRead' => 'Tandakan semua sebagai dibaca',
-        'export_excel' => 'Eksport Excel',
         'export_pdf' => 'Eksport PDF',
         'select_all' => 'Pilih Semua',
         'deselect_all' => 'Nyahpilih Semua',

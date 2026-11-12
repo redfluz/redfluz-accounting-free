@@ -28,17 +28,17 @@ declare(strict_types=1);
 
 namespace App\Models\Bank;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Models\ChartOfAccount\Chart;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -71,7 +71,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $attachment_name
  * @property string|null $description
  * @property string|null $notes
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property string|null $created_by
  * @property string|null $created_name
  * @property string|null $updated_by
@@ -102,17 +102,37 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Table('transfers', key: 'id')]
 #[Fillable([
-    'document_number', 'direction',
-    'cash_account_id', 'bank_account_id', 'transit_chart_id',
-    'date', 'amount', 'reference_number',
-    'attachment_path', 'attachment_name',
-    'description', 'notes', 'status',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
+    'document_number',
+    'direction',
+    'cash_account_id',
+    'bank_account_id',
+    'transit_chart_id',
+    'date',
+    'amount',
+    'reference_number',
+    'attachment_path',
+    'attachment_name',
+    'description',
+    'notes',
+    'status',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
     'id',
 ])]
 class Transfer extends Model
@@ -136,7 +156,7 @@ class Transfer extends Model
     {
         return [
             'date' => 'date',
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'amount' => 'decimal:2',
             'approved_at' => 'datetime',
             'cancelled_at' => 'datetime',
@@ -204,7 +224,7 @@ class Transfer extends Model
      */
     public function isPosted(): bool
     {
-        return $this->status === LedgerStatus::POSTED;
+        return $this->status === DocumentStatus::POSTED;
     }
 
     /**
@@ -212,7 +232,7 @@ class Transfer extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->status === LedgerStatus::CANCELLED;
+        return $this->status === DocumentStatus::CANCELLED;
     }
 
     /**

@@ -37,7 +37,6 @@ use App\Http\Requests\ChartOfAccount\ChartReport\UpdateChartReportRequest;
 use App\Models\ChartOfAccount\ChartReport;
 use App\Support\Data\ChartOfAccount\ChartReportData;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,8 +59,8 @@ class ChartReportController extends Controller
 
         $chartReports = ChartReport::query()
             ->withCount('details')
-            ->when($search !== '', function (Builder $query) use ($search): void {
-                $query->where(function (Builder $query) use ($search): void {
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
                     $query->where('code', 'like', "%$search%")
                         ->orWhere('name', 'like', "%$search%")
                         ->orWhere('slug', 'like', "%$search%");
@@ -222,7 +221,7 @@ class ChartReportController extends Controller
         $exceptKey = $except?->getKey();
         ChartReport::query()
             ->where('slug', $slug)
-            ->when($exceptKey !== null, fn (Builder $query) => $query->whereKeyNot($exceptKey))
+            ->when($exceptKey !== null, fn ($query) => $query->whereKeyNot($exceptKey))
             ->update(['is_default' => false]);
     }
 }

@@ -50,8 +50,8 @@ use App\Models\Inventory\StockLocation;
 use App\Services\DecimalService;
 use App\Support\Data\Inventory\ProductData;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -156,9 +156,9 @@ class ProductController extends Controller
                 ->where('stock_bucket', ProductStockBucket::SALEABLE->value)
                 ->selectRaw(
                     'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as received_quantity, '
-                    .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as issued_quantity, '
-                    .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_in_quantity, '
-                    .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_out_quantity',
+                        .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as issued_quantity, '
+                        .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_in_quantity, '
+                        .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_out_quantity',
                     [
                         ProductMovementStatus::ACTIVE->value,
                         ProductMovementDirection::IN->value,
@@ -196,7 +196,7 @@ class ProductController extends Controller
                 ->select('product_id')
                 ->selectRaw(
                     'COALESCE(SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END), 0) as total_in, '
-                    .'COALESCE(SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END), 0) as total_out',
+                        .'COALESCE(SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END), 0) as total_out',
                     [
                         ProductMovementDirection::IN->value,
                         ProductMovementDirection::OUT->value,
@@ -253,24 +253,24 @@ class ProductController extends Controller
                     ProductMovementSource::DELIVERY_ORDER->value,
                 ])
                 ->select('product_ledgers.*')
-                // One running balance for the whole family at this location,
-                // parent product and every variant together, so the column adds
-                // up to the stock figure shown in the summary cards.
-                //
-                // Chronology comes from created_at, the posting timestamp, not
-                // from date: date is a document date that may be back dated and
-                // is not stored in one shape everywhere, so ordering by it puts
-                // same day movements in the wrong order. The window runs oldest
-                // to newest, which is the reverse of the listing below.
+            // One running balance for the whole family at this location,
+            // parent product and every variant together, so the column adds
+            // up to the stock figure shown in the summary cards.
+            //
+            // Chronology comes from created_at, the posting timestamp, not
+            // from date: date is a document date that may be back dated and
+            // is not stored in one shape everywhere, so ordering by it puts
+            // same day movements in the wrong order. The window runs oldest
+            // to newest, which is the reverse of the listing below.
                 ->selectRaw(
                     'SUM(CASE '
-                    .'WHEN status = ? AND direction = ? THEN quantity '
-                    .'WHEN status = ? AND direction = ? THEN -quantity '
-                    .'ELSE 0 END) OVER ('
-                    .'PARTITION BY stock_location_id '
-                    .'ORDER BY created_at ASC, id ASC '
-                    .'ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW'
-                    .') as running_balance',
+                        .'WHEN status = ? AND direction = ? THEN quantity '
+                        .'WHEN status = ? AND direction = ? THEN -quantity '
+                        .'ELSE 0 END) OVER ('
+                        .'PARTITION BY stock_location_id '
+                        .'ORDER BY created_at ASC, id ASC '
+                        .'ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW'
+                        .') as running_balance',
                     [
                         ProductMovementStatus::ACTIVE->value,
                         ProductMovementDirection::IN->value,
@@ -345,9 +345,9 @@ class ProductController extends Controller
                     ->where('stock_bucket', ProductStockBucket::SALEABLE->value)
                     ->selectRaw(
                         'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as active_in_quantity, '
-                        .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as active_out_quantity, '
-                        .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_in_quantity, '
-                        .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_out_quantity',
+                            .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as active_out_quantity, '
+                            .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_in_quantity, '
+                            .'COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_out_quantity',
                         [
                             ProductMovementStatus::ACTIVE->value,
                             ProductMovementDirection::IN->value,
@@ -781,10 +781,29 @@ class ProductController extends Controller
 
                 if ($rows !== []) {
                     Product::query()->upsert($rows, ['id'], [
-                        'brand_id', 'product_category_id', 'product_type_id', 'name', 'sku', 'barcode', 'mpn', 'variant_name', 'variant_details', 'inherits_selling_price',
-                        'base_price', 'selling_price', 'warranty_months', 'default_tax_id', 'default_discount_id',
-                        'description', 'is_service', 'is_product', 'default_acquisition_type',
-                        'reorder_level', 'reorder_quantity', 'updated_at', 'deleted_at',
+                        'brand_id',
+                        'product_category_id',
+                        'product_type_id',
+                        'name',
+                        'sku',
+                        'barcode',
+                        'mpn',
+                        'variant_name',
+                        'variant_details',
+                        'inherits_selling_price',
+                        'base_price',
+                        'selling_price',
+                        'warranty_months',
+                        'default_tax_id',
+                        'default_discount_id',
+                        'description',
+                        'is_service',
+                        'is_product',
+                        'default_acquisition_type',
+                        'reorder_level',
+                        'reorder_quantity',
+                        'updated_at',
+                        'deleted_at',
                     ]);
                 }
 

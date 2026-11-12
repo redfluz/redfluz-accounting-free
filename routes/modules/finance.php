@@ -33,10 +33,7 @@ use App\Http\Controllers\Finance\LedgerController;
 use App\Http\Controllers\Finance\TaxController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('ledgers/export-pdf', [LedgerController::class, 'exportPdf'])->name('finance.ledgers.export-pdf');
 Route::get('ledgers', [LedgerController::class, 'index'])->name('finance.ledgers.index');
-Route::get('ledgers/export-excel', [LedgerController::class, 'exportExcel'])
-    ->name('finance.ledgers.export-excel');
 
 Route::get('taxes', [TaxController::class, 'index'])->name('finance.taxes.index');
 Route::get('taxes/create', [TaxController::class, 'create'])->name('finance.taxes.create');
@@ -54,13 +51,11 @@ Route::delete('discounts/{discount}', [DiscountController::class, 'destroy'])->n
 
 Route::get('journal-entries', [JournalEntryController::class, 'index'])->name('finance.journal-entries.index');
 Route::get('journal-entries/cancelled', [JournalEntryCancelledController::class, 'index'])->name('finance.journal-entries.cancelled.index');
-Route::get('journal-entries/cancelled/export-excel', [JournalEntryCancelledController::class, 'exportExcel'])->name('finance.journal-entries.cancelled.export-excel');
-Route::get('journal-entries/cancelled/export-pdf', [JournalEntryCancelledController::class, 'exportPdf'])->name('finance.journal-entries.cancelled.export-pdf');
 Route::get('journal-entries/history', [JournalEntryHistoryController::class, 'index'])->name('finance.journal-entries.history.index');
-Route::get('journal-entries/history/export-excel', [JournalEntryHistoryController::class, 'exportExcel'])->name('finance.journal-entries.history.export-excel');
-Route::get('journal-entries/history/export-pdf', [JournalEntryHistoryController::class, 'exportPdf'])->name('finance.journal-entries.history.export-pdf');
-Route::get('journal-entries/history/{journalEntry}', [JournalEntryHistoryController::class, 'show'])->name('finance.journal-entries.history.show');
+Route::get('journal-entries/history/{documentNumber}/pdf', [JournalEntryHistoryController::class, 'pdf'])->name('finance.journal-entries.history.pdf');
+Route::get('journal-entries/history/{documentNumber}', [JournalEntryHistoryController::class, 'show'])->name('finance.journal-entries.history.show');
 Route::patch('journal-entries/cancelled/{journalEntry}/uncancel', [JournalEntryCancelledController::class, 'uncancel'])->name('finance.journal-entries.cancelled.uncancel');
+Route::get('journal-entries/cancelled/{journalEntry}/pdf', [JournalEntryCancelledController::class, 'pdf'])->name('finance.journal-entries.cancelled.pdf');
 Route::get('journal-entries/cancelled/{journalEntry}', [JournalEntryCancelledController::class, 'show'])->name('finance.journal-entries.cancelled.show');
 Route::get('journal-entries/create', [JournalEntryController::class, 'create'])->name('finance.journal-entries.create');
 Route::get('journal-entries/charts/search', [JournalEntryController::class, 'searchCharts'])->name('finance.journal-entries.charts.search');

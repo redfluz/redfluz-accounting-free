@@ -57,6 +57,7 @@ Route::get('purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, '
 Route::get('goods-receipt-adjustments', [GoodsReceiptAdjustmentController::class, 'index'])->name('purchase.goods-receipt-adjustments.index');
 Route::get('goods-receipt-adjustments/history', [GoodsReceiptAdjustmentController::class, 'history'])->name('purchase.goods-receipt-adjustments.history.index');
 Route::get('goods-receipt-adjustments/cancelled', [GoodsReceiptAdjustmentController::class, 'cancelled'])->name('purchase.goods-receipt-adjustments.cancelled.index');
+Route::get('goods-receipt-adjustments/cancelled/{entryId}/pdf', [GoodsReceiptAdjustmentController::class, 'pdf'])->name('purchase.goods-receipt-adjustments.cancelled.pdf');
 Route::get('goods-receipt-adjustments/cancelled/{entryId}', [GoodsReceiptAdjustmentController::class, 'showCancelled'])->name('purchase.goods-receipt-adjustments.cancelled.show');
 Route::patch('goods-receipt-adjustments/{documentNumber}/approve', [GoodsReceiptAdjustmentController::class, 'approveDocument'])->name('purchase.goods-receipt-adjustments.approve');
 Route::patch('goods-receipt-adjustments/{entryId}/cancel', [GoodsReceiptAdjustmentController::class, 'cancel'])->name('purchase.goods-receipt-adjustments.cancel');
@@ -78,18 +79,14 @@ Route::get('goods-receipts/{documentNumber}', [GoodsReceiptController::class, 's
 
 Route::get('purchase-invoices', [PurchaseInvoiceController::class, 'index'])->name('purchase.invoices.index');
 Route::get('purchase-invoices/cancelled', [InvoiceCancelledController::class, 'index'])->name('purchase.invoices.cancelled.index');
-Route::get('purchase-invoices/cancelled/export-excel', [InvoiceCancelledController::class, 'exportExcel'])->name('purchase.invoices.cancelled.export-excel');
-Route::get('purchase-invoices/cancelled/export-pdf', [InvoiceCancelledController::class, 'exportPdf'])->name('purchase.invoices.cancelled.export-pdf');
 Route::get('purchase-invoices/history', [InvoiceHistoryController::class, 'index'])->name('purchase.invoices.history.index');
-Route::get('purchase-invoices/history/export-excel', [InvoiceHistoryController::class, 'exportExcel'])->name('purchase.invoices.history.export-excel');
-Route::get('purchase-invoices/history/export-pdf', [InvoiceHistoryController::class, 'exportPdf'])->name('purchase.invoices.history.export-pdf');
 Route::get('purchase-invoices/history/{documentNumber}', [InvoiceHistoryController::class, 'show'])->name('purchase.invoices.history.show');
+Route::get('purchase-invoices/history/{documentNumber}/pdf', [InvoiceHistoryController::class, 'pdf'])->name('purchase.invoices.history.pdf');
 Route::get('purchase-invoices/history/{documentNumber}/clone', [InvoiceHistoryController::class, 'clone'])->name('purchase.invoices.history.clone');
 Route::patch('purchase-invoices/cancelled/{documentNumber}/uncancel', [InvoiceCancelledController::class, 'uncancel'])->name('purchase.invoices.cancelled.uncancel');
+Route::get('purchase-invoices/cancelled/{documentNumber}/pdf', [InvoiceCancelledController::class, 'pdf'])->name('purchase.invoices.cancelled.pdf');
 Route::get('purchase-invoices/cancelled/{documentNumber}', [InvoiceCancelledController::class, 'show'])->name('purchase.invoices.cancelled.show');
 Route::get('supplier-outstanding', [SupplierOutstandingController::class, 'index'])->name('purchase.supplier-outstanding.index');
-Route::get('supplier-outstanding/export-excel', [SupplierOutstandingController::class, 'exportExcel'])->name('purchase.supplier-outstanding.export-excel');
-Route::get('supplier-outstanding/export-pdf', [SupplierOutstandingController::class, 'exportPdf'])->name('purchase.supplier-outstanding.export-pdf');
 Route::get('purchase-invoices/create', [PurchaseInvoiceController::class, 'create'])->name('purchase.invoices.create');
 Route::post('purchase-invoices/companies', [PurchaseInvoiceController::class, 'storeCompany'])->name('purchase.invoices.companies.store');
 Route::post('purchase-invoices', [PurchaseInvoiceController::class, 'store'])->name('purchase.invoices.store');
@@ -117,12 +114,8 @@ Route::get('purchase-returns/{documentNumber}', [PurchaseReturnController::class
 // Manual Purchase Adjustments (COA-based debit/credit notes)
 Route::get('manual-purchase-adjustments', [ManualPurchaseAdjustmentController::class, 'index'])->name('purchase.manual-adjustments.index');
 Route::get('manual-purchase-adjustments/cancelled', [CancelledController::class, 'index'])->name('purchase.manual-adjustments.cancelled.index');
-Route::get('manual-purchase-adjustments/cancelled/export-excel', [CancelledController::class, 'exportExcel'])->name('purchase.manual-adjustments.cancelled.export-excel');
-Route::get('manual-purchase-adjustments/cancelled/export-pdf', [CancelledController::class, 'exportPdf'])->name('purchase.manual-adjustments.cancelled.export-pdf');
 Route::get('manual-purchase-adjustments/cancelled/{documentNumber}/pdf', [CancelledController::class, 'pdf'])->name('purchase.manual-adjustments.cancelled.pdf');
 Route::get('manual-purchase-adjustments/history', [HistoryController::class, 'index'])->name('purchase.manual-adjustments.history.index');
-Route::get('manual-purchase-adjustments/history/export-excel', [HistoryController::class, 'exportExcel'])->name('purchase.manual-adjustments.history.export-excel');
-Route::get('manual-purchase-adjustments/history/export-pdf', [HistoryController::class, 'exportPdf'])->name('purchase.manual-adjustments.history.export-pdf');
 Route::get('manual-purchase-adjustments/history/{documentNumber}/pdf', [HistoryController::class, 'pdf'])->name('purchase.manual-adjustments.history.pdf');
 Route::get('manual-purchase-adjustments/history/{documentNumber}', [HistoryController::class, 'show'])->name('purchase.manual-adjustments.history.show');
 Route::patch('manual-purchase-adjustments/cancelled/{documentNumber}/uncancel', [CancelledController::class, 'uncancel'])->name('purchase.manual-adjustments.cancelled.uncancel');

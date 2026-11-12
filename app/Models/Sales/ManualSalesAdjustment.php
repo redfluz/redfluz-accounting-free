@@ -24,24 +24,23 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\Finance;
+namespace App\Models\Sales;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Models\Crm\Company;
-use App\Models\Sales\SalesInvoice;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * A manual sales adjustment: a credit or debit note keyed against the chart of
@@ -67,11 +66,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $document_number
  * @property LedgerSubType $subtype
  * @property string|null $reference_number
+ * @property string|null $document_original
  * @property string|null $sales_invoice_id
  * @property string|null $company_name
  * @property string|null $contact_name
  * @property CarbonInterface $date
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property string|null $attachment_path
  * @property numeric-string $subtotal
  * @property numeric-string $total_amount
@@ -94,7 +94,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $undone_by
  * @property string|null $undone_name
  * @property CarbonInterface|null $undone_at
- * @property string|null $reversal_journal_id
  * @property-read Collection<int, ManualSalesAdjustmentChart> $charts
  * @property-read SalesInvoice|null $salesInvoice
  *
@@ -102,19 +101,39 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Table('manual_sales_adjustments', key: 'id')]
 #[Fillable([
-    'company_id', 'contact_id',
-    'document_number', 'subtype', 'reference_number', 'sales_invoice_id',
-    'company_name', 'contact_name',
-    'date', 'status', 'attachment_path',
-    'subtotal', 'total_amount',
+    'company_id',
+    'contact_id',
+    'document_number',
+    'subtype',
+    'reference_number',
+    'document_original',
+    'sales_invoice_id',
+    'company_name',
+    'contact_name',
+    'date',
+    'status',
+    'attachment_path',
+    'subtotal',
+    'total_amount',
     'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
-    'reversal_journal_id',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
 ])]
 class ManualSalesAdjustment extends Model
 {
@@ -129,7 +148,7 @@ class ManualSalesAdjustment extends Model
     {
         return [
             'subtype' => LedgerSubType::class,
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'date' => 'date',
             'subtotal' => 'decimal:2',
             'total_amount' => 'decimal:2',
@@ -147,16 +166,6 @@ class ManualSalesAdjustment extends Model
     public function salesInvoice(): BelongsTo
     {
         return $this->belongsTo(SalesInvoice::class, 'sales_invoice_id', 'id');
-    }
-
-    /**
-     * The journal that reversed this document, if it was reversed.
-     *
-     * @return BelongsTo<JournalEntry, $this>
-     */
-    public function reversalJournal(): BelongsTo
-    {
-        return $this->belongsTo(JournalEntry::class, 'reversal_journal_id');
     }
 
     /**
@@ -184,7 +193,7 @@ class ManualSalesAdjustment extends Model
      */
     public function isPosted(): bool
     {
-        return $this->status === LedgerStatus::POSTED;
+        return $this->status === DocumentStatus::POSTED;
     }
 
     /**
@@ -192,7 +201,7 @@ class ManualSalesAdjustment extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->status === LedgerStatus::CANCELLED;
+        return $this->status === DocumentStatus::CANCELLED;
     }
 
     /**

@@ -75,14 +75,12 @@ Route::get('delivery-orders/{deliveryOrder}', [DeliveryOrderController::class, '
 
 Route::get('sales-invoices', [SalesInvoiceController::class, 'index'])->name('sales.invoices.index');
 Route::get('sales-invoices/cancelled', [InvoiceCancelledController::class, 'index'])->name('sales.invoices.cancelled.index');
-Route::get('sales-invoices/cancelled/export-excel', [InvoiceCancelledController::class, 'exportExcel'])->name('sales.invoices.cancelled.export-excel');
-Route::get('sales-invoices/cancelled/export-pdf', [InvoiceCancelledController::class, 'exportPdf'])->name('sales.invoices.cancelled.export-pdf');
 Route::get('sales-invoices/history', [InvoiceHistoryController::class, 'index'])->name('sales.invoices.history.index');
-Route::get('sales-invoices/history/export-excel', [InvoiceHistoryController::class, 'exportExcel'])->name('sales.invoices.history.export-excel');
-Route::get('sales-invoices/history/export-pdf', [InvoiceHistoryController::class, 'exportPdf'])->name('sales.invoices.history.export-pdf');
 Route::get('sales-invoices/history/{documentNumber}', [InvoiceHistoryController::class, 'show'])->name('sales.invoices.history.show');
+Route::get('sales-invoices/history/{documentNumber}/pdf', [InvoiceHistoryController::class, 'pdf'])->name('sales.invoices.history.pdf');
 Route::get('sales-invoices/history/{documentNumber}/clone', [InvoiceHistoryController::class, 'clone'])->name('sales.invoices.history.clone');
 Route::patch('sales-invoices/cancelled/{documentNumber}/uncancel', [InvoiceCancelledController::class, 'uncancel'])->name('sales.invoices.cancelled.uncancel');
+Route::get('sales-invoices/cancelled/{documentNumber}/pdf', [InvoiceCancelledController::class, 'pdf'])->name('sales.invoices.cancelled.pdf');
 Route::get('sales-invoices/cancelled/{documentNumber}', [InvoiceCancelledController::class, 'show'])->name('sales.invoices.cancelled.show');
 Route::get('sales-invoices/create', [SalesInvoiceController::class, 'create'])->name('sales.invoices.create');
 Route::get('sales-invoices/products/search', [SalesInvoiceController::class, 'searchProducts'])->name('sales.invoices.products.search');
@@ -101,18 +99,12 @@ Route::get('sales-invoices/{documentNumber}/pdf', [SalesInvoiceController::class
 Route::get('sales-invoices/{documentNumber}', [SalesInvoiceController::class, 'show'])->name('sales.invoices.show');
 
 Route::get('customer-outstanding', [CustomerOutstandingController::class, 'index'])->name('sales.customer-outstanding.index');
-Route::get('customer-outstanding/export-excel', [CustomerOutstandingController::class, 'exportExcel'])->name('sales.customer-outstanding.export-excel');
-Route::get('customer-outstanding/export-pdf', [CustomerOutstandingController::class, 'exportPdf'])->name('sales.customer-outstanding.export-pdf');
 
 // Manual Sales Adjustments (COA-based debit/credit notes)
 Route::get('manual-sales-adjustments', [ManualSalesAdjustmentController::class, 'index'])->name('sales.manual-adjustments.index');
 Route::get('manual-sales-adjustments/cancelled', [CancelledController::class, 'index'])->name('sales.manual-adjustments.cancelled.index');
-Route::get('manual-sales-adjustments/cancelled/export-excel', [CancelledController::class, 'exportExcel'])->name('sales.manual-adjustments.cancelled.export-excel');
-Route::get('manual-sales-adjustments/cancelled/export-pdf', [CancelledController::class, 'exportPdf'])->name('sales.manual-adjustments.cancelled.export-pdf');
 Route::get('manual-sales-adjustments/cancelled/{documentNumber}/pdf', [CancelledController::class, 'pdf'])->name('sales.manual-adjustments.cancelled.pdf');
 Route::get('manual-sales-adjustments/history', [HistoryController::class, 'index'])->name('sales.manual-adjustments.history.index');
-Route::get('manual-sales-adjustments/history/export-excel', [HistoryController::class, 'exportExcel'])->name('sales.manual-adjustments.history.export-excel');
-Route::get('manual-sales-adjustments/history/export-pdf', [HistoryController::class, 'exportPdf'])->name('sales.manual-adjustments.history.export-pdf');
 Route::get('manual-sales-adjustments/history/{documentNumber}/pdf', [HistoryController::class, 'pdf'])->name('sales.manual-adjustments.history.pdf');
 Route::get('manual-sales-adjustments/history/{documentNumber}', [HistoryController::class, 'show'])->name('sales.manual-adjustments.history.show');
 Route::patch('manual-sales-adjustments/cancelled/{documentNumber}/uncancel', [CancelledController::class, 'uncancel'])->name('sales.manual-adjustments.cancelled.uncancel');

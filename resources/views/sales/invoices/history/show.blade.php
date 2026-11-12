@@ -25,7 +25,7 @@
     $canReverse = auth()
         ->user()
         ->hasFilePermission(FileResources::SALES_INVOICES, FileAction::APPROVE)
-        && ! $invoice->reversal_id;
+        && $invoice->undone_at === null;
 @endphp
 
 @extends('layouts.app')
@@ -55,7 +55,7 @@
                     </button>
                 @endif
                 <a class="btn btn-solid theme-primary btn-sm text-nowrap"
-                    href="{{ route('sales.invoices.pdf', $documentNumber) }}" target="_blank">
+                    href="{{ route('sales.invoices.history.pdf', $documentNumber) }}" target="_blank">
                     <i class="me-1" data-lucide="printer"></i>
                     {{ __('common.actions.print_pdf') }}
                 </a>

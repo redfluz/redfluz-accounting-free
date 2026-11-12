@@ -106,8 +106,21 @@ class CompanyController extends Controller
             },
         ]);
 
-        $arLedgers = $this->accountStatement($company, 'isDebtor');
-        $apLedgers = $this->accountStatement($company, 'isCreditor');
+        $arFilters = [
+            'search' => $request->input('ar_search'),
+            'start_date' => $request->input('ar_start_date'),
+            'end_date' => $request->input('ar_end_date'),
+            'type' => $request->input('ar_type'),
+        ];
+        $apFilters = [
+            'search' => $request->input('ap_search'),
+            'start_date' => $request->input('ap_start_date'),
+            'end_date' => $request->input('ap_end_date'),
+            'type' => $request->input('ap_type'),
+        ];
+
+        $arLedgers = $this->accountStatement($company, 'isDebtor', $arFilters);
+        $apLedgers = $this->accountStatement($company, 'isCreditor', $apFilters);
         $arTotals = $this->calculateStatement($arLedgers);
         $apTotals = $this->calculateStatement($apLedgers);
 
@@ -170,7 +183,9 @@ class CompanyController extends Controller
             'apLedgers',
             'arTotals',
             'apTotals',
-            'sourceUrls'
+            'sourceUrls',
+            'arFilters',
+            'apFilters'
         ));
     }
 
@@ -190,25 +205,46 @@ class CompanyController extends Controller
      * @param  Company  $company  The company resource instance.
      * @param  string  $accountMarker  Which sub-ledger to read: isDebtor or
      *                                 isCreditor.
+     * @param  array<string, mixed>  $filters  Optional filters (search, start_date, end_date, type).
      * @return Collection<int, ArLedger>|Collection<int, ApLedger> The ordered company sub-ledger rows.
      */
-    private function accountStatement(Company $company, string $accountMarker): Collection
+    private function accountStatement(Company $company, string $accountMarker, array $filters = []): Collection
     {
+        $search = $filters['search'] ?? null;
+        $startDate = $filters['start_date'] ?? null;
+        $endDate = $filters['end_date'] ?? null;
+        $type = $filters['type'] ?? null;
+
+        $applyFilters = function ($query) use ($search, $startDate, $endDate, $type) {
+            return $query
+                ->when(is_string($search) && $search !== '', function ($q) use ($search) {
+                    $q->where(function ($sq) use ($search) {
+                        $sq->where('reference_number', 'like', "%{$search}%")
+                            ->orWhere('document_number', 'like', "%{$search}%")
+                            ->orWhere('chart_name', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%");
+                    });
+                })
+                ->when(is_string($startDate) && $startDate !== '', fn ($q) => $q->whereDate('date', '>=', $startDate))
+                ->when(is_string($endDate) && $endDate !== '', fn ($q) => $q->whereDate('date', '<=', $endDate))
+                ->when(is_string($type) && $type !== '', fn ($q) => $q->where('type', $type));
+        };
+
         if ($accountMarker === 'isDebtor') {
-            return ArLedger::query()
+            $query = ArLedger::query()
                 ->where('company_id', $company->id)
-                ->whereNull('deleted_at')
-                ->oldest('date')
-                ->oldest('created_at')
-                ->get();
+                ->whereNull('deleted_at');
+            $applyFilters($query);
+
+            return $query->oldest('date')->oldest('created_at')->get();
         }
 
-        return ApLedger::query()
+        $query = ApLedger::query()
             ->where('company_id', $company->id)
-            ->whereNull('deleted_at')
-            ->oldest('date')
-            ->oldest('created_at')
-            ->get();
+            ->whereNull('deleted_at');
+        $applyFilters($query);
+
+        return $query->oldest('date')->oldest('created_at')->get();
     }
 
     /**

@@ -6,7 +6,7 @@
 --}}
 
 @php
-    use App\Models\Finance\ManualSalesAdjustment;
+    use App\Models\Sales\ManualSalesAdjustment;
 @endphp
 
 @props(['adjustment', 'companies', 'contacts', 'charts'])

@@ -57,46 +57,6 @@
         @endif
         {{ now()->format(Setting::getDefaultDate('long_date_format')) }}
     </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
-                <th scope="col">{{ __('ledgers.table.column_reference_number') }}</th>
-                <th scope="col">{{ __('ledgers.table.column_date') }}</th>
-                <th scope="col">{{ __('ledgers.table.column_company') }}</th>
-                <th scope="col" class="text-end">{{ __('ledgers.table.column_total_amount') }}</th>
-                <th scope="col">{{ __('receipts.audit.created_by') }}</th>
-                <th scope="col">{{ __('receipts.audit.cancelled_by') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($receipts as $receipt)
-                <tr>
-                    <td>{{ $receipt->document_number }}</td>
-                    <td>{{ $receipt->reference_number ?? '-' }}</td>
-                    <td>{{ $receipt->date->format(Setting::getDefaultDate()) }}</td>
-                    <td>{{ $receipt->company_name ?: '-' }}</td>
-                    <td class="text-end">{{ number_format((float) $receipt->total_amount, 2) }}</td>
-                    <td>
-                        {{ $receipt->created_name ?? '-' }}
-                        @if ($receipt->created_at)
-                            <br /><span class="muted">{{ $receipt->created_at->format(Setting::getDefaultDate('long_date_format')) }}</span>
-                        @endif
-                    </td>
-                    <td>
-                        {{ $receipt->cancelled_name ?? '-' }}
-                        @if ($receipt->cancelled_at)
-                            <br /><span class="muted">{{ $receipt->cancelled_at->format(Setting::getDefaultDate('long_date_format')) }}</span>
-                        @endif
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-center">{{ __('ledgers.no_records') }}</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    
 </body>
 </html>

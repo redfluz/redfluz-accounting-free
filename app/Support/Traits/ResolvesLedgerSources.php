@@ -34,9 +34,9 @@ use App\Models\Bank\Receipt;
 use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\Bank\Refund\SupplierRefund;
 use App\Models\Finance\JournalEntry;
-use App\Models\Finance\ManualPurchaseAdjustment;
-use App\Models\Finance\ManualSalesAdjustment;
+use App\Models\Purchase\ManualPurchaseAdjustment;
 use App\Models\Purchase\PurchaseInvoice;
+use App\Models\Sales\ManualSalesAdjustment;
 use App\Models\Sales\SalesInvoice;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -84,23 +84,36 @@ trait ResolvesLedgerSources
 
         // A journal number is only a journal entry when the ledger says it is,
         // so the entries are looked up in one pass and matched per row below.
+        $journalNumbers = $rows
+            ->filter(fn (Model $row): bool => (
+                $this->subtypeOf($row)
+            ) === LedgerSubType::JOURNAL && (
+                $this->typeOf($row)
+            ) === LedgerType::JOURNAL)
+            ->pluck('document_number')
+            ->filter()
+            ->unique();
+
         $journalEntries = JournalEntry::query()
-            ->whereIn(
-                'document_number',
-                $rows
-                    ->filter(fn (Model $row): bool => (
-                        $this->subtypeOf($row)
-                    ) === LedgerSubType::JOURNAL && (
-                        $this->typeOf($row)
-                    ) === LedgerType::JOURNAL)
-                    ->pluck('document_number')
-                    ->filter()
-                    ->unique()
-            )
-            ->pluck('id', 'document_number');
+            ->whereIn('document_number', $journalNumbers)
+            ->pluck('document_number')
+            ->flip();
+
+        // COGS and other automatic postings are journal rows that carry the
+        // source invoice number instead of a journal number. They have no
+        // JournalEntry of their own, so resolve them back to that invoice.
+        $journalSalesInvoices = SalesInvoice::query()
+            ->whereIn('document_number', $journalNumbers)
+            ->pluck('document_number')
+            ->flip();
+
+        $journalPurchaseInvoices = PurchaseInvoice::query()
+            ->whereIn('document_number', $journalNumbers)
+            ->pluck('document_number')
+            ->flip();
 
         return $rows
-            ->mapWithKeys(function (Model $row) use ($existing, $sources, $journalEntries): array {
+            ->mapWithKeys(function (Model $row) use ($existing, $sources, $journalEntries, $journalSalesInvoices, $journalPurchaseInvoices): array {
                 $documentNumber = $this->documentNumberOf($row);
                 $rowKey = $this->rowKey($row);
 
@@ -110,21 +123,46 @@ trait ResolvesLedgerSources
 
                 $subtype = $this->subtypeOf($row);
 
-                // A journal entry is the one document family keyed by its own id
-                // rather than by its number, so it resolves separately.
+                // A journal entry drills into its own history page, keyed by the
+                // journal number the ledger row already carries.
                 if ($subtype === LedgerSubType::JOURNAL) {
-                    return $this->typeOf($row) === LedgerType::JOURNAL && filled($journalEntries->get($documentNumber))
-                        ? [$rowKey => route('finance.journal-entries.show', $journalEntries->get($documentNumber))]
-                        : [];
+                    if ($this->typeOf($row) !== LedgerType::JOURNAL) {
+                        return [];
+                    }
+
+                    if ($journalEntries->has($documentNumber)) {
+                        return [$rowKey => route('finance.journal-entries.history.show', $documentNumber)];
+                    }
+
+                    if ($journalSalesInvoices->has($documentNumber)) {
+                        return [$rowKey => route('sales.invoices.history.show', $documentNumber)];
+                    }
+
+                    if ($journalPurchaseInvoices->has($documentNumber)) {
+                        return [$rowKey => route('purchase.invoices.history.show', $documentNumber)];
+                    }
+
+                    return [];
                 }
 
                 $source = $subtype === null ? null : ($sources[$subtype->value] ?? null);
 
-                if ($source === null || ! in_array($documentNumber, $existing[$subtype->value] ?? [], true)) {
+                if ($source === null) {
                     return [];
                 }
 
-                return [$rowKey => route($source[1], $documentNumber)];
+                // Most families are keyed by the row's own document number; an
+                // inventory deduction carries its own number and names the
+                // invoice it came from in reference_number instead.
+                $matchNumber = isset($source[2]) && $source[2] === 'reference_number'
+                    ? $this->referenceNumberOf($row)
+                    : $documentNumber;
+
+                if ($matchNumber === '' || ! in_array($matchNumber, $existing[$subtype->value] ?? [], true)) {
+                    return [];
+                }
+
+                return [$rowKey => route($source[1], $matchNumber)];
             })
             ->all();
     }
@@ -142,27 +180,48 @@ trait ResolvesLedgerSources
      * financial ledger. Stock takes are not in this edition, so a stock variance
      * has no grid either.
      *
-     * @return array<string, array{0: class-string<Model>, 1: string}> Families keyed by subtype value.
+     * The optional third element names the column the document is matched on
+     * when it is not the row's own document number: an inventory deduction has
+     * a number of its own and keeps the source invoice in reference_number.
+     *
+     * @return array<string, array{0: class-string<Model>, 1: string, 2?: string}> Families keyed by subtype value.
      */
     private function documentSources(): array
     {
         return [
-            LedgerSubType::SALES_INVOICE->value => [SalesInvoice::class, 'sales.invoices.show'],
-            LedgerSubType::MANUAL_SALES_INVOICE->value => [SalesInvoice::class, 'sales.invoices.show'],
-            LedgerSubType::PURCHASE_INVOICE->value => [PurchaseInvoice::class, 'purchase.invoices.show'],
-            LedgerSubType::RECEIPT->value => [Receipt::class, 'bank.receipts.show'],
-            LedgerSubType::PAYMENT_VOUCHER->value => [PaymentVoucher::class, 'bank.payment-vouchers.show'],
-            LedgerSubType::CUSTOMER_REFUND->value => [CustomerRefund::class, 'bank.customer-refunds.show'],
-            LedgerSubType::REFUND->value => [CustomerRefund::class, 'bank.customer-refunds.show'],
-            LedgerSubType::SUPPLIER_REFUND->value => [SupplierRefund::class, 'bank.supplier-refunds.show'],
+            LedgerSubType::SALES_INVOICE->value => [SalesInvoice::class, 'sales.invoices.history.show'],
+            LedgerSubType::INVENTORY_DEDUCTION->value => [SalesInvoice::class, 'sales.invoices.history.show', 'reference_number'],
+            LedgerSubType::MANUAL_SALES_INVOICE->value => [SalesInvoice::class, 'sales.invoices.history.show'],
+            LedgerSubType::PURCHASE_INVOICE->value => [PurchaseInvoice::class, 'purchase.invoices.history.show'],
+            LedgerSubType::RECEIPT->value => [Receipt::class, 'bank.receipts.history.show'],
+            LedgerSubType::PAYMENT_VOUCHER->value => [PaymentVoucher::class, 'bank.payment-vouchers.history.show'],
+            LedgerSubType::CUSTOMER_REFUND->value => [CustomerRefund::class, 'bank.customer-refunds.history.show'],
+            LedgerSubType::REFUND->value => [CustomerRefund::class, 'bank.customer-refunds.history.show'],
+            LedgerSubType::SUPPLIER_REFUND->value => [SupplierRefund::class, 'bank.supplier-refunds.history.show'],
             LedgerSubType::BANK_JOURNAL->value => [BankJournal::class, 'bank.bank-journals.show'],
             LedgerSubType::MANUAL_SALES_ADJUSTMENT->value => [
                 ManualSalesAdjustment::class,
-                'sales.manual-adjustments.show',
+                'sales.manual-adjustments.history.show',
             ],
             LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT->value => [
                 ManualPurchaseAdjustment::class,
-                'purchase.manual-adjustments.show',
+                'purchase.manual-adjustments.history.show',
+            ],
+            LedgerSubType::SALES_DEBIT_NOTE->value => [
+                ManualSalesAdjustment::class,
+                'sales.manual-adjustments.history.show',
+            ],
+            LedgerSubType::SALES_CREDIT_NOTE->value => [
+                ManualSalesAdjustment::class,
+                'sales.manual-adjustments.history.show',
+            ],
+            LedgerSubType::PURCHASE_DEBIT_NOTE->value => [
+                ManualPurchaseAdjustment::class,
+                'purchase.manual-adjustments.history.show',
+            ],
+            LedgerSubType::PURCHASE_CREDIT_NOTE->value => [
+                ManualPurchaseAdjustment::class,
+                'purchase.manual-adjustments.history.show',
             ],
         ];
     }
@@ -188,10 +247,17 @@ trait ResolvesLedgerSources
         foreach ($rows as $row) {
             /** @var Model $row */
             $subtype = $this->subtypeOf($row);
-            $documentNumber = $this->documentNumberOf($row);
 
-            if ($subtype !== null && $documentNumber !== '' && isset($sources[$subtype->value])) {
-                $wanted[$subtype->value][] = $documentNumber;
+            if ($subtype === null || ! isset($sources[$subtype->value])) {
+                continue;
+            }
+
+            $matchNumber = isset($sources[$subtype->value][2]) && $sources[$subtype->value][2] === 'reference_number'
+                ? $this->referenceNumberOf($row)
+                : $this->documentNumberOf($row);
+
+            if ($matchNumber !== '') {
+                $wanted[$subtype->value][] = $matchNumber;
             }
         }
 
@@ -201,10 +267,11 @@ trait ResolvesLedgerSources
         foreach ($wanted as $value => $documentNumbers) {
             /** @var class-string<Model> $model */
             $model = $sources[$value][0];
+            $matchColumn = $sources[$value][2] ?? 'document_number';
 
             $existing[$value] = $model::query()
-                ->whereIn('document_number', array_unique($documentNumbers))
-                ->pluck('document_number')
+                ->whereIn($matchColumn, array_unique($documentNumbers))
+                ->pluck($matchColumn)
                 ->filter(fn (mixed $number): bool => is_scalar($number))
                 ->map(fn (bool|float|int|string $number): string => (string) $number)
                 ->values()
@@ -212,6 +279,19 @@ trait ResolvesLedgerSources
         }
 
         return $existing;
+    }
+
+    /**
+     * Read a row's reference number as text.
+     *
+     * @param  Model  $row  The posted ledger row.
+     * @return string The reference number, or an empty string when absent.
+     */
+    private function referenceNumberOf(Model $row): string
+    {
+        $referenceNumber = $row->getAttribute('reference_number');
+
+        return is_scalar($referenceNumber) ? (string) $referenceNumber : '';
     }
 
     /**

@@ -33,6 +33,11 @@
                 </span>
             </div>
             <div class="d-flex gap-1">
+                <a class="btn btn-solid theme-primary btn-sm"
+                    href="{{ route('purchase.goods-receipt-adjustments.cancelled.pdf', $entryId) }}" target="_blank"
+                    title="{{ __('common.actions.print_pdf') }}">
+                    <i class="me-1" data-lucide="printer"></i>{{ __('common.actions.print_pdf') }}
+                </a>
                 @if ($canRestore && $entryId !== null)
                     <form autocomplete="off" action="{{ route('purchase.goods-receipt-adjustments.uncancel', $entryId) }}" method="POST"
                         data-confirm-message="{{ __('goods_receipt_adjustments.restore_confirmation') }}"

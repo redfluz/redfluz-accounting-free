@@ -29,7 +29,7 @@ namespace App\Http\Controllers\Purchase;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
@@ -51,8 +51,8 @@ use App\Services\DecimalService;
 use App\Support\Data\Purchase\GoodsReceiptData;
 use App\Traits\GeneratesDocumentNumber;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -107,14 +107,14 @@ class GoodsReceiptController extends Controller
         $goodsReceiptQuery = ProductLedger::query()
             ->selectRaw(
                 'MIN(product_ledgers.id) as id, product_ledgers.document_number, '
-                .'MAX(product_ledgers.reference_number) as reference_number, '
-                .'MAX(product_ledgers.company_name) as company_name, MAX(product_ledgers.date) as date, '
-                .'MAX(product_ledgers.status) as status, '
-                .'MAX(product_ledgers.stock_location_name) as stock_location_name, '
-                .'MAX(purchase_orders.is_received) as purchase_order_is_received, '
-                .'MAX(purchase_orders.is_partial_received) as purchase_order_is_partial_received, '
-                .'COUNT(*) as line_count, SUM(product_ledgers.quantity) as total_quantity, '
-                .'SUM(product_ledgers.total_cost) as total_cost'
+                    .'MAX(product_ledgers.reference_number) as reference_number, '
+                    .'MAX(product_ledgers.company_name) as company_name, MAX(product_ledgers.date) as date, '
+                    .'MAX(product_ledgers.status) as status, '
+                    .'MAX(product_ledgers.stock_location_name) as stock_location_name, '
+                    .'MAX(purchase_orders.is_received) as purchase_order_is_received, '
+                    .'MAX(purchase_orders.is_partial_received) as purchase_order_is_partial_received, '
+                    .'COUNT(*) as line_count, SUM(product_ledgers.quantity) as total_quantity, '
+                    .'SUM(product_ledgers.total_cost) as total_cost'
             )
             ->where('product_ledgers.source_type', ProductMovementSource::GOODS_RECEIPT->value)
             // Every column is qualified because product_ledgers and
@@ -516,13 +516,13 @@ class GoodsReceiptController extends Controller
         return view(
             'purchase.goods-receipts.edit',
             $this->formData($selectedOrderNumber, $documentNumber)
-            + compact('documentNumber', 'entries')
-            + [
-                'attachments' => GoodsReceiptAttachment::query()
-                    ->where('document_number', $documentNumber)
-                    ->oldest()
-                    ->get(),
-            ]
+                + compact('documentNumber', 'entries')
+                + [
+                    'attachments' => GoodsReceiptAttachment::query()
+                        ->where('document_number', $documentNumber)
+                        ->oldest()
+                        ->get(),
+                ]
         );
     }
 
@@ -1377,7 +1377,7 @@ class GoodsReceiptController extends Controller
                 'purchaseOrder',
                 fn ($query) => $query->where('document_number', $poDocumentNumber)
             )
-            ->where('status', LedgerStatus::POSTED)
+            ->where('status', DocumentStatus::POSTED)
             ->exists();
 
         abort_if($postedInvoiceExists, 409, __('goods_receipts.validation.invoice_posted_lock'));

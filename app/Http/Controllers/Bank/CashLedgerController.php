@@ -28,12 +28,15 @@ namespace App\Http\Controllers\Bank;
 
 use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileResources;
-use App\Http\Controllers\Bank\Concerns\ReadsMoneyLedger;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\CashAccount;
+use App\Services\DecimalService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * What is in the cash drawer.
@@ -57,14 +60,6 @@ use Illuminate\Http\Request;
  */
 class CashLedgerController extends Controller
 {
-    use ReadsMoneyLedger;
-
-    /** The table every cash movement is filed in. */
-    private const string TABLE = 'cash_ledgers';
-
-    /** The column on that table naming which cash account moved. */
-    private const string ACCOUNT_COLUMN = 'cash_account_id';
-
     /**
      * Show the cash ledger.
      *
@@ -74,44 +69,91 @@ class CashLedgerController extends Controller
     {
         $this->allows(FileResources::CASH_LEDGERS);
 
-        $filters = $this->filters($request);
+        $search = $request->string('search')->toString();
+        $startDate = $request->string('start_date')->toString();
+        $endDate = $request->string('end_date')->toString();
+        $accountId = $request->string('account_id')->toString();
 
-        return view('bank.money-ledger.index', [
-            'ledger' => 'cash',
-            'kindLabel' => BankAccountKind::CASH->label(),
-            'rows' => $this->ledgerRows($request, self::TABLE, self::ACCOUNT_COLUMN),
-            'accounts' => $this->accountsOfKind(),
-            'balances' => $this->balancesFor(
-                self::TABLE,
-                self::ACCOUNT_COLUMN,
-                $filters['accountId']
-            ),
-            ...$filters,
-        ]);
-    }
-
-    /**
-     * The active cash accounts, default first.
-     *
-     * @return Collection<int, CashAccount>
-     */
-    protected function accountsOfKind(): Collection
-    {
-        return CashAccount::query()
+        $accounts = CashAccount::query()
             ->where('is_active', true)
             ->with('chart')
             ->orderByDesc('is_default')
             ->orderBy('name')
             ->get();
+
+        return view('bank.money-ledger.index', [
+            'ledger' => 'cash',
+            'kindLabel' => BankAccountKind::CASH->label(),
+            'rows' => $this->ledgerRows($search, $startDate, $endDate, $accountId),
+            'accounts' => $accounts,
+            'balances' => $this->balancesFor($accounts, $accountId),
+            'search' => $search,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'accountId' => $accountId,
+        ]);
     }
 
     /**
-     * The database table holding cash accounts.
+     * The totals for each cash account, calculated from ledger rows.
      *
-     * @return string The unqualified table name.
+     * @param  \Illuminate\Database\Eloquent\Collection<int, CashAccount>  $accounts
+     * @return Collection<int, object{account: CashAccount, money_in: string, money_out: string, balance: string, isFiltered: bool}>
      */
-    protected function accountTable(): string
+    private function balancesFor($accounts, string $accountId): Collection
     {
-        return 'cash_accounts';
+        return $accounts->map(function (CashAccount $account) use ($accountId): object {
+            $totals = DB::table('cash_ledgers')
+                ->where('cash_account_id', $account->id)
+                ->whereNull('deleted_at')
+                ->selectRaw(
+                    'COALESCE(SUM(debit_amount), 0) as money_in, '
+                    .'COALESCE(SUM(credit_amount), 0) as money_out'
+                )
+                ->first();
+
+            $moneyInRaw = $totals->money_in ?? '0';
+            $moneyOutRaw = $totals->money_out ?? '0';
+
+            $moneyIn = DecimalService::normalize(is_numeric($moneyInRaw) ? (string) $moneyInRaw : '0');
+            $moneyOut = DecimalService::normalize(is_numeric($moneyOutRaw) ? (string) $moneyOutRaw : '0');
+
+            return (object) [
+                'account' => $account,
+                'money_in' => $moneyIn,
+                'money_out' => $moneyOut,
+                'balance' => bcsub($moneyIn, $moneyOut, 2),
+                'isFiltered' => $accountId !== '' && $accountId === (string) $account->id,
+            ];
+        });
+    }
+
+    /**
+     * The cash ledger rows, filtered and paginated.
+     *
+     * @return LengthAwarePaginator<int, \stdClass>
+     */
+    private function ledgerRows(
+        string $search,
+        string $startDate,
+        string $endDate,
+        string $accountId
+    ): LengthAwarePaginator {
+        return DB::table('cash_ledgers')
+            ->leftJoin('cash_accounts', 'cash_accounts.id', '=', 'cash_ledgers.cash_account_id')
+            ->select('cash_ledgers.*', 'cash_accounts.name as account_name')
+            ->when($accountId !== '', fn (QueryBuilder $query): QueryBuilder => $query->where('cash_ledgers.cash_account_id', $accountId))
+            ->when($search !== '', fn (QueryBuilder $query): QueryBuilder => $query->where(function (QueryBuilder $query) use ($search): void {
+                $query->where('cash_ledgers.document_number', 'like', "%$search%")
+                    ->orWhere('cash_ledgers.reference_number', 'like', "%$search%")
+                    ->orWhere('cash_ledgers.description', 'like', "%$search%");
+            }))
+            ->when($startDate !== '', fn (QueryBuilder $query): QueryBuilder => $query->whereDate('cash_ledgers.date', '>=', $startDate))
+            ->when($endDate !== '', fn (QueryBuilder $query): QueryBuilder => $query->whereDate('cash_ledgers.date', '<=', $endDate))
+            ->whereNull('cash_ledgers.deleted_at')
+            ->orderByDesc('cash_ledgers.date')
+            ->orderByDesc('cash_ledgers.created_at')
+            ->paginate(self::PER_PAGE_GRID_STANDARD)
+            ->withQueryString();
     }
 }

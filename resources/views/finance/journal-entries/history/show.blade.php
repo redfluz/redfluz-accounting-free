@@ -2,12 +2,12 @@
     use App\Models\System\Setting;
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Enums\Finance\LedgerStatus;
+    use App\Enums\Finance\DocumentStatus;
 
     $canApprove = auth()->user()->hasFilePermission(FileResources::JOURNAL_ENTRIES, FileAction::APPROVE);
-    $isPosted = $journalEntry->status === LedgerStatus::POSTED;
-    $isReversal = $journalEntry->reversal_of_id !== null;
-    $isReversed = $journalEntry->reversal !== null;
+    $isPosted = $journalEntry->status === DocumentStatus::POSTED;
+    $isReversal = $journalEntry->document_original !== null;
+    $isReversed = $journalEntry->undone_at !== null;
     $canReverse = $canApprove && $isPosted && !$isReversal && !$isReversed;
     $statusLabel = $isReversal
         ? __('journal_entries.reversal_status')
@@ -44,7 +44,7 @@
                     @endif
                 @endif
                 <a class="btn btn-solid theme-primary btn-sm"
-                    href="{{ route('finance.journal-entries.pdf', $journalEntry) }}" target="_blank"><i
+                    href="{{ route('finance.journal-entries.history.pdf', $journalEntry->document_number) }}" target="_blank"><i
                         data-lucide="file-text"></i> {{ __('journal_entries.pdf_button') }}</a>
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('finance.journal-entries.history.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i> {{ __('common.actions.back') }}
@@ -57,13 +57,13 @@
                 <div class="alert alert theme-info">
                     {{ __('journal_entries.reversal_of') }}:
                     <a class="alert-link"
-                        href="{{ route('finance.journal-entries.history.show', $journalEntry->reversalOf) }}">{{ $journalEntry->reversalOf->document_number }}</a>
+                        href="{{ route('finance.journal-entries.history.show', $journalEntry->document_original) }}">{{ $journalEntry->document_original }}</a>
                 </div>
-            @elseif ($isReversed)
+            @elseif ($isReversed && $reversalNumber !== null)
                 <div class="alert alert theme-warning">
                     {{ __('journal_entries.reversed_by') }}:
                     <a class="alert-link"
-                        href="{{ route('finance.journal-entries.history.show', $journalEntry->reversal) }}">{{ $journalEntry->reversal->document_number }}</a>
+                        href="{{ route('finance.journal-entries.history.show', $reversalNumber) }}">{{ $reversalNumber }}</a>
                 </div>
             @endif
             <div class="row g-3 mb-4">

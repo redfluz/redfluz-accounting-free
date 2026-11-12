@@ -29,7 +29,7 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Finance\PaymentTransferType;
@@ -38,6 +38,9 @@ use App\Http\Requests\Bank\Receipt\BatchApproveReceiptRequest;
 use App\Http\Requests\Bank\Receipt\BatchCancelReceiptRequest;
 use App\Http\Requests\Bank\Receipt\StoreReceiptRequest;
 use App\Http\Requests\Bank\Receipt\UpdateReceiptRequest;
+use App\Models\Bank\Bank;
+use App\Models\Bank\CashAccount;
+use App\Models\Bank\EWalletAccount;
 use App\Models\Bank\Receipt;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Crm\Company;
@@ -48,6 +51,7 @@ use App\Support\Data\Bank\ReceiptData;
 use App\Support\Posting\Posting;
 use App\Traits\GeneratesDocumentNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,7 +81,7 @@ class ReceiptController extends Controller
         $endDate = $request->string('end_date')->toString();
 
         $receipts = Receipt::query()
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
                 $query->where('document_number', 'like', "%$search%")
                     ->orWhere('company_name', 'like', "%$search%")
@@ -103,6 +107,7 @@ class ReceiptController extends Controller
         return view('bank.receipt.create', [
             'companies' => Company::query()->where('is_debtor', true)->whereNull('deleted_at')->orderBy('name')->get(),
             'documentNumber' => $this->generateDocumentNumber(LedgerSubType::RECEIPT),
+            ...$this->moneyAccounts(),
         ]);
     }
 
@@ -114,7 +119,10 @@ class ReceiptController extends Controller
      */
     public function show(string $documentNumber): View
     {
-        $receipt = Receipt::query()->where('document_number', $documentNumber)->firstOrFail();
+        $receipt = Receipt::query()
+            ->with(['bankAccount.chart', 'cashAccount.chart', 'eWalletAccount.chart'])
+            ->where('document_number', $documentNumber)
+            ->firstOrFail();
 
         return view('bank.receipt.show', compact('receipt', 'documentNumber'));
     }
@@ -132,7 +140,12 @@ class ReceiptController extends Controller
         abort_if($receipt->isPosted(), 409);
         $companies = Company::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('bank.receipt.edit', compact('receipt', 'documentNumber', 'companies'));
+        return view('bank.receipt.edit', [
+            'receipt' => $receipt,
+            'documentNumber' => $documentNumber,
+            'companies' => $companies,
+            ...$this->moneyAccounts(),
+        ]);
     }
 
     /**
@@ -149,17 +162,22 @@ class ReceiptController extends Controller
         $data = ReceiptData::from($request->validated());
         $documentNumber = $this->generateDocumentNumber(LedgerSubType::RECEIPT);
         $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $transferType = $data->paymentTransferType ?? PaymentTransferType::CHEQUE;
 
-        DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath): void {
+        DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
             Receipt::query()->create([
-                'id' => (string) Str::uuid(), 'document_number' => $documentNumber,
+                'id' => (string) Str::uuid(),
+                'document_number' => $documentNumber,
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
                 'status' => $data->status,
-                'payment_transfer_type' => $data->paymentTransferType ?? PaymentTransferType::CHEQUE,
-                'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
-                'notes' => $data->notes, 'total_amount' => $amount,
+                'payment_transfer_type' => $transferType,
+                'reference_number' => $data->referenceNumber,
+                'attachment_path' => $attachmentPath,
+                'notes' => $data->notes,
+                'total_amount' => $amount,
+                ...$this->moneyAccountColumns($transferType, $data),
             ]);
         });
 
@@ -182,14 +200,18 @@ class ReceiptController extends Controller
         abort_if($receipt->isPosted(), 409);
         $data = ReceiptData::from($request->validated());
         $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $transferType = $data->paymentTransferType ?? $receipt->payment_transfer_type ?? PaymentTransferType::CHEQUE;
 
-        DB::transaction(function () use ($receipt, $data, $amount): void {
+        DB::transaction(function () use ($receipt, $data, $amount, $transferType): void {
             $receipt->update([
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? (string) $receipt->company_name,
                 'date' => $data->date?->format('Y-m-d'),
-                'payment_transfer_type' => $data->paymentTransferType ?? $receipt->payment_transfer_type,
-                'reference_number' => $data->referenceNumber, 'notes' => $data->notes, 'total_amount' => $amount,
+                'payment_transfer_type' => $transferType,
+                'reference_number' => $data->referenceNumber,
+                'notes' => $data->notes,
+                'total_amount' => $amount,
+                ...$this->moneyAccountColumns($transferType, $data),
             ]);
         });
 
@@ -226,7 +248,7 @@ class ReceiptController extends Controller
     {
         DB::transaction(function () use ($documentNumber): void {
             $receipt = Receipt::query()->where('document_number', $documentNumber)->lockForUpdate()->firstOrFail();
-            abort_if($receipt->status === LedgerStatus::POSTED, 409);
+            abort_if($receipt->status === DocumentStatus::POSTED, 409);
             [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($receipt);
             $this->posting->postPayment(
                 $receipt,
@@ -242,7 +264,7 @@ class ReceiptController extends Controller
                 referenceNumber: $receipt->reference_number,
                 description: $receipt->notes,
             );
-            $receipt->update(['status' => LedgerStatus::POSTED]);
+            $receipt->update(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($receipt);
         });
 
@@ -266,7 +288,7 @@ class ReceiptController extends Controller
         DB::transaction(function () use ($documentNumbers, &$approved, &$failed): void {
             foreach ($documentNumbers as $documentNumber) {
                 $receipt = Receipt::query()->where('document_number', $documentNumber)->lockForUpdate()->first();
-                if (! $receipt || $receipt->status === LedgerStatus::POSTED) {
+                if (! $receipt || $receipt->status === DocumentStatus::POSTED) {
                     $failed[] = $documentNumber;
 
                     continue;
@@ -287,7 +309,7 @@ class ReceiptController extends Controller
                         referenceNumber: $receipt->reference_number,
                         description: $receipt->notes,
                     );
-                    $receipt->update(['status' => LedgerStatus::POSTED]);
+                    $receipt->update(['status' => DocumentStatus::POSTED]);
                     $this->attributeApproved($receipt);
                     $approved++;
                 } catch (Throwable) {
@@ -307,8 +329,8 @@ class ReceiptController extends Controller
     }
 
     /**
-     * Resolve posting accounts for a receipt at approval time (direct from chart settings).
-     * Receipt: debit money (by transfer type), credit client/AR.
+     * Resolve posting accounts for a receipt at approval time.
+     * Receipt: debit money (selected account chart, fallback chart settings), credit client/AR.
      *
      * @return array{0: string, 1: string, 2: numeric-string}
      */
@@ -316,11 +338,18 @@ class ReceiptController extends Controller
     {
         $setting = ChartSetting::query()->first();
         $transferType = $receipt->payment_transfer_type ?? PaymentTransferType::CHEQUE;
-        $debitChartId = match ($transferType) {
+        $moneyChartId = match (true) {
+            filled($receipt->bank_account_id) => $receipt->bankAccount?->chart_id ?? Bank::query()->whereKey($receipt->bank_account_id)->value('chart_id'),
+            filled($receipt->cash_account_id) => $receipt->cashAccount?->chart_id ?? CashAccount::query()->whereKey($receipt->cash_account_id)->value('chart_id'),
+            filled($receipt->e_wallet_account_id) => $receipt->eWalletAccount?->chart_id ?? EWalletAccount::query()->whereKey($receipt->e_wallet_account_id)->value('chart_id'),
+            default => null,
+        };
+        $transferChartId = match ($transferType) {
             PaymentTransferType::CASH => $setting?->cash_chart_uuid,
             PaymentTransferType::E_WALLET => $setting?->e_wallet_chart_uuid,
-            default => null,
-        } ?? $setting?->bank_chart_uuid;
+            default => $setting?->bank_chart_uuid,
+        };
+        $debitChartId = $moneyChartId ?? $transferChartId;
         $creditChartId = $setting?->client_chart_uuid;
         if (blank($debitChartId) || blank($creditChartId)) {
             throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
@@ -328,6 +357,59 @@ class ReceiptController extends Controller
         $amount = bcadd(DecimalService::normalize((string) $receipt->total_amount), '0', 2);
 
         return [(string) $debitChartId, (string) $creditChartId, $amount];
+    }
+
+    /**
+     * Money accounts a receipt may be deposited into, grouped by kind.
+     *
+     * @return array{banks: Collection<int, Bank>, cashAccounts: Collection<int, CashAccount>, eWalletAccounts: Collection<int, EWalletAccount>}
+     */
+    private function moneyAccounts(): array
+    {
+        return [
+            'banks' => Bank::query()
+                ->with('chart')
+                ->where('is_active', true)
+                ->whereNotNull('chart_id')
+                ->orderBy('name')
+                ->get(),
+            'cashAccounts' => CashAccount::query()
+                ->with('chart')
+                ->where('is_active', true)
+                ->whereNotNull('chart_id')
+                ->orderBy('name')
+                ->get(),
+            'eWalletAccounts' => EWalletAccount::query()
+                ->with('chart')
+                ->where('is_active', true)
+                ->whereNotNull('chart_id')
+                ->orderBy('name')
+                ->get(),
+        ];
+    }
+
+    /**
+     * Keep only the money-account column matching the transfer type.
+     *
+     * @return array{bank_account_id: string|null, cash_account_id: string|null, e_wallet_account_id: string|null}
+     */
+    private function moneyAccountColumns(?PaymentTransferType $transferType, ReceiptData $data): array
+    {
+        $columns = [
+            'bank_account_id' => null,
+            'cash_account_id' => null,
+            'e_wallet_account_id' => null,
+        ];
+
+        if ($transferType === null) {
+            return $columns;
+        }
+
+        return match ($transferType->accountColumn()) {
+            'cash_account_id' => ['bank_account_id' => null, 'cash_account_id' => $data->cashAccountId, 'e_wallet_account_id' => null],
+            'e_wallet_account_id' => ['bank_account_id' => null, 'cash_account_id' => null, 'e_wallet_account_id' => $data->eWalletAccountId],
+            default => ['bank_account_id' => $data->bankAccountId, 'cash_account_id' => null, 'e_wallet_account_id' => null],
+        };
     }
 
     public function batchCancel(BatchCancelReceiptRequest $request): RedirectResponse
@@ -339,11 +421,11 @@ class ReceiptController extends Controller
         // is a document in its own right and needs its own attribution.
         $receipts = Receipt::query()
             ->whereIn('document_number', $request->documentNumbers())
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->get();
 
         foreach ($receipts as $receipt) {
-            $receipt->update(['status' => LedgerStatus::CANCELLED]);
+            $receipt->update(['status' => DocumentStatus::CANCELLED]);
             $this->attributeCancelled($receipt);
         }
 
@@ -373,8 +455,8 @@ class ReceiptController extends Controller
         ]);
 
         $search = trim($validated['search'] ?? '');
-
-        $results = SalesInvoice::query()
+        /** @var Collection<int, SalesInvoice> $invoices */
+        $invoices = SalesInvoice::query()
             ->where('company_id', $validated['company_id'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($subQuery) use ($search): void {
@@ -385,17 +467,20 @@ class ReceiptController extends Controller
             })
             ->orderByDesc('date')
             ->limit(50)
-            ->get()
-            ->map(function (SalesInvoice $invoice): array {
-                $amount = number_format((float) $invoice->total_amount, 2, '.', '');
-                $notes = filled($invoice->notes) ? " - $invoice->notes" : '';
+            ->get();
 
-                return [
-                    'value' => $invoice->document_number,
-                    'text' => "$invoice->document_number - $invoice->date - (RM $amount)$notes",
-                ];
-            })
-            ->values();
+        $results = $invoices->map(function (
+            SalesInvoice $invoice
+        ): array {
+
+            $amount = number_format((float) $invoice->total_amount, 2, '.', '');
+            $notes = filled($invoice->notes) ? " - $invoice->notes" : '';
+
+            return [
+                'value' => $invoice->document_number,
+                'text' => "{$invoice->document_number} - {$invoice->date} - (RM {$amount}){$notes}",
+            ];
+        })->values();
 
         return response()->json(['results' => $results]);
     }
@@ -420,6 +505,6 @@ class ReceiptController extends Controller
             'setting' => Setting::query()->first(),
         ])
             ->setPaper('a4')
-            ->download("receipt_$documentNumber.pdf");
+            ->stream("receipt_$documentNumber.pdf");
     }
 }

@@ -26,7 +26,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Inventory\AcquisitionType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
@@ -367,13 +367,13 @@ class PurchaseScenarioSeeder extends Seeder
      * @param  PurchaseOrder  $po  The source PO.
      * @param  string  $invoiceDocNumber  Invoice document number.
      * @param  int  $quantity  Invoiced quantity.
-     * @param  LedgerStatus  $status  PENDING or POSTED.
+     * @param  DocumentStatus  $status  PENDING or POSTED.
      */
     private function createInvoice(
         PurchaseOrder $po,
         string $invoiceDocNumber,
         int $quantity,
-        LedgerStatus $status,
+        DocumentStatus $status,
     ): PurchaseInvoice {
         $unitPrice = '4000.00';
         $total = bcmul($unitPrice, (string) $quantity, 2);
@@ -392,9 +392,9 @@ class PurchaseScenarioSeeder extends Seeder
             'due_date' => now()->addDays(30),
             'subtotal' => $total,
             'total_amount' => $total,
-            'approved_by' => $status === LedgerStatus::POSTED ? '1' : null,
-            'approved_name' => $status === LedgerStatus::POSTED ? 'Admin' : null,
-            'approved_at' => $status === LedgerStatus::POSTED ? now() : null,
+            'approved_by' => $status === DocumentStatus::POSTED ? '1' : null,
+            'approved_name' => $status === DocumentStatus::POSTED ? 'Admin' : null,
+            'approved_at' => $status === DocumentStatus::POSTED ? now() : null,
         ]);
 
         PurchaseInvoiceLine::query()->create([
@@ -439,7 +439,7 @@ class PurchaseScenarioSeeder extends Seeder
     ): void {
         $po = $this->createPo($company, $supplier, $contact, 'PO10001', 100, '4000.00', true, false, true);
         $grn = $this->createGrn('PO10001', 'GRN10001', 100, ProductMovementStatus::ACTIVE);
-        $this->createInvoice($po, 'PI10001', 100, LedgerStatus::POSTED);
+        $this->createInvoice($po, 'PI10001', 100, DocumentStatus::POSTED);
     }
 
     /**
@@ -462,7 +462,7 @@ class PurchaseScenarioSeeder extends Seeder
     ): void {
         $po = $this->createPo($company, $supplier, $contact, 'PO10002', 100, '4000.00', true, true, false);
         $this->createGrn('PO10002', 'GRN10002', 60, ProductMovementStatus::ACTIVE);
-        $this->createInvoice($po, 'PI10002', 60, LedgerStatus::PENDING);
+        $this->createInvoice($po, 'PI10002', 60, DocumentStatus::PENDING);
     }
 
     /**
@@ -509,7 +509,7 @@ class PurchaseScenarioSeeder extends Seeder
         $po = $this->createPo($company, $supplier, $contact, 'PO10004', 100, '4000.00', true, false, true);
         $grn = $this->createGrn('PO10004', 'GRN10004', 100, ProductMovementStatus::ACTIVE);
         $this->createPurchaseReturn('PO10004', 'PRTN10004', 20, ProductMovementStatus::ACTIVE, $grn->id);
-        $this->createInvoice($po, 'PI10004', 80, LedgerStatus::PENDING);
+        $this->createInvoice($po, 'PI10004', 80, DocumentStatus::PENDING);
     }
 
     /**
@@ -533,7 +533,7 @@ class PurchaseScenarioSeeder extends Seeder
     ): void {
         $po = $this->createPo($company, $supplier, $contact, 'PO10005', 100, '4000.00', true, false, true);
         $grn = $this->createGrn('PO10005', 'GRN10005', 100, ProductMovementStatus::ACTIVE);
-        $this->createInvoice($po, 'PI10005', 100, LedgerStatus::POSTED);
+        $this->createInvoice($po, 'PI10005', 100, DocumentStatus::POSTED);
         $this->createPurchaseReturn('PO10005', 'PRTN10005', 100, ProductMovementStatus::ACTIVE, $grn->id);
     }
 
@@ -558,7 +558,7 @@ class PurchaseScenarioSeeder extends Seeder
     ): void {
         $po = $this->createPo($company, $supplier, $contact, 'PO10006', 100, '4000.00', true, false, true);
         $grn = $this->createGrn('PO10006', 'GRN10006', 100, ProductMovementStatus::ACTIVE);
-        $this->createInvoice($po, 'PI10006', 100, LedgerStatus::POSTED);
+        $this->createInvoice($po, 'PI10006', 100, DocumentStatus::POSTED);
         $this->createPurchaseReturn('PO10006', 'PRTN10006', 30, ProductMovementStatus::ACTIVE, $grn->id);
     }
 
@@ -583,7 +583,7 @@ class PurchaseScenarioSeeder extends Seeder
         $po = $this->createPo($company, $supplier, $contact, 'PO10007', 100, '4000.00', true, false, true);
         $grn = $this->createGrn('PO10007', 'GRN10007', 100, ProductMovementStatus::ACTIVE);
         $this->createGrnAdjustment('PO10007', 'GRN10007', 'GRN10007-ADJ', 5, ProductMovementDirection::OUT, ProductMovementStatus::ACTIVE, $grn->id);
-        $this->createInvoice($po, 'PI10007', 95, LedgerStatus::PENDING);
+        $this->createInvoice($po, 'PI10007', 95, DocumentStatus::PENDING);
     }
 
     /**
@@ -609,7 +609,7 @@ class PurchaseScenarioSeeder extends Seeder
     ): void {
         $po = $this->createPo($company, $supplier, $contact, 'PO10008', 100, '4000.00', true, false, true);
         $grn = $this->createGrn('PO10008', 'GRN10008', 100, ProductMovementStatus::ACTIVE);
-        $this->createInvoice($po, 'PI10008', 100, LedgerStatus::POSTED);
+        $this->createInvoice($po, 'PI10008', 100, DocumentStatus::POSTED);
         $this->createGrnAdjustment('PO10008', 'GRN10008', 'GRN10008-ADJ', 3, ProductMovementDirection::OUT, ProductMovementStatus::ACTIVE, $grn->id);
     }
 }

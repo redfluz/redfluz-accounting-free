@@ -36,8 +36,8 @@ use App\Models\Bank\EWalletAccount;
 use App\Models\ChartOfAccount\Chart;
 use App\Support\Data\Bank\EWalletAccountData;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -183,20 +183,19 @@ class EWalletAccountController extends Controller
                 if ($eWalletAccount !== null) {
                     $query->whereKey($eWalletAccount->chart_id)->orWhereNotExists(
                         function ($subQuery): void {
-                            /** @var \Illuminate\Database\Query\Builder $subQuery */
+                            /** @var Builder $subQuery */
                             $subQuery->selectRaw('1')->from('e_wallet_accounts')->whereColumn('e_wallet_accounts.chart_id', 'charts.id');
                         }
                     );
                 } else {
                     $query->whereNotExists(
                         function ($subQuery): void {
-                            /** @var \Illuminate\Database\Query\Builder $subQuery */
+                            /** @var Builder $subQuery */
                             $subQuery->selectRaw('1')->from('e_wallet_accounts')->whereColumn('e_wallet_accounts.chart_id', 'charts.id');
                         }
                     );
                 }
             })
             ->orderBy('code')->get();
-
     }
 }

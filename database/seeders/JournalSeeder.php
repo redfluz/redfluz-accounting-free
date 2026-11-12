@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use Illuminate\Database\Seeder;
@@ -63,11 +63,11 @@ class JournalSeeder extends Seeder
             }
 
             foreach ($this->cancelledJournalBlueprints() as $entry) {
-                $this->seedNonPostedJournal($entry, LedgerStatus::CANCELLED);
+                $this->seedNonPostedJournal($entry, DocumentStatus::CANCELLED);
             }
 
             foreach ($this->pendingJournalBlueprints() as $entry) {
-                $this->seedNonPostedJournal($entry, LedgerStatus::PENDING);
+                $this->seedNonPostedJournal($entry, DocumentStatus::PENDING);
             }
         });
     }
@@ -100,7 +100,7 @@ class JournalSeeder extends Seeder
                 'date' => $entry['date'],
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
-                'status' => LedgerStatus::POSTED->value,
+                'status' => DocumentStatus::POSTED->value,
                 'notes' => $entry['notes'],
                 'created_name' => 'System Seeder',
                 'created_at' => $journalEntry->created_at ?? $now,
@@ -727,9 +727,9 @@ class JournalSeeder extends Seeder
      * Seed one journal entry without posting to GL (for CANCELLED or PENDING status).
      *
      * @param  array{document_number: string, reference_number: string, date: string, notes: string, items: list<array{coa: string, description: string, debit_amount: float, credit_amount: float}>}  $entry
-     * @param  LedgerStatus  $status  The ledger status for the journal entry.
+     * @param  DocumentStatus  $status  The ledger status for the journal entry.
      */
-    private function seedNonPostedJournal(array $entry, LedgerStatus $status): void
+    private function seedNonPostedJournal(array $entry, DocumentStatus $status): void
     {
         $totalDebit = round((float) collect($entry['items'])->sum('debit_amount'), 2);
         $totalCredit = round((float) collect($entry['items'])->sum('credit_amount'), 2);
@@ -756,8 +756,8 @@ class JournalSeeder extends Seeder
                 'notes' => $entry['notes'],
                 'created_name' => 'System Seeder',
                 'created_at' => $journalEntry->created_at ?? $now,
-                'cancelled_name' => $status === LedgerStatus::CANCELLED ? 'Manager User' : null,
-                'cancelled_at' => $status === LedgerStatus::CANCELLED ? ($journalEntry->created_at ?? $now) : null,
+                'cancelled_name' => $status === DocumentStatus::CANCELLED ? 'Manager User' : null,
+                'cancelled_at' => $status === DocumentStatus::CANCELLED ? ($journalEntry->created_at ?? $now) : null,
                 'updated_at' => $now,
             ]
         );

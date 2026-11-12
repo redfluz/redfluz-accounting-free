@@ -29,7 +29,7 @@ namespace App\Http\Controllers\Purchase;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Purchase\PurchaseOrder\StorePurchaseOrderRequest;
@@ -187,8 +187,15 @@ class PurchaseOrderController extends Controller
         $totalAmount = $subtotal;
 
         DB::transaction(function () use (
-            $company, $contact, $preparedLines, &$purchaseOrder,
-            $subtotal, $taxAmount, $totalAmount, $data, $request
+            $company,
+            $contact,
+            $preparedLines,
+            &$purchaseOrder,
+            $subtotal,
+            $taxAmount,
+            $totalAmount,
+            $data,
+            $request
         ): void {
             $purchaseOrder->fill([
                 'company_id' => $company->id,
@@ -317,8 +324,15 @@ class PurchaseOrderController extends Controller
         $this->validateAttachmentLimit($request, $purchaseOrder, $deleteAttachments);
 
         DB::transaction(function () use (
-            $company, $contact, $preparedLines, &$purchaseOrder,
-            $subtotal, $taxAmount, $totalAmount, $data, $request
+            $company,
+            $contact,
+            $preparedLines,
+            &$purchaseOrder,
+            $subtotal,
+            $taxAmount,
+            $totalAmount,
+            $data,
+            $request
         ): void {
             $purchaseOrder->fill([
                 'company_id' => $company->id,
@@ -472,7 +486,7 @@ class PurchaseOrderController extends Controller
                 'company_id' => $lockedOrder->company_id,
                 'contact_id' => $lockedOrder->contact_id,
                 'purchase_type' => $lockedOrder->purchase_type,
-                'status' => LedgerStatus::PENDING->value,
+                'status' => DocumentStatus::PENDING->value,
                 'document_number' => $documentNumber,
                 'reference_number' => $documentNumber,
                 'purchase_order_id' => $lockedOrder->id,

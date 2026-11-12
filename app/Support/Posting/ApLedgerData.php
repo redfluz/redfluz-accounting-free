@@ -31,8 +31,8 @@ namespace App\Support\Posting;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\ChartOfAccount\Chart;
-use App\Models\Finance\ManualPurchaseAdjustment;
-use App\Models\Finance\ManualPurchaseAdjustmentChart;
+use App\Models\Purchase\ManualPurchaseAdjustment;
+use App\Models\Purchase\ManualPurchaseAdjustmentChart;
 use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use Carbon\CarbonInterface;
@@ -245,7 +245,7 @@ class ApLedgerData extends Data
             companyId: (string) ($adjustment->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
-            subtype: LedgerSubType::MANUAL_PURCHASE_ADJUSTMENT->value,
+            subtype: $line->subtype->value,
             documentNumber: (string) $adjustment->document_number,
             date: $adjustment->date->format('Y-m-d'),
             referenceNumber: $line->reference_number ?? $adjustment->reference_number,

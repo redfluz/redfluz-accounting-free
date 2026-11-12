@@ -34,12 +34,18 @@ enum LedgerSubType: string
     case PAYMENT_VOUCHER = 'payment_voucher';
 
     case JOURNAL = 'journal';
+    case INVENTORY_DEDUCTION = 'inventory_deduction';
     case STOCK_VARIANCE = 'stock_variance';
 
     case INCREASE_ADJUSTMENT = 'increase_adjustment';
     case DECREASE_ADJUSTMENT = 'decrease_adjustment';
     case MANUAL_SALES_ADJUSTMENT = 'manual_sales_adjustment';
     case MANUAL_PURCHASE_ADJUSTMENT = 'manual_purchase_adjustment';
+
+    case PURCHASE_DEBIT_NOTE = 'purchase_debit_note';
+    case PURCHASE_CREDIT_NOTE = 'purchase_credit_note';
+    case SALES_DEBIT_NOTE = 'sales_debit_note';
+    case SALES_CREDIT_NOTE = 'sales_credit_note';
 
     case CUSTOMER_REFUND = 'customer_refund';
     case SUPPLIER_REFUND = 'supplier_refund';
@@ -75,11 +81,16 @@ enum LedgerSubType: string
             self::RECEIPT => 'Official Receipt',
             self::PAYMENT_VOUCHER => 'Payment Voucher',
             self::JOURNAL => 'Journal',
+            self::INVENTORY_DEDUCTION => 'Inventory Deduction',
             self::STOCK_VARIANCE => 'Stock Variance',
             self::INCREASE_ADJUSTMENT => 'Increase Adjustment',
             self::DECREASE_ADJUSTMENT => 'Decrease Adjustment',
             self::MANUAL_SALES_ADJUSTMENT => 'Manual Sales Adjustment',
             self::MANUAL_PURCHASE_ADJUSTMENT => 'Manual Purchase Adjustment',
+            self::PURCHASE_DEBIT_NOTE => 'Supplier Debit Note',
+            self::PURCHASE_CREDIT_NOTE => 'Supplier Credit Note',
+            self::SALES_DEBIT_NOTE => 'Customer Debit Note',
+            self::SALES_CREDIT_NOTE => 'Customer Credit Note',
             self::CUSTOMER_REFUND => 'Receipt Refund',
             self::SUPPLIER_REFUND => 'Supplier Refund',
             self::REFUND => 'Refund',
@@ -113,11 +124,16 @@ enum LedgerSubType: string
             self::RECEIPT => 'RCP',
             self::PAYMENT_VOUCHER => 'PAY',
             self::JOURNAL => 'JRN',
+            self::INVENTORY_DEDUCTION => 'IDD',
             self::STOCK_VARIANCE => 'STV',
             self::INCREASE_ADJUSTMENT => 'ADJ',
             self::DECREASE_ADJUSTMENT => 'CNV',
             self::MANUAL_SALES_ADJUSTMENT => 'MSA',
             self::MANUAL_PURCHASE_ADJUSTMENT => 'MPA',
+            self::PURCHASE_DEBIT_NOTE => 'PDN',
+            self::PURCHASE_CREDIT_NOTE => 'PCN',
+            self::SALES_DEBIT_NOTE => 'SDN',
+            self::SALES_CREDIT_NOTE => 'SCN',
             self::CUSTOMER_REFUND => 'RFR',
             self::SUPPLIER_REFUND => 'SRF',
             self::REFUND => 'REF',

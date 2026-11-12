@@ -8,16 +8,16 @@
 @php
     use App\Enums\FileAction;
     use App\Enums\FileResources;
-    use App\Models\Finance\ManualSalesAdjustment;
+    use App\Models\Sales\ManualSalesAdjustment;
     use App\Models\System\Setting;
 
     $canApprove = auth()->user()->hasFilePermission(FileResources::MANUAL_SALES_ADJUSTMENTS, FileAction::APPROVE);
     $canRemove = auth()->user()->hasFilePermission(FileResources::MANUAL_SALES_ADJUSTMENTS, FileAction::REMOVE);
     $canUpdate = auth()->user()->hasFilePermission(FileResources::MANUAL_SALES_ADJUSTMENTS, FileAction::UPDATE);
-    $canReverse = $canApprove && $isPosted;
+    $canReverse = $canApprove && $isPosted && $adjustment->undone_at === null && $adjustment->document_original === null;
 @endphp
 
-@props(['adjustment', 'isPosted', 'indexRoute'])
+@props(['adjustment', 'isPosted', 'indexRoute', 'reversalNumber'])
 
 @extends('layouts.app')
 
@@ -37,9 +37,19 @@
             </div>
             <div class="d-flex gap-2">
                 @if ($isPosted)
-                    <span class="badge theme-success d-flex align-items-center">
-                        {{ __('journal_entries.status_approved') }}
-                    </span>
+                    @if ($adjustment->document_original !== null)
+                        <span class="badge theme-info d-flex align-items-center">
+                            {{ __('journal_entries.reversal_status') }}
+                        </span>
+                    @elseif ($adjustment->undone_at !== null)
+                        <span class="badge theme-danger d-flex align-items-center">
+                            {{ __('journal_entries.reversed_status') }}
+                        </span>
+                    @else
+                        <span class="badge theme-success d-flex align-items-center">
+                            {{ __('journal_entries.status_approved') }}
+                        </span>
+                    @endif
                     @if ($canReverse)
                         <button class="btn btn-solid theme-warning btn-sm text-nowrap" data-bs-toggle="dialog"
                             data-bs-target="#reverseJournalModal" type="button">
@@ -95,10 +105,24 @@
             @include('partials.alerts')
             @include('partials.errors')
 
+            @if ($adjustment->document_original !== null)
+                <div class="alert alert theme-info">
+                    {{ __('journal_entries.reversal_of') }}:
+                    <a class="alert-link"
+                        href="{{ route('sales.manual-adjustments.history.show', $adjustment->document_original) }}">{{ $adjustment->document_original }}</a>
+                </div>
+            @elseif ($adjustment->undone_at !== null && $reversalNumber !== null)
+                <div class="alert alert theme-warning">
+                    {{ __('journal_entries.reversed_by') }}:
+                    <a class="alert-link"
+                        href="{{ route('sales.manual-adjustments.history.show', $reversalNumber) }}">{{ $reversalNumber }}</a>
+                </div>
+            @endif
+
             <div class="row mb-4">
                 <div class="md:col-6">
                     <span class="fg-secondary small">{{ __('manual_sales_adjustments.form.note_type') }}:</span>
-                    <span class="fw-bold">{{ $adjustment->subtype->label() }}</span>
+                    <span class="fw-bold">{{ __('ledgers.sub_type.' . $adjustment->subtype->value) }}</span>
                 </div>
                 @if ($adjustment->reference_number)
                     <div class="md:col-6">
@@ -176,13 +200,13 @@
                 @method('PATCH')
                 <div class="dialog-header">
                     <h5 class="dialog-title" id="reverseJournalModalLabel">
-                        {{ __('journal_entries.reverse_title') }}
+                        {{ __('manual_sales_adjustments.reverse_title') }}
                     </h5>
                     <button class="btn-close" data-bs-dismiss="dialog" type="button"
 ></button>
                 </div>
                 <div class="dialog-body">
-                    <div class="alert theme-warning">{{ __('journal_entries.reverse_explanation') }}</div>
+                    <div class="alert theme-warning">{{ __('manual_sales_adjustments.reverse_explanation') }}</div>
                     @error('reversal_date')
                         <div class="alert alert theme-danger">{{ $message }}</div>
                     @enderror
@@ -198,7 +222,7 @@
                 <div class="dialog-footer">
                     <button class="btn btn-solid theme-secondary" data-bs-dismiss="dialog" type="button">
                         {{ __('common.actions.cancel') }}</button><button class="btn btn-solid theme-warning"
-                        type="submit" data-confirm-message="{{ __('journal_entries.confirm_reverse') }}">
+                        type="submit" data-confirm-message="{{ __('manual_sales_adjustments.confirm_reverse') }}">
                         <i data-lucide="undo-2"></i> {{ __('journal_entries.reverse_button') }}
                     </button>
                 </div>

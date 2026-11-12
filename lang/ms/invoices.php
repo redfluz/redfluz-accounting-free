@@ -74,6 +74,9 @@ return [
         'success' => 'Inventori berjaya ditolak.',
         'quantity' => 'Kuantiti',
     ],
+    'payment_received' => 'Amaun Dibayar',
+    'balance_due' => 'Baki Perlu Dibayar',
+    'no_payments' => 'Tiada pembayaran direkodkan.',
     'validation' => [
         'accounts_must_differ' => 'Akaun debit dan kredit mestilah berbeza.',
         'contact_company_invalid' => 'Kenalan yang dipilih bukan milik syarikat yang dipilih.',

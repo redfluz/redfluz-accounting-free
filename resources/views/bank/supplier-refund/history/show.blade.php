@@ -26,7 +26,7 @@
 ?>
 @php use App\Models\System\Setting; @endphp
 
-@props(['refund', 'documentNumber'])
+@props(['refund', 'documentNumber', 'ledgers'])
 
 @extends('layouts.app')
 
@@ -103,17 +103,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $displayEntries = $refund->relationLoaded('apLedgers') ? $refund->apLedgers : collect(); @endphp
-                        @forelse ($displayEntries as $line)
+                        @forelse ($ledgers as $line)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ (float)($line->debit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td>{{ (float)($line->credit_amount ?? 0) > 0 ? (($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                                <td class="text-end">{{ (float)($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
-                                <td class="text-end">{{ (float)($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
+                                <td>{{ (float) $line->debit_amount > 0 ? trim($line->chart_code . ' ' . $line->chart_name) : '-' }}</td>
+                                <td>{{ (float) $line->credit_amount > 0 ? trim($line->chart_code . ' ' . $line->chart_name) : '-' }}</td>
+                                <td class="text-end">{{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
+                                <td class="text-end">{{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="text-center fg-secondary">{{ $refund->status?->value === 'posted' ? '-' : __('ledgers.no_records') }}</td></tr>
+                            <tr><td colspan="5" class="text-center fg-secondary">{{ __('ledgers.no_records') }}</td></tr>
                         @endforelse
                     </tbody>
                     <tfoot class="bg-1 fw-bold border-top">

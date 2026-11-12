@@ -31,6 +31,7 @@ enum LedgerType: string
     case INVOICE = 'invoice';
     case PAYMENT = 'payment';
     case JOURNAL = 'journal';
+    case INVENTORY = 'inventory';
     case CLAIM = 'claim';
     case SALARY = 'salary';
     case STOCK_TAKE = 'stock_take';
@@ -46,6 +47,7 @@ enum LedgerType: string
             self::INVOICE => 'Invoice',
             self::PAYMENT => 'Payment',
             self::JOURNAL => 'Journal',
+            self::INVENTORY => 'Inventory',
             self::CLAIM => 'Claim',
             self::SALARY => 'Salary',
             self::STOCK_TAKE => 'Stock Take',

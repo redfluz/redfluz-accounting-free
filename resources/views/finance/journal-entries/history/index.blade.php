@@ -30,14 +30,6 @@
                 <span class="fg-secondary small">{{ __('journal_entries.history_subtitle') }}</span>
             </div>
             <div class="d-flex gap-1">
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('finance.journal-entries.history.export-excel', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i>{{ __('common.actions.export_excel') }}
-                </a>
-                <a class="btn btn-solid theme-info btn-sm"
-                    href="{{ route('finance.journal-entries.history.export-pdf', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-text"></i>{{ __('common.actions.export_pdf') }}
-                </a>
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('finance.journal-entries.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}
                 </a>
@@ -112,8 +104,8 @@
                     <tbody>
                         @forelse ($entries as $entry)
                             @php
-                                $isReversal = $entry->reversal_of_id !== null;
-                                $isReversed = $entry->reversal !== null;
+                                $isReversal = $entry->document_original !== null;
+                                $isReversed = $entry->undone_at !== null;
                                 $canReverse = $canApprove && !$isReversal && !$isReversed;
                             @endphp
                             <tr>
@@ -136,7 +128,7 @@
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
                                         <a class="btn btn-sm btn-solid theme-info"
-                                            href="{{ route('finance.journal-entries.history.show', $entry) }}"
+                                            href="{{ route('finance.journal-entries.history.show', $entry->document_number) }}"
                                             title="{{ __('common.actions.view') }}">
                                             <i data-lucide="eye"></i>
                                         </a>
@@ -167,8 +159,8 @@
 
     @foreach ($entries as $entry)
         @php
-            $isReversal = $entry->reversal_of_id !== null;
-            $isReversed = $entry->reversal !== null;
+            $isReversal = $entry->document_original !== null;
+            $isReversed = $entry->undone_at !== null;
             $canReverse = $canApprove && !$isReversal && !$isReversed;
         @endphp
         @if ($canReverse)

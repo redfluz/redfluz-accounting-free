@@ -44,6 +44,16 @@ return [
         'credit' => 'Kredit',
     ],
 
+    'history' => [
+        'title' => 'Riwayat Pemindahan Bank',
+        'subtitle' => 'Pemindahan yang sudah dikreditkan oleh bank',
+    ],
+
+    'cancelled' => [
+        'title' => 'Pemindahan Bank Dibatalkan',
+        'subtitle' => 'Pemindahan yang dibatalkan sebelum dicatat',
+    ],
+
     'validation' => [
         'account_inactive' => 'Akun bank tersebut tidak tersedia.',
         'transit_empty' => 'Tidak ada apa-apa dalam kas dalam perjalanan, jadi tidak ada apa-apa untuk dipindahkan.',

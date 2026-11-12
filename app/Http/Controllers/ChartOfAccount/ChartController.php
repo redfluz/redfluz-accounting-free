@@ -48,14 +48,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChartController extends Controller
 {
@@ -84,96 +76,6 @@ class ChartController extends Controller
             'chartTypeFilter',
             'reportGroupFilter'
         ));
-    }
-
-    /**
-     * Export all chart accounts matching the current search to Excel.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return StreamedResponse Returns the Excel download response.
-     */
-    public function exportExcel(Request $request): StreamedResponse
-    {
-        $this->allows(FileResources::CHARTS);
-
-        $charts = $this->buildFilteredQuery($request)->get();
-        $spreadsheet = new Spreadsheet;
-        $spreadsheet->getProperties()
-            ->setCreator(is_string(config('app.name')) ? config('app.name') : '')
-            ->setTitle(__('charts.title'));
-
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(mb_substr(__('charts.title'), 0, 31));
-        $headers = [
-            __('charts.table.column_code'),
-            __('charts.table.column_name'),
-            __('charts.table.column_type'),
-            __('charts.table.column_report_group'),
-            __('charts.table.column_bank'),
-            __('charts.table.column_debtor'),
-            __('charts.table.column_creditor'),
-            __('common.labels.created_at'),
-        ];
-
-        foreach ($headers as $index => $header) {
-            $sheet->setCellValue([$index + 1, 1], $header);
-        }
-        /** @var Chart $chart */
-        foreach ($charts as $index => $chart) {
-            $row = $index + 2;
-            $reportGroup = $chart->report_group?->value;
-
-            $sheet->setCellValueExplicit([1, $row], (string) $chart->code, DataType::TYPE_STRING);
-            $sheet->setCellValue([2, $row], $chart->name);
-            $sheet->setCellValue([3, $row], $chart->chartType->name ?? '-');
-            $sheet->setCellValue(
-                [4, $row],
-                $reportGroup ? __('charts.report_group.'.$reportGroup) : '-'
-            );
-            $sheet->setCellValue([5, $row], $chart->isBank ? __('charts.yes') : __('charts.no'));
-            $sheet->setCellValue([6, $row], $chart->isDebtor ? __('charts.yes') : __('charts.no'));
-            $sheet->setCellValue([7, $row], $chart->isCreditor ? __('charts.yes') : __('charts.no'));
-
-            if ($chart->created_at !== null) {
-                $sheet->setCellValue([8, $row], Date::dateTimeToExcel($chart->created_at));
-            }
-        }
-
-        $lastRow = max(2, $charts->count() + 1);
-        $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1F4E78'],
-            ],
-            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
-            'borders' => [
-                'bottom' => ['borderStyle' => Border::BORDER_THIN],
-            ],
-        ]);
-        $sheet->getStyle('H2:H'.$lastRow)
-            ->getNumberFormat()
-            ->setFormatCode('dd mmm yyyy hh:mm');
-        $sheet->getStyle('A1:H'.$lastRow)
-            ->getAlignment()
-            ->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->freezePane('A2');
-        $sheet->setAutoFilter('A1:H'.$lastRow);
-
-        foreach (range('A', 'H') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-
-        $filename = 'chart_of_accounts_'.now()->format('Ymd_His').'.xlsx';
-
-        return response()->streamDownload(
-            static function () use ($spreadsheet): void {
-                new Xlsx($spreadsheet)->save('php://output');
-                $spreadsheet->disconnectWorksheets();
-            },
-            $filename,
-            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-        );
     }
 
     /**

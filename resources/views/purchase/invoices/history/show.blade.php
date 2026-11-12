@@ -46,7 +46,7 @@
                     </button>
                 @endif
                 <a class="btn btn-solid theme-primary btn-sm text-nowrap"
-                    href="{{ route('purchase.invoices.pdf', $documentNumber) }}" target="_blank">
+                    href="{{ route('purchase.invoices.history.pdf', $documentNumber) }}" target="_blank">
                     <i class="me-1" data-lucide="printer"></i>
                     {{ __('common.actions.print_pdf') }}
                 </a>

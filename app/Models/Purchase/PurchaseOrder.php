@@ -34,7 +34,6 @@ use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -99,19 +99,42 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Table('purchase_orders', key: 'id')]
 #[Fillable([
-    'company_id', 'contact_id',
-    'purchase_type', 'is_partial_received', 'is_received',
+    'company_id',
+    'contact_id',
+    'purchase_type',
+    'is_partial_received',
+    'is_received',
     'document_number',
-    'supplier_reference_number', 'supplier_sales_order_number',
-    'company_name', 'contact_name',
-    'date', 'expected_date', 'credit_term_days', 'due_date',
-    'subtotal', 'tax_amount', 'total_amount', 'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
+    'supplier_reference_number',
+    'supplier_sales_order_number',
+    'company_name',
+    'contact_name',
+    'date',
+    'expected_date',
+    'credit_term_days',
+    'due_date',
+    'subtotal',
+    'tax_amount',
+    'total_amount',
+    'notes',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
 ])]
 class PurchaseOrder extends Model
 {

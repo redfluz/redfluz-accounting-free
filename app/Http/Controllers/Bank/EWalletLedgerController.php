@@ -29,12 +29,15 @@ namespace App\Http\Controllers\Bank;
 use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Http\Controllers\Bank\Concerns\ReadsMoneyLedger;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\EWalletAccount;
+use App\Services\DecimalService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * What is on each e-wallet.
@@ -54,14 +57,6 @@ use Illuminate\Http\Request;
  */
 class EWalletLedgerController extends Controller
 {
-    use ReadsMoneyLedger;
-
-    /** The table every e-wallet movement is filed in. */
-    private const string TABLE = 'e_wallet_ledgers';
-
-    /** The column on that table naming which wallet account moved. */
-    private const string ACCOUNT_COLUMN = 'e_wallet_account_id';
-
     /**
      * Show the e-wallet ledger.
      *
@@ -71,44 +66,91 @@ class EWalletLedgerController extends Controller
     {
         $this->allows(FileResources::E_WALLET_LEDGERS, FileAction::READ);
 
-        $filters = $this->filters($request);
+        $search = $request->string('search')->toString();
+        $startDate = $request->string('start_date')->toString();
+        $endDate = $request->string('end_date')->toString();
+        $accountId = $request->string('account_id')->toString();
 
-        return view('bank.money-ledger.index', [
-            'ledger' => 'e-wallet',
-            'kindLabel' => BankAccountKind::E_WALLET->label(),
-            'rows' => $this->ledgerRows($request, self::TABLE, self::ACCOUNT_COLUMN),
-            'accounts' => $this->accountsOfKind(),
-            'balances' => $this->balancesFor(
-                self::TABLE,
-                self::ACCOUNT_COLUMN,
-                $filters['accountId']
-            ),
-            ...$filters,
-        ]);
-    }
-
-    /**
-     * The active e-wallet accounts, default first.
-     *
-     * @return Collection<int, EWalletAccount>
-     */
-    protected function accountsOfKind(): Collection
-    {
-        return EWalletAccount::query()
+        $accounts = EWalletAccount::query()
             ->where('is_active', true)
             ->with('chart')
             ->orderByDesc('is_default')
             ->orderBy('name')
             ->get();
+
+        return view('bank.money-ledger.index', [
+            'ledger' => 'e-wallet',
+            'kindLabel' => BankAccountKind::E_WALLET->label(),
+            'rows' => $this->ledgerRows($search, $startDate, $endDate, $accountId),
+            'accounts' => $accounts,
+            'balances' => $this->balancesFor($accounts, $accountId),
+            'search' => $search,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'accountId' => $accountId,
+        ]);
     }
 
     /**
-     * The database table holding e-wallet accounts.
+     * The totals for each e-wallet account, calculated from ledger rows.
      *
-     * @return string The unqualified table name.
+     * @param  \Illuminate\Database\Eloquent\Collection<int, EWalletAccount>  $accounts
+     * @return Collection<int, object{account: EWalletAccount, money_in: string, money_out: string, balance: string, isFiltered: bool}>
      */
-    protected function accountTable(): string
+    private function balancesFor($accounts, string $accountId): Collection
     {
-        return 'e_wallet_accounts';
+        return $accounts->map(function (EWalletAccount $account) use ($accountId): object {
+            $totals = DB::table('e_wallet_ledgers')
+                ->where('e_wallet_account_id', $account->id)
+                ->whereNull('deleted_at')
+                ->selectRaw(
+                    'COALESCE(SUM(debit_amount), 0) as money_in, '
+                    .'COALESCE(SUM(credit_amount), 0) as money_out'
+                )
+                ->first();
+
+            $moneyInRaw = $totals->money_in ?? '0';
+            $moneyOutRaw = $totals->money_out ?? '0';
+
+            $moneyIn = DecimalService::normalize(is_numeric($moneyInRaw) ? (string) $moneyInRaw : '0');
+            $moneyOut = DecimalService::normalize(is_numeric($moneyOutRaw) ? (string) $moneyOutRaw : '0');
+
+            return (object) [
+                'account' => $account,
+                'money_in' => $moneyIn,
+                'money_out' => $moneyOut,
+                'balance' => bcsub($moneyIn, $moneyOut, 2),
+                'isFiltered' => $accountId !== '' && $accountId === (string) $account->id,
+            ];
+        });
+    }
+
+    /**
+     * The e-wallet ledger rows, filtered and paginated.
+     *
+     * @return LengthAwarePaginator<int, \stdClass>
+     */
+    private function ledgerRows(
+        string $search,
+        string $startDate,
+        string $endDate,
+        string $accountId
+    ): LengthAwarePaginator {
+        return DB::table('e_wallet_ledgers')
+            ->leftJoin('e_wallet_accounts', 'e_wallet_accounts.id', '=', 'e_wallet_ledgers.e_wallet_account_id')
+            ->select('e_wallet_ledgers.*', 'e_wallet_accounts.name as account_name')
+            ->when($accountId !== '', fn (QueryBuilder $query): QueryBuilder => $query->where('e_wallet_ledgers.e_wallet_account_id', $accountId))
+            ->when($search !== '', fn (QueryBuilder $query): QueryBuilder => $query->where(function (QueryBuilder $query) use ($search): void {
+                $query->where('e_wallet_ledgers.document_number', 'like', "%$search%")
+                    ->orWhere('e_wallet_ledgers.reference_number', 'like', "%$search%")
+                    ->orWhere('e_wallet_ledgers.description', 'like', "%$search%");
+            }))
+            ->when($startDate !== '', fn (QueryBuilder $query): QueryBuilder => $query->whereDate('e_wallet_ledgers.date', '>=', $startDate))
+            ->when($endDate !== '', fn (QueryBuilder $query): QueryBuilder => $query->whereDate('e_wallet_ledgers.date', '<=', $endDate))
+            ->whereNull('e_wallet_ledgers.deleted_at')
+            ->orderByDesc('e_wallet_ledgers.date')
+            ->orderByDesc('e_wallet_ledgers.created_at')
+            ->paginate(self::PER_PAGE_GRID_STANDARD)
+            ->withQueryString();
     }
 }

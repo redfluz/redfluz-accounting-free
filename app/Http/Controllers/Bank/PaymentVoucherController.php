@@ -29,7 +29,7 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Finance\PaymentTransferType;
@@ -80,7 +80,7 @@ class PaymentVoucherController extends Controller
         $startDate = $request->string('start_date')->toString();
         $endDate = $request->string('end_date')->toString();
         $vouchers = PaymentVoucher::query()
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
                 $query->where('document_number', 'like', "%$search%")
                     ->orWhere('company_name', 'like', "%$search%")
@@ -164,15 +164,18 @@ class PaymentVoucherController extends Controller
         $transferType = $data->paymentTransferType ?? PaymentTransferType::CHEQUE;
         DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
             PaymentVoucher::query()->create([
-                'id' => (string) Str::uuid(), 'document_number' => $documentNumber,
+                'id' => (string) Str::uuid(),
+                'document_number' => $documentNumber,
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
                 'status' => $data->status,
                 'payment_transfer_type' => $transferType,
                 ...$this->moneyAccountColumns($transferType, $data),
-                'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
-                'notes' => $data->notes, 'total_amount' => $amount,
+                'reference_number' => $data->referenceNumber,
+                'attachment_path' => $attachmentPath,
+                'notes' => $data->notes,
+                'total_amount' => $amount,
             ]);
         });
 
@@ -203,7 +206,9 @@ class PaymentVoucherController extends Controller
                 'date' => $data->date?->format('Y-m-d'),
                 'payment_transfer_type' => $transferType,
                 ...$this->moneyAccountColumns($transferType, $data),
-                'reference_number' => $data->referenceNumber, 'notes' => $data->notes, 'total_amount' => $amount,
+                'reference_number' => $data->referenceNumber,
+                'notes' => $data->notes,
+                'total_amount' => $amount,
             ]);
         });
 
@@ -239,14 +244,23 @@ class PaymentVoucherController extends Controller
     {
         DB::transaction(function () use ($documentNumber): void {
             $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->lockForUpdate()->firstOrFail();
-            abort_if($voucher->status === LedgerStatus::POSTED, 409);
+            abort_if($voucher->status === DocumentStatus::POSTED, 409);
             [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($voucher);
             $this->posting->postPayment(
-                $voucher, $voucher->document_number, $voucher->date, LedgerType::PAYMENT, LedgerSubType::PAYMENT_VOUCHER,
-                $debitChartId, $creditChartId, $amount,
-                companyId: $voucher->company_id, companyName: $voucher->company_name, referenceNumber: $voucher->reference_number, description: $voucher->notes,
+                $voucher,
+                $voucher->document_number,
+                $voucher->date,
+                LedgerType::PAYMENT,
+                LedgerSubType::PAYMENT_VOUCHER,
+                $debitChartId,
+                $creditChartId,
+                $amount,
+                companyId: $voucher->company_id,
+                companyName: $voucher->company_name,
+                referenceNumber: $voucher->reference_number,
+                description: $voucher->notes,
             );
-            $voucher->update(['status' => LedgerStatus::POSTED]);
+            $voucher->update(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($voucher);
         });
 
@@ -270,7 +284,7 @@ class PaymentVoucherController extends Controller
         DB::transaction(function () use ($documentNumbers, &$approved, &$failed): void {
             foreach ($documentNumbers as $documentNumber) {
                 $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->lockForUpdate()->first();
-                if (! $voucher || $voucher->status === LedgerStatus::POSTED) {
+                if (! $voucher || $voucher->status === DocumentStatus::POSTED) {
                     $failed[] = $documentNumber;
 
                     continue;
@@ -278,11 +292,20 @@ class PaymentVoucherController extends Controller
                 try {
                     [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($voucher);
                     $this->posting->postPayment(
-                        $voucher, $voucher->document_number, $voucher->date, LedgerType::PAYMENT, LedgerSubType::PAYMENT_VOUCHER,
-                        $debitChartId, $creditChartId, $amount,
-                        companyId: $voucher->company_id, companyName: $voucher->company_name, referenceNumber: $voucher->reference_number, description: $voucher->notes,
+                        $voucher,
+                        $voucher->document_number,
+                        $voucher->date,
+                        LedgerType::PAYMENT,
+                        LedgerSubType::PAYMENT_VOUCHER,
+                        $debitChartId,
+                        $creditChartId,
+                        $amount,
+                        companyId: $voucher->company_id,
+                        companyName: $voucher->company_name,
+                        referenceNumber: $voucher->reference_number,
+                        description: $voucher->notes,
                     );
-                    $voucher->update(['status' => LedgerStatus::POSTED]);
+                    $voucher->update(['status' => DocumentStatus::POSTED]);
                     $this->attributeApproved($voucher);
                     $approved++;
                 } catch (Throwable) {
@@ -411,11 +434,11 @@ class PaymentVoucherController extends Controller
         // is a document in its own right and needs its own attribution.
         $vouchers = PaymentVoucher::query()
             ->whereIn('document_number', $request->documentNumbers())
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->get();
 
         foreach ($vouchers as $voucher) {
-            $voucher->update(['status' => LedgerStatus::CANCELLED]);
+            $voucher->update(['status' => DocumentStatus::CANCELLED]);
             $this->attributeCancelled($voucher);
         }
 
@@ -492,6 +515,6 @@ class PaymentVoucherController extends Controller
             'setting' => Setting::query()->first(),
         ])
             ->setPaper('a4')
-            ->download("voucher_$documentNumber.pdf");
+            ->stream("voucher_$documentNumber.pdf");
     }
 }

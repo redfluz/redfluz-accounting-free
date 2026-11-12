@@ -47,6 +47,10 @@
                         </button>
                     </form>
                 @endif
+                <a class="btn btn-solid theme-primary btn-sm text-nowrap"
+                    href="{{ route('purchase.invoices.cancelled.pdf', $documentNumber) }}" target="_blank">
+                    <i class="me-1" data-lucide="printer"></i>{{ __('common.actions.print_pdf') }}
+                </a>
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('purchase.invoices.cancelled.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}
                 </a>

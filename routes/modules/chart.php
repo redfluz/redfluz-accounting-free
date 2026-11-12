@@ -38,7 +38,6 @@ use Illuminate\Support\Facades\Route;
 // The General Ledger is immutable accounting history: reporting routes only.
 
 Route::get('charts', [ChartController::class, 'index'])->name('chart-of-account.charts.index');
-Route::get('charts/export-excel', [ChartController::class, 'exportExcel'])->name('chart-of-account.charts.export-excel');
 Route::get('charts/create', [ChartController::class, 'create'])->name('chart-of-account.charts.create');
 Route::post('charts', [ChartController::class, 'store'])->name('chart-of-account.charts.store');
 Route::get('charts/{chart}/edit', [ChartController::class, 'edit'])->name('chart-of-account.charts.edit');
@@ -60,8 +59,6 @@ Route::get('chart-reports', [ChartReportController::class, 'index'])->name('char
 Route::get('chart-reports/create', [ChartReportController::class, 'create'])->name('chart-of-account.chart-reports.create');
 Route::post('chart-reports', [ChartReportController::class, 'store'])->name('chart-of-account.chart-reports.store');
 Route::get('chart-reports/{chartReport}/output', [ChartReportOutputController::class, 'show'])->name('chart-of-account.chart-reports.output');
-Route::get('chart-reports/{chartReport}/output/pdf', [ChartReportOutputController::class, 'exportPdf'])->name('chart-of-account.chart-reports.output.pdf');
-Route::get('chart-reports/{chartReport}/output/excel', [ChartReportOutputController::class, 'exportExcel'])->name('chart-of-account.chart-reports.output.excel');
 Route::get('chart-reports/{chartReport}/edit', [ChartReportController::class, 'edit'])->name('chart-of-account.chart-reports.edit');
 Route::put('chart-reports/{chartReport}', [ChartReportController::class, 'update'])->name('chart-of-account.chart-reports.update');
 Route::delete('chart-reports/{chartReport}', [ChartReportController::class, 'destroy'])->name('chart-of-account.chart-reports.destroy');
@@ -73,15 +70,9 @@ Route::put('chart-reports/{chartReport}/details/{chartReportDetail}', [ChartRepo
 Route::delete('chart-reports/{chartReport}/details/{chartReportDetail}', [ChartReportDetailController::class, 'destroy'])->name('chart-of-account.chart-reports.details.destroy');
 
 Route::get('profit-loss', [ProfitLossController::class, 'index'])->name('chart-of-account.profit-loss.index');
-Route::get('profit-loss/pdf', [ProfitLossController::class, 'exportPdf'])->name('chart-of-account.profit-loss.export-pdf');
-Route::get('profit-loss/excel', [ProfitLossController::class, 'exportExcel'])->name('chart-of-account.profit-loss.export-excel');
 Route::get('profit-loss/clean-pdf', [ProfitLossController::class, 'exportCleanPdf'])->name('chart-of-account.profit-loss.export-clean-pdf');
 
 Route::get('balance-sheet', [BalanceSheetController::class, 'index'])->name('chart-of-account.balance-sheet.index');
-Route::get('balance-sheet/pdf', [BalanceSheetController::class, 'exportPdf'])->name('chart-of-account.balance-sheet.export-pdf');
-Route::get('balance-sheet/excel', [BalanceSheetController::class, 'exportExcel'])->name('chart-of-account.balance-sheet.export-excel');
 Route::get('balance-sheet/clean-pdf', [BalanceSheetController::class, 'exportCleanPdf'])->name('chart-of-account.balance-sheet.export-clean-pdf');
 
 Route::get('trial-balance', [TrialBalanceController::class, 'index'])->name('chart-of-account.trial-balance.index');
-Route::get('trial-balance/pdf', [TrialBalanceController::class, 'exportPdf'])->name('chart-of-account.trial-balance.export-pdf');
-Route::get('trial-balance/excel', [TrialBalanceController::class, 'exportExcel'])->name('chart-of-account.trial-balance.export-excel');

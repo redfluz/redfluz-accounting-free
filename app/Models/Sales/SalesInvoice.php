@@ -26,24 +26,23 @@
 
 namespace App\Models\Sales;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\PaymentTransferType;
 use App\Enums\Sales\SalesType;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
-use App\Models\Finance\JournalEntry;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * A sales invoice: a request for payment sent to a customer.
@@ -60,7 +59,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $company_id
  * @property string|null $contact_id
  * @property SalesType $sales_type
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property string $document_number
  * @property string|null $reference_number
  * @property string|null $sales_order_id
@@ -93,27 +92,48 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $undone_by
  * @property string|null $undone_name
  * @property CarbonInterface|null $undone_at
- * @property string|null $reversal_id
  * @property-read Collection<int, SalesInvoiceLine> $lines
  *
  * @mixin Builder<self>
  */
 #[Table('sales_invoices', key: 'id')]
 #[Fillable([
-    'company_id', 'contact_id',
-    'sales_type', 'status',
-    'document_number', 'reference_number', 'sales_order_id', 'quotation_id',
-    'company_name', 'contact_name',
-    'date', 'due_date', 'attachment_path', 'subtotal', 'total_amount',
-    'payment_transfer_type', 'payment_attachment_path',
+    'company_id',
+    'contact_id',
+    'sales_type',
+    'status',
+    'document_number',
+    'reference_number',
+    'sales_order_id',
+    'quotation_id',
+    'company_name',
+    'contact_name',
+    'date',
+    'due_date',
+    'attachment_path',
+    'subtotal',
+    'total_amount',
+    'payment_transfer_type',
+    'payment_attachment_path',
     'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
-    'reversal_id',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
     'id',
 ])]
 class SalesInvoice extends Model
@@ -129,7 +149,7 @@ class SalesInvoice extends Model
     {
         return [
             'sales_type' => SalesType::class,
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'payment_transfer_type' => PaymentTransferType::class,
             'date' => 'date',
             'due_date' => 'date',
@@ -139,16 +159,6 @@ class SalesInvoice extends Model
             'cancelled_at' => 'datetime',
             'undone_at' => 'datetime',
         ];
-    }
-
-    /**
-     * The journal that reversed this document, if it was reversed.
-     *
-     * @return BelongsTo<JournalEntry, $this>
-     */
-    public function reversal(): BelongsTo
-    {
-        return $this->belongsTo(JournalEntry::class, 'reversal_id');
     }
 
     /**
@@ -206,7 +216,7 @@ class SalesInvoice extends Model
      */
     public function isPosted(): bool
     {
-        return $this->status === LedgerStatus::POSTED;
+        return $this->status === DocumentStatus::POSTED;
     }
 
     /**
@@ -214,7 +224,7 @@ class SalesInvoice extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->status === LedgerStatus::CANCELLED;
+        return $this->status === DocumentStatus::CANCELLED;
     }
 
     /**

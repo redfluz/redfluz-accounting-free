@@ -9,7 +9,7 @@
 
 namespace Database\Seeders\Concerns;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\Bank\Bank;
@@ -58,11 +58,13 @@ trait PostsSeededDocuments
             'e_wallet_account_id' => null,
         ];
 
-        foreach ([
-            'bank_account_id' => Bank::class,
-            'cash_account_id' => CashAccount::class,
-            'e_wallet_account_id' => EWalletAccount::class,
-        ] as $column => $accountClass) {
+        foreach (
+            [
+                'bank_account_id' => Bank::class,
+                'cash_account_id' => CashAccount::class,
+                'e_wallet_account_id' => EWalletAccount::class,
+            ] as $column => $accountClass
+        ) {
             $accountId = $accountClass::query()->where('chart_id', $moneyChartId)->value('id');
 
             if ($accountId !== null) {
@@ -118,7 +120,7 @@ trait PostsSeededDocuments
         string $creditChartId,
         string $amount,
     ): void {
-        if ($document->status !== LedgerStatus::POSTED) {
+        if ($document->status !== DocumentStatus::POSTED) {
             return;
         }
 

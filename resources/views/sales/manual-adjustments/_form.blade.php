@@ -3,6 +3,15 @@
 
     $adjustment = $adjustment ?? null;
     $selectedInvoice = $selectedInvoice ?? null;
+
+    // Older records carry the legacy adjustment values; show them as the
+    // equivalent note so the selector always names a note type.
+    $storedSubtype = match ($adjustment?->subtype) {
+        LedgerSubType::DECREASE_ADJUSTMENT, LedgerSubType::SALES_CREDIT_NOTE => LedgerSubType::SALES_CREDIT_NOTE->value,
+        LedgerSubType::INCREASE_ADJUSTMENT, LedgerSubType::MANUAL_SALES_ADJUSTMENT, LedgerSubType::SALES_DEBIT_NOTE => LedgerSubType::SALES_DEBIT_NOTE->value,
+        default => null,
+    };
+    $selectedSubtype = old('subtype', $storedSubtype);
 @endphp
 
 <ul class="sales-document-tabs nav nav-tabs" id="manual-adjustment-form-tabs">
@@ -42,17 +51,16 @@
                     for="subtype">{{ __('manual_sales_adjustments.form.note_type') }}</label>
                 <select class="form-control @error('subtype') is-invalid @enderror" id="subtype"
                     name="subtype" required>
-                    <option value="" disabled hidden
-                        @if (!old('subtype', $adjustment?->subtype?->value)) selected @endif>
+                    <option value="" disabled hidden @if (!$selectedSubtype) selected @endif>
                         {{ __('common.actions.select_option') }}
                     </option>
-                    <option value="{{ LedgerSubType::INCREASE_ADJUSTMENT->value }}"
-                        @selected(old('subtype', $adjustment?->subtype?->value) === LedgerSubType::INCREASE_ADJUSTMENT->value)>
-                        {{ LedgerSubType::INCREASE_ADJUSTMENT->label() }}
+                    <option value="{{ LedgerSubType::SALES_DEBIT_NOTE->value }}"
+                        @selected($selectedSubtype === LedgerSubType::SALES_DEBIT_NOTE->value)>
+                        {{ __('ledgers.sub_type.sales_debit_note') }}
                     </option>
-                    <option value="{{ LedgerSubType::DECREASE_ADJUSTMENT->value }}"
-                        @selected(old('subtype', $adjustment?->subtype?->value) === LedgerSubType::DECREASE_ADJUSTMENT->value)>
-                        {{ LedgerSubType::DECREASE_ADJUSTMENT->label() }}
+                    <option value="{{ LedgerSubType::SALES_CREDIT_NOTE->value }}"
+                        @selected($selectedSubtype === LedgerSubType::SALES_CREDIT_NOTE->value)>
+                        {{ __('ledgers.sub_type.sales_credit_note') }}
                     </option>
                 </select>
                 @error('subtype')

@@ -86,10 +86,10 @@
                         <small>{{ $ledger->description ?? '-' }}</small>
                     </td>
                     <td class="fw-bold fg-success text-end">
-                        {{ $ledger->debit_amount > 0 ? number_format($ledger->debit_amount, 2) : '-' }}
+                        {{ number_format((float) $ledger->debit_amount, 2) }}
                     </td>
                     <td class="fw-bold fg-danger text-end">
-                        {{ $ledger->credit_amount > 0 ? number_format($ledger->credit_amount, 2) : '-' }}
+                        {{ number_format((float) $ledger->credit_amount, 2) }}
                     </td>
                 </tr>
             @empty

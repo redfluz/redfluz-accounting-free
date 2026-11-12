@@ -26,19 +26,18 @@
 
 namespace App\Models\Finance;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -47,14 +46,13 @@ use Spatie\Activitylog\Support\LogOptions;
  * @mixin Builder<JournalEntry>
  *
  * @property string $id
- * @property string|null $reversal_of_id
- * @property string|null $reversal_id
  * @property string $document_number
  * @property string|null $reference_number
+ * @property string|null $document_original
  * @property CarbonInterface $date
  * @property numeric-string $total_debit
  * @property numeric-string $total_credit
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property string|null $notes
  * @property string|null $created_by
  * @property string|null $created_name
@@ -78,29 +76,38 @@ use Spatie\Activitylog\Support\LogOptions;
  * @noinspection PhpUnused
  *
  * @property-read Collection<int, JournalEntryChart> $charts
- * @property-read JournalEntry|null $reversalOf
- * @property-read JournalEntry|null $reversal
  * @property-read Collection<int, Activity> $activities
  * @property-read Collection<int, Activity> $activitiesAsCauser
  * @property-read Collection<int, Activity> $activitiesAsSubject
  */
 #[Table('journal_entries', key: 'id')]
 #[Fillable([
-    'reversal_of_id',
-    'reversal_id',
     'document_number',
     'reference_number',
+    'document_original',
     'date',
     'total_debit',
     'total_credit',
     'status',
     'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
 ])]
 class JournalEntry extends Model
 {
@@ -115,14 +122,13 @@ class JournalEntry extends Model
     {
         return [
             'id' => 'string',
-            'reversal_of_id' => 'string',
-            'reversal_id' => 'string',
             'document_number' => 'string',
             'reference_number' => 'string',
+            'document_original' => 'string',
             'date' => 'date',
             'total_debit' => 'decimal:2',
             'total_credit' => 'decimal:2',
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'notes' => 'string',
             'approved_at' => 'datetime',
             'cancelled_at' => 'datetime',
@@ -141,28 +147,6 @@ class JournalEntry extends Model
         return $this->hasMany(JournalEntryChart::class, 'journal_entry_id', 'id')
             ->oldest()
             ->orderBy('id');
-    }
-
-    /**
-     * Define an inverse one-to-one or many relationship.
-     * Get the original posted journal entry reversed by this entry.
-     *
-     * @return BelongsTo<JournalEntry, $this>
-     */
-    public function reversalOf(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'reversal_of_id', 'id');
-    }
-
-    /**
-     * Define a one-to-one relationship.
-     * Get the posted reversal created for this journal entry.
-     *
-     * @return BelongsTo<JournalEntry, $this>
-     */
-    public function reversal(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'reversal_id', 'id');
     }
 
     /**

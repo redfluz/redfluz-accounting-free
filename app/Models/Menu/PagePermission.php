@@ -30,12 +30,12 @@ use App\Models\System\Role;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -76,7 +76,7 @@ use Spatie\Activitylog\Support\LogOptions;
 ])]
 class PagePermission extends Model
 {
-    use HasActivity,HasUuids, SoftDeletes;
+    use HasActivity, HasUuids, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.

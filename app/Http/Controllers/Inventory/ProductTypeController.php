@@ -12,7 +12,6 @@ use App\Models\Inventory\ProductCategory;
 use App\Models\Inventory\ProductType;
 use App\Support\Data\Inventory\ProductTypeData;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,11 +33,11 @@ class ProductTypeController extends Controller
         $search = $request->string('search')->toString();
         $types = ProductType::query()
             ->with('category')
-            ->withCount(['products' => fn (Builder $query) => $query->whereNull('parent_product_id')])
+            ->withCount(['products' => fn ($query) => $query->whereNull('parent_product_id')])
             ->when($search !== '', fn ($query) => $query->where(
                 fn ($subQuery) => $subQuery->where('code', 'like', "%$search%")
                     ->orWhere('name', 'like', "%$search%")
-                    ->orWhereHas('category', fn (Builder $categoryQuery) => $categoryQuery->where('name', 'like', "%$search%"))
+                    ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', "%$search%"))
             ))
             ->orderBy('name')
             ->paginate(self::PER_PAGE_GRID_NORMAL)

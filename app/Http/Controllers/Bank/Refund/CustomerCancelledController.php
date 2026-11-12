@@ -27,7 +27,7 @@
 namespace App\Http\Controllers\Bank\Refund;
 
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\System\Setting;
@@ -42,16 +42,6 @@ use Throwable;
 
 /**
  * Cancelled refunds, and the one thing that can be done to them.
- *
- * A cancelled refund is kept rather than removed. It is part of the record of
- * what was asked for and what happened to it, and deleting it would leave the
- * approval trail with a gap where a decision used to be.
- *
- * The only action here is restoring one. A cancelled refund has not moved money,
- * so restoring it returns it to pending and it can be posted as though it had
- * never been cancelled. Who restored it, and when, is recorded, because a
- * receipt that was cancelled and then brought back is a document somebody looked
- * at twice.
  */
 class CustomerCancelledController extends Controller
 {
@@ -81,7 +71,17 @@ class CustomerCancelledController extends Controller
         /** @var string $endDate */
         $endDate = $request->input('end_date') ?? '';
 
-        $refunds = $this->buildQuery($search, $startDate, $endDate)
+        $refunds = CustomerRefund::query()
+            ->where('status', DocumentStatus::CANCELLED)
+            ->when($search !== '', fn (Builder $query) => $query->where(
+                fn (Builder $q) => $q->where('document_number', 'like', "%$search%")
+                    ->orWhere('reference_number', 'like', "%$search%")
+                    ->orWhere('company_name', 'like', "%$search%")
+            ))
+            ->when(filled($startDate), fn (Builder $query) => $query->whereDate('date', '>=', $startDate))
+            ->when(filled($endDate), fn (Builder $query) => $query->whereDate('date', '<=', $endDate))
+            ->orderByDesc('date')
+            ->orderByDesc('document_number')
             ->paginate(self::PER_PAGE_GRID_NORMAL)
             ->withQueryString();
 
@@ -100,7 +100,7 @@ class CustomerCancelledController extends Controller
 
         $refund = CustomerRefund::query()
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::CANCELLED)
+            ->where('status', DocumentStatus::CANCELLED)
             ->firstOrFail();
 
         return view('bank.customer-refund.cancelled.show', compact('refund', 'documentNumber'));
@@ -118,7 +118,7 @@ class CustomerCancelledController extends Controller
 
         $refund = CustomerRefund::query()
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::CANCELLED)
+            ->where('status', DocumentStatus::CANCELLED)
             ->firstOrFail();
 
         return Pdf::loadView('bank.customer-refund.pdf', [
@@ -127,35 +127,7 @@ class CustomerCancelledController extends Controller
             'setting' => Setting::query()->first(),
         ])
             ->setPaper('a4')
-            ->download("refund_$documentNumber.pdf");
-    }
-
-    /**
-     * Print the whole cancelled listing.
-     *
-     * @param  Request  $request  The incoming request containing list filters.
-     * @return Response Returns the PDF download response.
-     */
-    public function exportPdf(Request $request): Response
-    {
-        $this->allows($this->resource());
-
-        /** @var string $search */
-        $search = $request->input('search', '');
-        $search = trim($search);
-        /** @var string $startDate */
-        $startDate = $request->input('start_date') ?? '';
-        /** @var string $endDate */
-        $endDate = $request->input('end_date') ?? '';
-
-        return Pdf::loadView('bank.customer-refund.cancelled.pdf', [
-            'refunds' => $this->buildQuery($search, $startDate, $endDate)->get(),
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'setting' => Setting::query()->first(),
-        ])
-            ->setPaper('a4', 'landscape')
-            ->download('cancelled_refunds_'.now()->format('Ymd_His').'.pdf');
+            ->stream("refund_$documentNumber.pdf");
     }
 
     /**
@@ -173,16 +145,13 @@ class CustomerCancelledController extends Controller
         DB::transaction(function () use ($documentNumber): void {
             $refund = CustomerRefund::query()
                 ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::CANCELLED)
+                ->where('status', DocumentStatus::CANCELLED)
                 ->lockForUpdate()
                 ->first();
 
-            // A second click matches nothing, because the receipt is no longer
-            // cancelled. Reporting that and redirecting is better than claiming
-            // a restore that did not happen.
             abort_if($refund === null, 404);
 
-            $refund->update(['status' => LedgerStatus::PENDING]);
+            $refund->update(['status' => DocumentStatus::PENDING]);
 
             $this->attributeUndone($refund);
         });
@@ -190,28 +159,5 @@ class CustomerCancelledController extends Controller
         return redirect()
             ->route('bank.receipts.index')
             ->with('success', __('common.messages.uncancelled'));
-    }
-
-    /**
-     * The cancelled refunds matching the filters.
-     *
-     * @param  string  $search  Free text across the number, reference and customer.
-     * @param  string|null  $startDate  Earliest document date.
-     * @param  string|null  $endDate  Latest document date.
-     * @return Builder<CustomerRefund>
-     */
-    private function buildQuery(string $search, ?string $startDate, ?string $endDate): Builder
-    {
-        return CustomerRefund::query()
-            ->where('status', LedgerStatus::CANCELLED)
-            ->when($search !== '', fn (Builder $query) => $query->where(
-                fn (Builder $q) => $q->where('document_number', 'like', "%$search%")
-                    ->orWhere('reference_number', 'like', "%$search%")
-                    ->orWhere('company_name', 'like', "%$search%")
-            ))
-            ->when(filled($startDate), fn (Builder $query) => $query->whereDate('date', '>=', $startDate))
-            ->when(filled($endDate), fn (Builder $query) => $query->whereDate('date', '<=', $endDate))
-            ->orderByDesc('date')
-            ->orderByDesc('document_number');
     }
 }

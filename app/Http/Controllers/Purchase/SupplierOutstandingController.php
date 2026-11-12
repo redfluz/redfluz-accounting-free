@@ -12,7 +12,7 @@
 
 namespace App\Http\Controllers\Purchase;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
@@ -63,7 +63,7 @@ class SupplierOutstandingController extends Controller
             ->where('orders.purchase_type', PurchaseOrderType::PURCHASE->value)
             ->selectRaw(
                 'orders.document_number as reference_number, '
-                .'SUM(order_lines.quantity) as ordered_quantity'
+                    .'SUM(order_lines.quantity) as ordered_quantity'
             )
             ->groupBy('orders.document_number');
         $receivedQuantities = ProductLedger::query()
@@ -75,7 +75,7 @@ class SupplierOutstandingController extends Controller
             ->groupBy('reference_number');
         $paymentTotals = PaymentVoucher::query()
             ->selectRaw('reference_number, SUM(total_amount) as paid_amount')
-            ->where('status', LedgerStatus::POSTED)
+            ->where('status', DocumentStatus::POSTED)
             ->whereNotNull('reference_number')
             ->groupBy('reference_number');
 
@@ -95,15 +95,15 @@ class SupplierOutstandingController extends Controller
             })
             ->selectRaw(
                 'invoices.id, invoices.document_number as document_number, '
-                .'invoices.company_name, '
-                .'invoices.date as invoice_date, '
-                .'invoices.due_date, '
-                .'invoices.total_amount as invoice_amount, '
-                .'COALESCE(payment_totals.paid_amount, 0) as paid_amount, '
-                .'COALESCE(ordered_quantities.ordered_quantity, 0) as ordered_quantity, '
-                .'COALESCE(received_quantities.received_quantity, 0) as received_quantity'
+                    .'invoices.company_name, '
+                    .'invoices.date as invoice_date, '
+                    .'invoices.due_date, '
+                    .'invoices.total_amount as invoice_amount, '
+                    .'COALESCE(payment_totals.paid_amount, 0) as paid_amount, '
+                    .'COALESCE(ordered_quantities.ordered_quantity, 0) as ordered_quantity, '
+                    .'COALESCE(received_quantities.received_quantity, 0) as received_quantity'
             )
-            ->where('invoices.status', LedgerStatus::POSTED)
+            ->where('invoices.status', DocumentStatus::POSTED)
             ->where('invoices.purchase_type', PurchaseOrderType::PURCHASE->value)
             ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search): void {
                 $subQuery->where('invoices.document_number', 'like', "%$search%")
@@ -126,7 +126,7 @@ class SupplierOutstandingController extends Controller
             $setting = Setting::query()->first();
 
             return $request->input('export') === 'pdf'
-                ? Pdf::loadView('purchase.supplier-outstanding.pdf', ['setting' => $setting, ...compact('exportInvoices', 'asOfDate')])->setPaper('a4', 'landscape')->download('supplier-outstanding-'.now()->format('Ymd_His').'.pdf')
+                ? Pdf::loadView('purchase.supplier-outstanding.pdf', ['setting' => $setting, ...compact('exportInvoices', 'asOfDate')])->setPaper('a4', 'landscape')->stream('supplier-outstanding-'.now()->format('Ymd_His').'.pdf')
                 : $this->excel($exportInvoices);
         }
 
@@ -143,34 +143,9 @@ class SupplierOutstandingController extends Controller
             'startDate',
             'endDate',
             'asOfDate',
-            'status', 'totals'
+            'status',
+            'totals'
         ));
-    }
-
-    /**
-     * Export the supplier outstanding report as an Excel file.
-     *
-     * @param  IndexSupplierOutstandingRequest  $request  The HTTP request instance.
-     * @return View|Response|StreamedResponse Returns the streamed Excel download.
-     */
-    public function exportExcel(IndexSupplierOutstandingRequest $request): View|Response|StreamedResponse
-    {
-        $request->merge(['export' => 'excel']);
-
-        return $this->index($request);
-    }
-
-    /**
-     * Export the supplier outstanding report as a PDF file.
-     *
-     * @param  IndexSupplierOutstandingRequest  $request  The HTTP request instance.
-     * @return View|Response|StreamedResponse Returns the streamed PDF download.
-     */
-    public function exportPdf(IndexSupplierOutstandingRequest $request): View|Response|StreamedResponse
-    {
-        $request->merge(['export' => 'pdf']);
-
-        return $this->index($request);
     }
 
     /**

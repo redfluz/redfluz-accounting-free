@@ -29,7 +29,7 @@ namespace App\Http\Controllers\Sales;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
@@ -40,15 +40,11 @@ use App\Http\Requests\Sales\ManualAdjustment\UpdateManualSalesAdjustmentRequest;
 use App\Http\Requests\Sales\ManualSalesAdjustment\BatchApproveManualSalesAdjustmentRequest;
 use App\Http\Requests\Sales\ManualSalesAdjustment\BatchCancelManualSalesAdjustmentRequest;
 use App\Models\ChartOfAccount\Chart;
-use App\Models\Crm\ArLedger;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
 use App\Models\Finance\Currency;
-use App\Models\Finance\JournalEntry;
-use App\Models\Finance\JournalEntryChart;
-use App\Models\Finance\Ledger as FinanceLedger;
-use App\Models\Finance\ManualSalesAdjustment;
-use App\Models\Finance\ManualSalesAdjustmentChart;
+use App\Models\Sales\ManualSalesAdjustment;
+use App\Models\Sales\ManualSalesAdjustmentChart;
 use App\Models\Sales\SalesInvoice;
 use App\Models\System\Setting;
 use App\Support\Data\Sales\ManualSalesAdjustmentData;
@@ -67,7 +63,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -159,10 +154,15 @@ class ManualSalesAdjustmentController extends Controller
         $isPosted = $adjustment->isPosted();
         $indexRoute = 'sales.manual-adjustments.index';
 
+        $reversalNumber = ManualSalesAdjustment::query()
+            ->where('document_original', $adjustment->document_number)
+            ->value('document_number');
+
         return view('sales.manual-adjustments.show', compact(
             'adjustment',
             'isPosted',
-            'indexRoute'
+            'indexRoute',
+            'reversalNumber'
         ) + $this->financialPostingDateBounds());
     }
 
@@ -190,7 +190,7 @@ class ManualSalesAdjustmentController extends Controller
             'setting' => Setting::query()->first(),
         ])
             ->setPaper('a4')
-            ->download("manual_sales_adjustment_$documentNumber.pdf");
+            ->stream("manual_sales_adjustment_$documentNumber.pdf");
     }
 
     /**
@@ -241,7 +241,7 @@ class ManualSalesAdjustmentController extends Controller
         $search = trim(is_string($validated['search'] ?? null) ? (string) $validated['search'] : '');
 
         $results = SalesInvoice::query()
-            ->where('status', LedgerStatus::POSTED)
+            ->where('status', DocumentStatus::POSTED)
             ->where('company_id', is_string($validated['company_id'] ?? null) ? $validated['company_id'] : '')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($subQuery) use ($search) {
@@ -299,14 +299,14 @@ class ManualSalesAdjustmentController extends Controller
         $this->ensureFinancialPostingDate($adjustmentDate);
         $this->linkInvoice($data);
 
-        $preparedLines = $this->prepareLines($lineInputs);
+        $preparedLines = $this->prepareLines($lineInputs, $data->subtype);
 
         $attachmentPath = $request->hasFile('attachment')
             ? $request->file('attachment')->store('ledger_attachments', 'public')
             : null;
         $data->attachmentPath = is_string($attachmentPath) ? $attachmentPath : null;
 
-        $docNumber = $this->generateDocumentNumber(LedgerSubType::MANUAL_SALES_ADJUSTMENT);
+        $docNumber = $this->generateDocumentNumber($data->subtype);
         $total = $preparedLines['total'];
         $data->subtotal = $total;
         $data->totalAmount = $total;
@@ -315,7 +315,7 @@ class ManualSalesAdjustmentController extends Controller
             /** @var ManualSalesAdjustment $adjustment */
             $adjustment = ManualSalesAdjustment::query()->create([
                 'document_number' => $docNumber,
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
             ] + $data->toRow());
 
             /** @var array<string, mixed> $line */
@@ -425,7 +425,7 @@ class ManualSalesAdjustmentController extends Controller
 
         /** @var array<int, array<string, mixed>> $lineInputs */
         $lineInputs = array_values(is_array($lines = $request->validated('lines')) ? $lines : []);
-        $preparedLines = $this->prepareLines($lineInputs);
+        $preparedLines = $this->prepareLines($lineInputs, $data->subtype);
 
         $adjustmentDate = $date->format('Y-m-d');
         $attachmentPath = $request->hasFile('attachment')
@@ -489,7 +489,7 @@ class ManualSalesAdjustmentController extends Controller
 
             abort_if($adjustment === null, 404);
 
-            if ($adjustment->status === LedgerStatus::POSTED) {
+            if ($adjustment->status === DocumentStatus::POSTED) {
                 throw ValidationException::withMessages([
                     'document_number' => __('manual_sales_adjustments.validation.posted_delete_forbidden'),
                 ]);
@@ -530,81 +530,11 @@ class ManualSalesAdjustmentController extends Controller
                 ->first();
 
             abort_if($adjustment === null, 404);
-            abort_if($adjustment->status === LedgerStatus::POSTED, 409);
+            abort_if($adjustment->status === DocumentStatus::POSTED, 409);
 
-            /** @var Collection<int, ManualSalesAdjustmentChart> $charts */
-            $charts = $adjustment->charts()->get();
+            $this->postToLedgers($adjustment);
 
-            abort_if($charts->isEmpty(), 404);
-
-            /** @var numeric-string $totalDebit */
-            $totalDebit = $charts->reduce(
-                /** @param numeric-string $total */
-                fn (string $total, ManualSalesAdjustmentChart $chart): string => bcadd($total, (string) $chart->debit_amount, 2),
-                '0.00'
-            );
-            /** @var numeric-string $totalCredit */
-            $totalCredit = $charts->reduce(
-                /** @param numeric-string $total */
-                fn (string $total, ManualSalesAdjustmentChart $chart): string => bcadd($total, (string) $chart->credit_amount, 2),
-                '0.00'
-            );
-
-            if (bccomp($totalDebit, $totalCredit, 2) !== 0) {
-                throw ValidationException::withMessages([
-                    'document_number' => __('manual_sales_adjustments.validation.unbalanced_entry'),
-                ]);
-            }
-
-            // GL: direct from manual_sales_adjustment_charts
-            /** @var Collection<string, Chart> $accounts */
-            $accounts = Chart::query()
-                ->whereIn('id', $charts->map(fn (ManualSalesAdjustmentChart $c): ?string => $c->chart_id)->filter()->unique())
-                ->get()
-                ->keyBy('id');
-
-            /** @var Collection<string, string> $accountDescriptions */
-            $accountDescriptions = $accounts->pluck('name', 'id');
-
-            $glDtos = [];
-            foreach ($charts as $chart) {
-                $glDtos[] = GeneralLedgerData::fromManualSalesAdjustmentLine($adjustment, $chart, $accountDescriptions);
-            }
-
-            // AR: every chart line, each against the account it was booked to, so
-            // the receivable ledger holds exactly the rows the general ledger holds
-            // for this adjustment - the control-account line among them, not only it.
-            $arDtos = [];
-            /** @var string|null $defaultCurrencyId */
-            $defaultCurrencyId = Currency::query()->where('is_default', true)->value('id');
-            $currencyId = is_string($defaultCurrencyId) ? $defaultCurrencyId : '';
-
-            foreach ($charts as $chart) {
-                $account = $accounts->get((string) $chart->chart_id);
-
-                if ($account === null) {
-                    continue;
-                }
-
-                $debit = (string) ($chart->debit_amount ?? '0.00');
-                $credit = (string) ($chart->credit_amount ?? '0.00');
-
-                if (bccomp($debit, '0.00', 2) !== 0 || bccomp($credit, '0.00', 2) !== 0) {
-                    $arDtos[] = ArLedgerData::fromManualSalesAdjustmentChartLine(
-                        $adjustment,
-                        $chart,
-                        $account,
-                        $currencyId,
-                        $debit,
-                        $credit,
-                    );
-                }
-            }
-
-            $this->posting->generalLedger($glDtos);
-            $this->posting->accountReceivableLedger($arDtos);
-
-            $adjustment->update(['status' => LedgerStatus::POSTED]);
+            $adjustment->update(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($adjustment);
         });
 
@@ -614,7 +544,15 @@ class ManualSalesAdjustmentController extends Controller
     }
 
     /**
-     * Reverse a posted manual sales adjustment by creating a new reversing journal entry.
+     * Undo a posted manual sales adjustment by raising the opposite note.
+     *
+     * The undo is a document of its own, never a journal: a customer credit
+     * note when the original raised the receivable, a customer debit note when
+     * it reduced it. The note carries the original's document number in
+     * document_original, repeats the original's lines with the sides swapped,
+     * and is posted on creation. The original keeps its ledger rows, so the
+     * customer's statement shows the note and its opposite netting to zero,
+     * and the original is marked undone.
      *
      * @param  ReverseManualSalesAdjustmentRequest  $request  The incoming HTTP request carrying the reversal reason.
      * @param  string  $documentNumber  The manual adjustment document number.
@@ -638,110 +576,164 @@ class ManualSalesAdjustmentController extends Controller
                 ->first();
 
             abort_if($adjustment === null, 404);
-            abort_if($adjustment->reversal_journal_id !== null, 409, __('journal_entries.reversal_already_exists'));
-            abort_if($adjustment->undone_at !== null, 409, __('journal_entries.reversal_already_exists'));
+            abort_if($adjustment->status !== DocumentStatus::POSTED, 409);
+            abort_if($adjustment->document_original !== null, 409, __('manual_sales_adjustments.validation.reversal_cannot_reverse'));
+            abort_if($adjustment->undone_at !== null, 409, __('manual_sales_adjustments.validation.reversal_already_exists'));
 
-            /** @var Collection<int, FinanceLedger> $postedLedgers */
-            $postedLedgers = FinanceLedger::query()
-                ->where('document_number', $documentNumber)
-                ->whereNull('deleted_at')
-                ->lockForUpdate()
-                ->get();
+            /** @var Collection<int, ManualSalesAdjustmentChart> $charts */
+            $charts = $adjustment->charts()->get();
 
-            abort_if($postedLedgers->isEmpty(), 404);
+            abort_if($charts->isEmpty(), 404);
 
-            $creditTotal = $postedLedgers->sum(fn (FinanceLedger $ledger): float => is_numeric($ledger->getAttribute('credit_amount')) ? (float) $ledger->getAttribute('credit_amount') : 0.0);
-            $debitTotal = $postedLedgers->sum(fn (FinanceLedger $ledger): float => is_numeric($ledger->getAttribute('debit_amount')) ? (float) $ledger->getAttribute('debit_amount') : 0.0);
-            $totalDebit = number_format($creditTotal, 2, '.', '');
-            $totalCredit = number_format($debitTotal, 2, '.', '');
+            // The opposite note: an increase is undone by a credit note, a
+            // decrease by a debit note.
+            $noteSubtype = match ($adjustment->subtype) {
+                LedgerSubType::DECREASE_ADJUSTMENT, LedgerSubType::SALES_CREDIT_NOTE => LedgerSubType::SALES_DEBIT_NOTE,
+                default => LedgerSubType::SALES_CREDIT_NOTE,
+            };
 
-            abort_if(
-                bccomp($totalDebit, '0.00', 2) !== 1 || bccomp($totalDebit, $totalCredit, 2) !== 0,
-                422,
-                __('manual_sales_adjustments.validation.unbalanced_entry')
-            );
+            $noteNumber = $this->generateDocumentNumber($noteSubtype);
 
-            $reversalEntry = JournalEntry::query()->create([
-                'reversal_of_id' => null,
-                'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
-                'reference_number' => $documentNumber,
+            /** @var ManualSalesAdjustment $note */
+            $note = ManualSalesAdjustment::query()->create([
+                'company_id' => $adjustment->company_id,
+                'contact_id' => $adjustment->contact_id,
+                'document_number' => $noteNumber,
+                'subtype' => $noteSubtype,
+                'reference_number' => $adjustment->reference_number,
+                'document_original' => $documentNumber,
+                'sales_invoice_id' => $adjustment->sales_invoice_id,
+                'company_name' => $adjustment->company_name,
+                'contact_name' => $adjustment->contact_name,
                 'date' => $reversalDate,
-                'total_debit' => $totalDebit,
-                'total_credit' => $totalCredit,
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
+                'subtotal' => $adjustment->subtotal,
+                'total_amount' => $adjustment->total_amount,
                 'notes' => $validated['reason'],
             ]);
 
-            $now = now();
-            $itemRows = $postedLedgers->values()->map(function (FinanceLedger $ledger) use ($reversalEntry, $documentNumber, $now): array {
-                return [
-                    'id' => (string) Str::uuid7(),
-                    'journal_entry_id' => $reversalEntry->id,
-                    'chart_id' => $ledger->chart_id,
-                    'company_id' => $ledger->company_id,
-                    'currency_id' => $ledger->currency_id,
-                    'type' => LedgerType::JOURNAL->value,
-                    'subtype' => LedgerSubType::JOURNAL->value,
-                    'document_number' => $reversalEntry->document_number,
-                    'reference_number' => $documentNumber,
-                    'date' => $reversalEntry->date,
-                    'chart_code' => $ledger->chart_code,
-                    'chart_name' => $ledger->chart_name,
-                    'company_name' => $ledger->company_name,
-                    'description' => null,
+            /** @var ManualSalesAdjustmentChart $chart */
+            foreach ($charts as $chart) {
+                $note->charts()->create([
+                    'chart_id' => $chart->chart_id,
+                    'company_id' => $chart->company_id,
+                    'currency_id' => $chart->currency_id,
+                    'type' => $chart->type,
+                    'subtype' => $noteSubtype,
+                    'document_number' => $noteNumber,
+                    'reference_number' => $chart->reference_number ?? $adjustment->reference_number,
+                    'date' => $reversalDate,
+                    'chart_code' => $chart->chart_code,
+                    'chart_name' => $chart->chart_name,
+                    'company_name' => $chart->company_name,
+                    'description' => $chart->description,
                     'line_description' => __('manual_sales_adjustments.reversal_line_description', [
-                        'entry_number' => $ledger->document_number,
-                        'description' => $ledger->line_description ?? $ledger->description ?? '-',
+                        'entry_number' => $documentNumber,
+                        'description' => $chart->line_description ?? $chart->description ?? '-',
                     ]),
-                    'debit_amount' => $ledger->credit_amount,
-                    'credit_amount' => $ledger->debit_amount,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'deleted_at' => null,
-                ];
-            })->all();
+                    'debit_amount' => $chart->credit_amount,
+                    'credit_amount' => $chart->debit_amount,
+                ]);
+            }
 
-            JournalEntryChart::query()->insert($itemRows);
-
-            $ledgerRows = collect($itemRows)->map(fn (array $item): array => [
-                'id' => $item['id'],
-                'chart_id' => $item['chart_id'],
-                'company_id' => $item['company_id'],
-                'currency_id' => $item['currency_id'],
-                'type' => $item['type'],
-                'subtype' => $item['subtype'],
-                'document_number' => $item['document_number'],
-                'reference_number' => $item['reference_number'],
-                'date' => $item['date'],
-                'chart_code' => $item['chart_code'],
-                'chart_name' => $item['chart_name'],
-                'company_name' => $item['company_name'],
-                'description' => $validated['reason'],
-                'line_description' => $item['line_description'],
-                'debit_amount' => $item['debit_amount'],
-                'credit_amount' => $item['credit_amount'],
-                'created_at' => $item['created_at'],
-                'updated_at' => $item['updated_at'],
-                'deleted_at' => null,
-            ])->all();
-
-            FinanceLedger::query()->insert($ledgerRows);
-
-            // The receivable rows this note wrote at approval leave the
-            // customer's statement the same way. The reversal above already
-            // undid the general ledger; soft-deleting the sub-ledger rows is
-            // what removes the note from the customer's statement.
-            ArLedger::query()
-                ->where('document_number', $documentNumber)
-                ->update(['deleted_at' => now()]);
-
-            $adjustment->update(['reversal_journal_id' => $reversalEntry->id]);
+            $this->postToLedgers($note);
+            $this->attributeApproved($note);
             $this->attributeUndone($adjustment);
         });
 
         return redirect()
             ->route('sales.manual-adjustments.show', $documentNumber)
             ->with('success', FlashMessage::approved(FileResources::MANUAL_SALES_ADJUSTMENTS));
+    }
+
+    /**
+     * Post an adjustment's chart lines into the general and receivable ledgers.
+     *
+     * The general ledger receives every line as keyed, and the receivable
+     * sub-ledger receives those same lines against those same accounts, so the
+     * customer's statement moves with the note the same way a product
+     * invoice's does. Shared by approval and by the opposite note an undo
+     * raises, so both write the ledgers the same way.
+     *
+     * @param  ManualSalesAdjustment  $adjustment  The adjustment whose chart lines are posted.
+     *
+     * @throws ValidationException When the lines do not balance.
+     */
+    private function postToLedgers(ManualSalesAdjustment $adjustment): void
+    {
+        /** @var Collection<int, ManualSalesAdjustmentChart> $charts */
+        $charts = $adjustment->charts()->get();
+
+        abort_if($charts->isEmpty(), 404);
+
+        /** @var numeric-string $totalDebit */
+        $totalDebit = $charts->reduce(
+            /** @param numeric-string $total */
+            fn (string $total, ManualSalesAdjustmentChart $chart): string => bcadd($total, (string) $chart->debit_amount, 2),
+            '0.00'
+        );
+        /** @var numeric-string $totalCredit */
+        $totalCredit = $charts->reduce(
+            /** @param numeric-string $total */
+            fn (string $total, ManualSalesAdjustmentChart $chart): string => bcadd($total, (string) $chart->credit_amount, 2),
+            '0.00'
+        );
+
+        if (bccomp($totalDebit, $totalCredit, 2) !== 0) {
+            throw ValidationException::withMessages([
+                'document_number' => __('manual_sales_adjustments.validation.unbalanced_entry'),
+            ]);
+        }
+
+        // GL: direct from manual_sales_adjustment_charts
+        /** @var Collection<string, Chart> $accounts */
+        $accounts = Chart::query()
+            ->whereIn('id', $charts->map(fn (ManualSalesAdjustmentChart $c): ?string => $c->chart_id)->filter()->unique())
+            ->get()
+            ->keyBy('id');
+
+        /** @var Collection<string, string> $accountDescriptions */
+        $accountDescriptions = $accounts->pluck('name', 'id');
+
+        $glDtos = [];
+        /** @var ManualSalesAdjustmentChart $chart */
+        foreach ($charts as $chart) {
+            $glDtos[] = GeneralLedgerData::fromManualSalesAdjustmentLine($adjustment, $chart, $accountDescriptions);
+        }
+
+        // AR: every chart line, each against the account it was booked to, so
+        // the receivable ledger holds exactly the rows the general ledger holds
+        // for this adjustment - the control-account line among them, not only it.
+        $arDtos = [];
+        /** @var string|null $defaultCurrencyId */
+        $defaultCurrencyId = Currency::query()->where('is_default', true)->value('id');
+        $currencyId = is_string($defaultCurrencyId) ? $defaultCurrencyId : '';
+
+        /** @var ManualSalesAdjustmentChart $chart */
+        foreach ($charts as $chart) {
+            $account = $accounts->get((string) $chart->chart_id);
+
+            if ($account === null) {
+                continue;
+            }
+
+            $debit = (string) ($chart->debit_amount ?? '0.00');
+            $credit = (string) ($chart->credit_amount ?? '0.00');
+
+            if (bccomp($debit, '0.00', 2) !== 0 || bccomp($credit, '0.00', 2) !== 0) {
+                $arDtos[] = ArLedgerData::fromManualSalesAdjustmentChartLine(
+                    $adjustment,
+                    $chart,
+                    $account,
+                    $currencyId,
+                    $debit,
+                    $credit,
+                );
+            }
+        }
+
+        $this->posting->generalLedger($glDtos);
+        $this->posting->accountReceivableLedger($arDtos);
     }
 
     /**
@@ -792,8 +784,8 @@ class ManualSalesAdjustmentController extends Controller
 
         $affected = ManualSalesAdjustment::query()
             ->whereIn('document_number', $validated['document_numbers'] ?? [])
-            ->where('status', LedgerStatus::PENDING)
-            ->update(['status' => LedgerStatus::CANCELLED]);
+            ->where('status', DocumentStatus::PENDING)
+            ->update(['status' => DocumentStatus::CANCELLED]);
 
         return redirect()
             ->route('sales.manual-adjustments.cancelled.index')
@@ -850,7 +842,7 @@ class ManualSalesAdjustmentController extends Controller
     private function linkInvoice(ManualSalesAdjustmentData $data): void
     {
         $linkedInvoice = SalesInvoice::query()
-            ->where('status', LedgerStatus::POSTED)
+            ->where('status', DocumentStatus::POSTED)
             ->where('company_id', $data->companyId)
             ->whereKey($data->salesInvoiceId)
             ->first();
@@ -884,14 +876,16 @@ class ManualSalesAdjustmentController extends Controller
      * Every kept line names exactly one side — a debit or a credit, never both —
      * and resolves to a real chart account. The sides must balance, so the entry
      * leaves this method already double-entry clean: the lines ready for storage
-     * and the balanced total alongside them.
+     * and the balanced total alongside them. Each line carries the header's
+     * subtype, so the ledgers name the note the same way the document does.
      *
      * @param  array<int, array<string, mixed>>  $lineInputs  The raw submitted lines.
+     * @param  LedgerSubType  $subtype  The header subtype the lines are posted under.
      * @return array{lines: list<array<string, mixed>>, total: string} The normalized lines and the balanced total.
      *
      * @throws ValidationException When a line is missing, one-sided rules are broken, or the entry is unbalanced.
      */
-    private function prepareLines(array $lineInputs): array
+    private function prepareLines(array $lineInputs, LedgerSubType $subtype): array
     {
         /** @var array<int, array<string, mixed>> $rawLines */
         $rawLines = collect($lineInputs)
@@ -950,7 +944,7 @@ class ManualSalesAdjustmentController extends Controller
                 'company_id' => null,
                 'currency_id' => $currencyId,
                 'type' => LedgerType::INVOICE->value,
-                'subtype' => LedgerSubType::MANUAL_SALES_ADJUSTMENT->value,
+                'subtype' => $subtype->value,
                 'chart_code' => $chart->code,
                 'chart_name' => $chart->name,
                 'company_name' => null,

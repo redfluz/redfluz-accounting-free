@@ -49,6 +49,8 @@ use Illuminate\Validation\ValidationException;
 
 trait HandlesInvoiceProductMovement
 {
+    use GeneratesDocumentNumber;
+
     /**
      * Ensure a draft sales invoice does not reserve more physical stock than is available.
      *
@@ -337,16 +339,21 @@ trait HandlesInvoiceProductMovement
         /** @var string|null $currencyId */
         $currencyId = $settingsCurrencyId ?? $defaultCurrencyId;
 
+        // The deduction is a document of its own: one number for this posting
+        // batch, with the source invoice kept in reference_number. An invoice
+        // number on these rows would read as another invoice in the ledger.
+        $deductionNumber = $this->generateDocumentNumber(LedgerSubType::INVENTORY_DEDUCTION);
+
         foreach ($movements as $movement) {
             /** @var ProductLedger $movement */
             $common = [
                 'company_id' => $movement->company_id,
                 'currency_id' => $currencyId,
                 'company_name' => $movement->company_name,
-                'document_number' => $movement->document_number,
-                'reference_number' => $movement->reference_number ?? $movement->document_number,
-                'type' => LedgerType::JOURNAL->value,
-                'subtype' => LedgerSubType::JOURNAL->value,
+                'document_number' => $deductionNumber,
+                'reference_number' => $movement->document_number,
+                'type' => LedgerType::INVENTORY->value,
+                'subtype' => LedgerSubType::INVENTORY_DEDUCTION->value,
                 'date' => $movement->date,
                 'description' => __('product_ledgers.entries.cogs_posting', [
                     'document' => $movement->document_number,

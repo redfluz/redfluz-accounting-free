@@ -26,7 +26,7 @@
 ?>
 @php use App\Models\System\Setting; @endphp
 
-@props(['refund', 'documentNumber'])
+@props(['refund', 'documentNumber', 'ledgers'])
 
 @extends('layouts.app')
 
@@ -106,6 +106,44 @@
                         <strong>{{ $refund->moneyAccount()?->name ?? '-' }}</strong>
                     </div>
                 </div>
+            </div>
+
+            <div class="table-responsive rounded border mb-4">
+                <table class="table-hover table-striped mb-0 table align-middle">
+                    <thead class="bg-1">
+                        <tr>
+                            <th scope="col">{{ __('payments.table.column_entry') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($ledgers as $line)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ (float) $line->debit_amount > 0 ? trim($line->chart_code . ' ' . $line->chart_name) : '-' }}</td>
+                                <td>{{ (float) $line->credit_amount > 0 ? trim($line->chart_code . ' ' . $line->chart_name) : '-' }}</td>
+                                <td class="text-end">{{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
+                                <td class="text-end">{{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="text-center fg-secondary">{{ __('ledgers.no_records') }}</td></tr>
+                        @endforelse
+                    </tbody>
+                    <tfoot class="bg-1 fw-bold border-top">
+                        <tr>
+                            <td colspan="3" class="text-end">{{ __('common.labels.total') }}:</td>
+                            <td class="text-end">
+                                {{ number_format((float) $refund->total_amount, 2) }}
+                            </td>
+                            <td class="text-end">
+                                {{ number_format((float) $refund->total_amount, 2) }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
 
             @if ($refund->notes)

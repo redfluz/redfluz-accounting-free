@@ -27,7 +27,7 @@
 namespace App\Http\Controllers\Bank\Receipt;
 
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\Receipt;
 use App\Models\System\Setting;
@@ -56,7 +56,6 @@ use Throwable;
 class CancelledController extends Controller
 {
     /**
-    /**
      * Display a listing of cancelled receipts.
      *
      * @param  Request  $request  The incoming request containing list filters.
@@ -74,14 +73,23 @@ class CancelledController extends Controller
         /** @var string $endDate */
         $endDate = $request->input('end_date') ?? '';
 
-        $receipts = $this->buildQuery($search, $startDate, $endDate)
+        $receipts = Receipt::query()
+            ->where('status', DocumentStatus::CANCELLED)
+            ->when($search !== '', fn (Builder $query) => $query->where(
+                fn (Builder $q) => $q->where('document_number', 'like', "%$search%")
+                    ->orWhere('reference_number', 'like', "%$search%")
+                    ->orWhere('company_name', 'like', "%$search%")
+            ))
+            ->when(filled($startDate), fn (Builder $query) => $query->whereDate('date', '>=', $startDate))
+            ->when(filled($endDate), fn (Builder $query) => $query->whereDate('date', '<=', $endDate))
+            ->orderByDesc('date')
+            ->orderByDesc('document_number')
             ->paginate(self::PER_PAGE_GRID_NORMAL)
             ->withQueryString();
 
         return view('bank.receipt.cancelled.index', compact('receipts', 'search', 'startDate', 'endDate'));
     }
 
-    /**
     /**
      * Display the specified cancelled receipt.
      *
@@ -94,13 +102,12 @@ class CancelledController extends Controller
 
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::CANCELLED)
+            ->where('status', DocumentStatus::CANCELLED)
             ->firstOrFail();
 
         return view('bank.receipt.cancelled.show', compact('receipt', 'documentNumber'));
     }
 
-    /**
     /**
      * Print one cancelled receipt.
      *
@@ -113,7 +120,7 @@ class CancelledController extends Controller
 
         $receipt = Receipt::query()
             ->where('document_number', $documentNumber)
-            ->where('status', LedgerStatus::CANCELLED)
+            ->where('status', DocumentStatus::CANCELLED)
             ->firstOrFail();
 
         return Pdf::loadView('bank.receipt.pdf', [
@@ -122,36 +129,7 @@ class CancelledController extends Controller
             'setting' => Setting::query()->first(),
         ])
             ->setPaper('a4')
-            ->download("receipt_$documentNumber.pdf");
-    }
-
-    /**
-    /**
-     * Print the whole cancelled listing.
-     *
-     * @param  Request  $request  The incoming request containing list filters.
-     * @return Response Returns the PDF download response.
-     */
-    public function exportPdf(Request $request): Response
-    {
-        $this->allows(FileResources::RECEIPTS_CANCELLED);
-
-        /** @var string $search */
-        $search = $request->input('search', '');
-        $search = trim($search);
-        /** @var string $startDate */
-        $startDate = $request->input('start_date') ?? '';
-        /** @var string $endDate */
-        $endDate = $request->input('end_date') ?? '';
-
-        return Pdf::loadView('bank.receipt.cancelled.pdf', [
-            'receipts' => $this->buildQuery($search, $startDate, $endDate)->get(),
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'setting' => Setting::query()->first(),
-        ])
-            ->setPaper('a4', 'landscape')
-            ->download('cancelled_receipts_'.now()->format('Ymd_His').'.pdf');
+            ->stream("receipt_$documentNumber.pdf");
     }
 
     /**
@@ -169,7 +147,7 @@ class CancelledController extends Controller
         DB::transaction(function () use ($documentNumber): void {
             $receipt = Receipt::query()
                 ->where('document_number', $documentNumber)
-                ->where('status', LedgerStatus::CANCELLED)
+                ->where('status', DocumentStatus::CANCELLED)
                 ->lockForUpdate()
                 ->first();
 
@@ -178,7 +156,7 @@ class CancelledController extends Controller
             // a restore that did not happen.
             abort_if($receipt === null, 404);
 
-            $receipt->update(['status' => LedgerStatus::PENDING]);
+            $receipt->update(['status' => DocumentStatus::PENDING]);
 
             $this->attributeUndone($receipt);
         });
@@ -186,28 +164,5 @@ class CancelledController extends Controller
         return redirect()
             ->route('bank.receipts.index')
             ->with('success', __('common.messages.uncancelled'));
-    }
-
-    /**
-     * The cancelled receipts matching the filters.
-     *
-     * @param  string  $search  Free text across the number, reference and customer.
-     * @param  string|null  $startDate  Earliest document date.
-     * @param  string|null  $endDate  Latest document date.
-     * @return Builder<Receipt>
-     */
-    private function buildQuery(string $search, ?string $startDate, ?string $endDate): Builder
-    {
-        return Receipt::query()
-            ->where('status', LedgerStatus::CANCELLED)
-            ->when($search !== '', fn (Builder $query) => $query->where(
-                fn (Builder $q) => $q->where('document_number', 'like', "%$search%")
-                    ->orWhere('reference_number', 'like', "%$search%")
-                    ->orWhere('company_name', 'like', "%$search%")
-            ))
-            ->when(filled($startDate), fn (Builder $query) => $query->whereDate('date', '>=', $startDate))
-            ->when(filled($endDate), fn (Builder $query) => $query->whereDate('date', '<=', $endDate))
-            ->orderByDesc('date')
-            ->orderByDesc('document_number');
     }
 }

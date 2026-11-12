@@ -7,11 +7,11 @@ namespace App\Models\Year;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * One accounting period inside a financial year.
@@ -36,7 +36,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Table('periods', key: 'id')]
 #[Fillable([
-    'year_id', 'period', 'name', 'start_date', 'end_date', 'is_closed',
+    'year_id',
+    'period',
+    'name',
+    'start_date',
+    'end_date',
+    'is_closed',
 ])]
 class Period extends Model
 {

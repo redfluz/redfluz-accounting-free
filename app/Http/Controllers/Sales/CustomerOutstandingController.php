@@ -12,7 +12,6 @@
 
 namespace App\Http\Controllers\Sales;
 
-use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
@@ -73,9 +72,9 @@ class CustomerOutstandingController extends Controller
             ->whereNotNull('reference_number')
             ->groupBy('reference_number');
         $paymentTotals = ArLedger::query()
-            ->selectRaw('reference_number, SUM(credit_amount) as paid_amount')
+            ->againstReceivableAccount()
+            ->selectRaw('reference_number, SUM(credit_amount - debit_amount) as paid_amount')
             ->where('type', LedgerType::PAYMENT->value)
-            ->where('subtype', LedgerSubType::RECEIPT->value)
             ->whereNotNull('reference_number')
             ->groupBy('reference_number');
 
@@ -111,7 +110,7 @@ class CustomerOutstandingController extends Controller
             }))
             ->when($startDate !== null, fn ($query) => $query->whereDate('invoices.date', '>=', (string) $startDate))
             ->when($endDate !== null, fn ($query) => $query->whereDate('invoices.date', '<=', (string) $endDate))
-            ->whereRaw('invoices.total_amount - COALESCE(payment_totals.paid_amount, 0) > 0')
+            ->whereRaw('invoices.total_amount - COALESCE(payment_totals.paid_amount, 0) > 0.0001')
             ->when($status === 'overdue', fn ($query) => $query->where('invoices.due_date', '<', $asOfDate->toDateString()))
             ->when($status === 'due_soon', fn ($query) => $query->whereBetween('invoices.due_date', [
                 $asOfDate->toDateString(),
@@ -126,7 +125,7 @@ class CustomerOutstandingController extends Controller
             $setting = Setting::query()->first();
 
             return $request->input('export') === 'pdf'
-                ? Pdf::loadView('sales.customer-outstanding.pdf', ['setting' => $setting, ...compact('exportInvoices', 'asOfDate')])->setPaper('a4', 'landscape')->download('customer-outstanding-'.now()->format('Ymd_His').'.pdf')
+                ? Pdf::loadView('sales.customer-outstanding.pdf', ['setting' => $setting, ...compact('exportInvoices', 'asOfDate')])->setPaper('a4', 'landscape')->stream('customer-outstanding-'.now()->format('Ymd_His').'.pdf')
                 : $this->excel($exportInvoices);
         }
 
@@ -145,32 +144,6 @@ class CustomerOutstandingController extends Controller
             'asOfDate',
             'status', 'totals'
         ));
-    }
-
-    /**
-     * Export the customer outstanding report as an Excel file.
-     *
-     * @param  IndexCustomerOutstandingRequest  $request  The HTTP request instance.
-     * @return View|Response|StreamedResponse Returns the streamed Excel download.
-     */
-    public function exportExcel(IndexCustomerOutstandingRequest $request): View|Response|StreamedResponse
-    {
-        $request->merge(['export' => 'excel']);
-
-        return $this->index($request);
-    }
-
-    /**
-     * Export the customer outstanding report as a PDF file.
-     *
-     * @param  IndexCustomerOutstandingRequest  $request  The HTTP request instance.
-     * @return View|Response|StreamedResponse Returns the streamed PDF download.
-     */
-    public function exportPdf(IndexCustomerOutstandingRequest $request): View|Response|StreamedResponse
-    {
-        $request->merge(['export' => 'pdf']);
-
-        return $this->index($request);
     }
 
     /**

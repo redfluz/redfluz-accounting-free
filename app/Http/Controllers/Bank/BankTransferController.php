@@ -31,7 +31,7 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Bank\Concerns\HandlesTransfers;
@@ -75,7 +75,11 @@ class BankTransferController extends Controller
     public function __construct(private readonly Posting $posting) {}
 
     /**
-     * Display the transfers waiting to be approved, or another status.
+     * Display the transfers waiting to be approved.
+     *
+     * Only pending transfers are listed: approving one writes it to the ledgers,
+     * and a transfer that has been written is read on the history page instead,
+     * so the grid answers "what is left to do" rather than "what exists".
      *
      * @param  Request  $request  The request containing list filters.
      */
@@ -83,24 +87,29 @@ class BankTransferController extends Controller
     {
         $this->allows(FileResources::BANK_TRANSFERS);
 
-        $status = $this->statusFrom($request);
-
         $searchInput = $request->input('search', '');
         $search = is_string($searchInput) ? trim($searchInput) : '';
+        /** @var string $startDate */
+        $startDate = $request->input('start_date') ?? '';
+        /** @var string $endDate */
+        $endDate = $request->input('end_date') ?? '';
 
         $transfers = Transfer::query()
             ->with(['bankAccount.chart', 'transitChart'])
             ->where('direction', Transfer::DIRECTION_IN)
-            ->where('status', $status)
+            ->where('status', DocumentStatus::PENDING)
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
                 $query->where('document_number', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhere('reference_number', 'like', "%$search%");
             }))
+            ->when(filled($startDate), fn ($query) => $query->whereDate('date', '>=', $startDate))
+            ->when(filled($endDate), fn ($query) => $query->whereDate('date', '<=', $endDate))
             ->latest('date')
             ->paginate(static::PER_PAGE_GRID)
             ->withQueryString();
 
-        return view('bank.bank-transfers.index', compact('transfers', 'search', 'status'));
+        return view('bank.bank-transfers.index', compact('transfers', 'search', 'startDate', 'endDate'));
     }
 
     /**
@@ -192,7 +201,7 @@ class BankTransferController extends Controller
             'attachment_name' => $attachment['name'],
             'description' => $fields['description'],
             'notes' => $fields['notes'],
-            'status' => LedgerStatus::PENDING,
+            'status' => DocumentStatus::PENDING,
         ]);
 
         return redirect()
@@ -269,7 +278,7 @@ class BankTransferController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            abort_if($transfer->status !== LedgerStatus::PENDING, 409);
+            abort_if($transfer->status !== DocumentStatus::PENDING, 409);
 
             $bank = $transfer->bankAccount;
 
@@ -325,7 +334,7 @@ class BankTransferController extends Controller
                 description: $transfer->description,
             );
 
-            $transfer->update(['status' => LedgerStatus::POSTED]);
+            $transfer->update(['status' => DocumentStatus::POSTED]);
 
             // Recorded after the posting so an approver is never recorded against
             // a transfer that did not post.
@@ -352,7 +361,7 @@ class BankTransferController extends Controller
             $transfer = Transfer::query()
                 ->where('document_number', $documentNumber)
                 ->where('direction', Transfer::DIRECTION_IN)
-                ->where('status', LedgerStatus::PENDING)
+                ->where('status', DocumentStatus::PENDING)
                 ->lockForUpdate()
                 ->first();
 
@@ -361,7 +370,7 @@ class BankTransferController extends Controller
             // did not happen.
             abort_if($transfer === null, 404);
 
-            $transfer->update(['status' => LedgerStatus::CANCELLED]);
+            $transfer->update(['status' => DocumentStatus::CANCELLED]);
 
             $this->attributeCancelled($transfer);
         });
@@ -382,7 +391,7 @@ class BankTransferController extends Controller
 
         $transfer = $this->findInbound($documentNumber);
 
-        abort_if($transfer->status !== LedgerStatus::PENDING, 409);
+        abort_if($transfer->status !== DocumentStatus::PENDING, 409);
 
         $transfer->delete();
 
@@ -445,19 +454,6 @@ class BankTransferController extends Controller
             ->where('document_number', $documentNumber)
             ->where('direction', Transfer::DIRECTION_IN)
             ->firstOrFail();
-    }
-
-    /**
-     * The status being listed, defaulting to pending.
-     */
-    private function statusFrom(Request $request): string
-    {
-        $statusInput = $request->input('status', LedgerStatus::PENDING->value);
-        $status = is_string($statusInput) ? $statusInput : '';
-
-        return in_array($status, array_column(LedgerStatus::cases(), 'value'), true)
-            ? $status
-            : LedgerStatus::PENDING->value;
     }
 
     /**

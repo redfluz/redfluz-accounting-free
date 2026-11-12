@@ -32,11 +32,11 @@ use App\Models\Inventory\Product;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @mixin Builder<SalesOrderLine>
@@ -76,11 +76,30 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Table('sales_order_lines', key: 'id')]
 #[Fillable([
-    'sales_order_id', 'product_id', 'product_sku', 'product_name',
-    'description', 'is_service', 'ordered_quantity', 'delivered_quantity',
-    'unit_price', 'warranty_months', 'subtotal_amount', 'discount_id', 'discount_name', 'discount_type',
-    'discount_value', 'discount_rate', 'discount_amount', 'tax_id', 'tax_name',
-    'tax_rate', 'tax_amount', 'tax_mode', 'line_total_amount', 'total_amount',
+    'sales_order_id',
+    'product_id',
+    'product_sku',
+    'product_name',
+    'description',
+    'is_service',
+    'ordered_quantity',
+    'delivered_quantity',
+    'unit_price',
+    'warranty_months',
+    'subtotal_amount',
+    'discount_id',
+    'discount_name',
+    'discount_type',
+    'discount_value',
+    'discount_rate',
+    'discount_amount',
+    'tax_id',
+    'tax_name',
+    'tax_rate',
+    'tax_amount',
+    'tax_mode',
+    'line_total_amount',
+    'total_amount',
 ])]
 class SalesOrderLine extends Model
 {

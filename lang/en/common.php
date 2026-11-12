@@ -57,7 +57,6 @@ return [
         'filter' => 'Filter',
         'locked' => 'Locked',
         'markAllAsRead' => 'Mark all as read',
-        'export_excel' => 'Export Excel',
         'export_pdf' => 'Export PDF',
         'select_all' => 'Select All',
         'deselect_all' => 'Deselect All',

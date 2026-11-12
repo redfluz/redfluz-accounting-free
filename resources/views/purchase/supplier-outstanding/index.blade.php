@@ -36,12 +36,6 @@
                 <p class="fg-secondary small mb-0">{{ __('supplier_outstanding.subtitle') }}</p>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-solid theme-success"
-                    href="{{ route('purchase.supplier-outstanding.export-excel', request()->query()) }}"><i class="me-1"
-                        data-lucide="file-spreadsheet"></i> Excel</a>
-                <a class="btn btn-solid theme-info"
-                    href="{{ route('purchase.supplier-outstanding.export-pdf', request()->query()) }}"><i class="me-1"
-                        data-lucide="file-text"></i> PDF</a>
             </div>
         </div>
         <div class="card-body">

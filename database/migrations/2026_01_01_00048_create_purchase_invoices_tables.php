@@ -29,7 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\Finance\LedgerStatus;
+
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Purchase\PurchaseOrderType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -77,8 +78,8 @@ return new class extends Migration
             $table->string('contact_name')->nullable();
             $table->date('date');
             $table->date('due_date')->nullable();
-            $table->enum('status', array_column(LedgerStatus::cases(), 'value'))
-                ->default(LedgerStatus::PENDING->value);
+            $table->enum('status', array_column(DocumentStatus::cases(), 'value'))
+                ->default(DocumentStatus::PENDING->value);
             $table->string('attachment_path')->nullable();
             $table->decimal('subtotal', 15)->default(0);
             $table->decimal('total_amount', 15)->default(0);

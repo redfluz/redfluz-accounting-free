@@ -37,14 +37,17 @@ use App\Http\Requests\Purchase\GoodsReceiptAdjustment\StoreGoodsReceiptAdjustmen
 use App\Models\Inventory\ProductLedger;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\PurchaseOrderLine;
+use App\Models\System\Setting;
 use App\Services\DecimalService;
 use App\Support\Data\Purchase\GoodsReceiptAdjustmentData;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -242,6 +245,41 @@ class GoodsReceiptAdjustmentController extends Controller
             'entryId' => $entryId,
             'entries' => $entries,
         ] + ['postingDateMin' => null, 'postingDateMax' => null]);
+    }
+
+    /**
+     * Stream a PDF for a cancelled goods receipt adjustment document.
+     *
+     * @param  string  $entryId  A cancelled correction row identifier.
+     * @return Response The streamed adjustment PDF.
+     */
+    public function pdf(string $entryId): Response
+    {
+        $this->allows(FileResources::GOODS_RECEIPT_ADJUSTMENTS_CANCELLED);
+
+        $entry = ProductLedger::query()
+            ->whereKey($entryId)
+            ->where('source_type', ProductMovementSource::GOODS_RECEIPT)
+            ->whereNotNull('source_entry_id')
+            ->where('status', ProductMovementStatus::CANCELLED->value)
+            ->firstOrFail();
+
+        $entries = ProductLedger::query()
+            ->where('document_number', $entry->document_number)
+            ->where('source_type', ProductMovementSource::GOODS_RECEIPT)
+            ->whereNotNull('source_entry_id')
+            ->where('status', ProductMovementStatus::CANCELLED->value)
+            ->orderBy('created_at')
+            ->get();
+
+        $documentNumber = (string) $entry->document_number;
+        $setting = Setting::query()->firstOrNew();
+
+        return Pdf::loadView('purchase.goods-receipt-adjustments.pdf', [
+            'documentNumber' => $documentNumber,
+            'entries' => $entries,
+            'setting' => $setting,
+        ])->setPaper('a4')->stream($documentNumber.'.pdf');
     }
 
     /**

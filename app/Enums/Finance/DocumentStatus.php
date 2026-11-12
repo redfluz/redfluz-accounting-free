@@ -29,7 +29,7 @@ namespace App\Enums\Finance;
 /**
  * @noinspection PhpUnused
  */
-enum LedgerStatus: string
+enum DocumentStatus: string
 {
     case PENDING = 'pending';
     case CANCELLED = 'cancelled';

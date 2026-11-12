@@ -29,7 +29,8 @@
  *
  * @phpstan-ignore-file
  */
-use App\Enums\Finance\LedgerStatus;
+
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\PaymentTransferType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -77,8 +78,8 @@ return new class extends Migration
             $table->string('company_name');
             $table->string('contact_name')->nullable();
             $table->date('date');
-            $table->enum('status', array_column(LedgerStatus::cases(), 'value'))
-                ->default(LedgerStatus::PENDING->value);
+            $table->enum('status', array_column(DocumentStatus::cases(), 'value'))
+                ->default(DocumentStatus::PENDING->value);
             $table->enum('payment_transfer_type', array_column(PaymentTransferType::cases(), 'value'))
                 ->nullable();
             // The account the money left, which is the one thing the transfer type

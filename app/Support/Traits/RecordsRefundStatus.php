@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Traits;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 
 /**
  * The questions every refund document is asked about its own status.
@@ -51,7 +51,7 @@ trait RecordsRefundStatus
      */
     public function isPosted(): bool
     {
-        return $this->status === LedgerStatus::POSTED;
+        return $this->status === DocumentStatus::POSTED;
     }
 
     /**
@@ -59,7 +59,7 @@ trait RecordsRefundStatus
      */
     public function isCancelled(): bool
     {
-        return $this->status === LedgerStatus::CANCELLED;
+        return $this->status === DocumentStatus::CANCELLED;
     }
 
     /**

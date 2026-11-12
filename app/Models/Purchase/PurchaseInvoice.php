@@ -26,23 +26,22 @@
 
 namespace App\Models\Purchase;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\Crm\Company;
 use App\Models\Crm\Contact;
-use App\Models\Finance\JournalEntry;
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * A purchase invoice: a request for payment received from a supplier.
@@ -59,7 +58,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $company_id
  * @property string|null $contact_id
  * @property PurchaseOrderType $purchase_type
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property string $document_number
  * @property string|null $reference_number
  * @property string|null $purchase_order_id
@@ -89,26 +88,45 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $undone_by
  * @property string|null $undone_name
  * @property CarbonInterface|null $undone_at
- * @property string|null $reversal_id
  * @property-read Collection<int, PurchaseInvoiceLine> $lines
  *
  * @mixin Builder<self>
  */
 #[Table('purchase_invoices', key: 'id')]
 #[Fillable([
-    'company_id', 'contact_id',
-    'purchase_type', 'status',
-    'document_number', 'reference_number', 'purchase_order_id',
-    'company_name', 'contact_name',
-    'date', 'due_date', 'attachment_path', 'subtotal', 'total_amount',
+    'company_id',
+    'contact_id',
+    'purchase_type',
+    'status',
+    'document_number',
+    'reference_number',
+    'purchase_order_id',
+    'company_name',
+    'contact_name',
+    'date',
+    'due_date',
+    'attachment_path',
+    'subtotal',
+    'total_amount',
     'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
-    'reversal_id',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
 ])]
 class PurchaseInvoice extends Model
 {
@@ -123,7 +141,7 @@ class PurchaseInvoice extends Model
     {
         return [
             'purchase_type' => PurchaseOrderType::class,
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'date' => 'date',
             'due_date' => 'date',
             'subtotal' => 'decimal:2',
@@ -179,7 +197,7 @@ class PurchaseInvoice extends Model
      */
     public function isPosted(): bool
     {
-        return $this->status === LedgerStatus::POSTED;
+        return $this->status === DocumentStatus::POSTED;
     }
 
     /**
@@ -187,7 +205,7 @@ class PurchaseInvoice extends Model
      */
     public function isCancelled(): bool
     {
-        return $this->status === LedgerStatus::CANCELLED;
+        return $this->status === DocumentStatus::CANCELLED;
     }
 
     /**
@@ -199,15 +217,5 @@ class PurchaseInvoice extends Model
     public function isEditable(): bool
     {
         return ! $this->isPosted() && ! $this->isCancelled();
-    }
-
-    /**
-     * The reversing journal entry, if this invoice was reversed.
-     *
-     * @return BelongsTo<JournalEntry, $this>
-     */
-    public function reversal(): BelongsTo
-    {
-        return $this->belongsTo(JournalEntry::class, 'reversal_id');
     }
 }

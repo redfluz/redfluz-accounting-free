@@ -8,12 +8,9 @@ use App\Models\ChartOfAccount\ChartReport;
 use App\Services\CalendarFinancialReportPeriodResolver;
 use App\Services\FinancialReportExcelExporter;
 use App\Services\FinancialReportService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChartReportOutputController extends Controller
 {
@@ -46,53 +43,6 @@ class ChartReportOutputController extends Controller
             ...$this->output($request, $chartReport),
             'chartReport' => $chartReport,
         ]);
-    }
-
-    /**
-     * Export a configured chart report as a PDF document.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @param  ChartReport  $chartReport  The configured chart report resource instance.
-     * @return Response Returns the downloadable PDF response.
-     */
-    public function exportPdf(Request $request, ChartReport $chartReport): Response
-    {
-        $this->allows(FileResources::CHART_REPORTS);
-        $output = $this->output($request, $chartReport);
-        /** @var array<string, mixed> $report */
-        $report = $output['report'];
-        $periodLabel = is_string($output['periodLabel']) ? $output['periodLabel'] : '';
-
-        return Pdf::loadView('chart-of-account.profit-loss.pdf', [
-            ...$report,
-            'periodLabel' => $periodLabel,
-        ])->setPaper('a4', isset($report['periodColumns']) ? 'landscape' : 'portrait')
-            ->download($chartReport->slug.'_'.now()->format('Ymd').'.pdf');
-    }
-
-    /**
-     * Export a configured chart report as a spreadsheet.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @param  ChartReport  $chartReport  The configured chart report resource instance.
-     * @return StreamedResponse Returns the downloadable spreadsheet response.
-     */
-    public function exportExcel(Request $request, ChartReport $chartReport): StreamedResponse
-    {
-        $this->allows(FileResources::CHART_REPORTS);
-        $output = $this->output($request, $chartReport);
-        /** @var array<string, mixed> $report */
-        $report = $output['report'];
-        $periodLabel = is_string($output['periodLabel']) ? $output['periodLabel'] : '';
-
-        return $this->excel->configured(
-            $report,
-            $periodLabel,
-            $chartReport->calculation_basis === 'as_of'
-                ? __('financial_reports.labels.as_of')
-                : __('financial_reports.labels.period'),
-            $chartReport->slug.'_'.now()->format('Ymd_His').'.xlsx',
-        );
     }
 
     /**

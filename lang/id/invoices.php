@@ -74,6 +74,9 @@ return [
         'success' => 'Stok berhasil dikurangi.',
         'quantity' => 'Jumlah',
     ],
+    'payment_received' => 'Jumlah Dibayar',
+    'balance_due' => 'Sisa Tagihan',
+    'no_payments' => 'Belum ada pembayaran.',
     'validation' => [
         'accounts_must_differ' => 'Akun debit dan kredit harus berbeda.',
         'contact_company_invalid' => 'Kontak yang dipilih tidak termasuk dalam perusahaan yang dipilih.',

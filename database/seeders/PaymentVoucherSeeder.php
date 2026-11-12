@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
@@ -127,10 +127,10 @@ class PaymentVoucherSeeder extends Seeder
                     // one rather than a posted voucher nobody approved.
                     'created_name' => 'System Seeder',
                     'created_at' => $voucher['date'],
-                    'approved_name' => $voucher['status'] === LedgerStatus::POSTED ? 'Manager User' : null,
-                    'approved_at' => $voucher['status'] === LedgerStatus::POSTED ? $voucher['date'] : null,
-                    'cancelled_name' => $voucher['status'] === LedgerStatus::CANCELLED ? 'Manager User' : null,
-                    'cancelled_at' => $voucher['status'] === LedgerStatus::CANCELLED ? $voucher['date'] : null,
+                    'approved_name' => $voucher['status'] === DocumentStatus::POSTED ? 'Manager User' : null,
+                    'approved_at' => $voucher['status'] === DocumentStatus::POSTED ? $voucher['date'] : null,
+                    'cancelled_name' => $voucher['status'] === DocumentStatus::CANCELLED ? 'Manager User' : null,
+                    'cancelled_at' => $voucher['status'] === DocumentStatus::CANCELLED ? $voucher['date'] : null,
                 ]);
 
                 $this->postSeededDocument(
@@ -176,7 +176,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1100',
                 'amount' => '8400.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'VSTECS Berhad',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier payment recorded and awaiting posting.',
@@ -190,7 +190,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1130',
                 'amount' => '320.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'Ingram Micro Malaysia Sdn Bhd',
                 'transfer_type' => PaymentTransferType::CASH,
                 'notes' => 'Small supplier payment settled from the till.',
@@ -202,7 +202,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1110',
                 'amount' => '5200.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'SNS Network (M) Sdn Bhd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier payment posted against PI-DEMO-0002.',
@@ -214,7 +214,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1100',
                 'amount' => '1750.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'VSTECS Berhad',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Second supplier payment recorded and awaiting posting.',
@@ -226,7 +226,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1100',
                 'amount' => '640.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'party' => 'SNS Network (M) Sdn Bhd',
                 'transfer_type' => PaymentTransferType::CHEQUE,
                 'notes' => 'Cancelled voucher: the cheque was returned unpaid.',
@@ -240,7 +240,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1110',
                 'amount' => '4200.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Ingram Micro Malaysia Sdn Bhd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier payment made from CIMB Bank.',
@@ -252,7 +252,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1120',
                 'amount' => '2500.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'VSTECS Berhad',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier payment made from Public Bank.',
@@ -264,7 +264,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1100',
                 'amount' => '3100.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'SNS Network (M) Sdn Bhd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier payment made from Maybank.',
@@ -276,7 +276,7 @@ class PaymentVoucherSeeder extends Seeder
                 'debit_code' => '2000',
                 'credit_code' => '1110',
                 'amount' => '5600.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'VSTECS Berhad',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier payment made from CIMB Bank.',

@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Finance;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Models\Finance\JournalEntry;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -59,6 +59,9 @@ class JournalEntryData extends Data
         #[MapName('reference_number')]
         public ?string $referenceNumber = null,
 
+        #[MapName('document_original')]
+        public ?string $documentOriginal = null,
+
         #[MapName('notes')]
         public ?string $notes = null,
 
@@ -72,13 +75,7 @@ class JournalEntryData extends Data
         public ?string $totalCredit = null,
 
         #[MapName('status')]
-        public ?LedgerStatus $status = null,
-
-        #[MapName('reversal_of_id')]
-        public ?string $reversalOfId = null,
-
-        #[MapName('reversal_id')]
-        public ?string $reversalId = null,
+        public ?DocumentStatus $status = null,
 
         #[MapName('created_at')]
         public ?CarbonImmutable $createdAt = null,
@@ -122,13 +119,12 @@ class JournalEntryData extends Data
             id: $model->id,
             date: self::moment($model->date),
             referenceNumber: $model->reference_number,
+            documentOriginal: $model->document_original,
             notes: $model->notes,
             entryNumber: $model->document_number,
             totalDebit: $model->total_debit,
             totalCredit: $model->total_credit,
             status: $model->status,
-            reversalOfId: $model->reversal_of_id,
-            reversalId: $model->reversal_id,
             createdAt: self::moment($model->created_at),
             updatedAt: self::moment($model->updated_at),
             deletedAt: self::moment($model->deleted_at),
@@ -166,10 +162,9 @@ class JournalEntryData extends Data
     {
         return [
             'id' => $this->id,
-            'reversal_of_id' => $this->reversalOfId,
-            'reversal_id' => $this->reversalId,
             'document_number' => $this->entryNumber,
             'reference_number' => $this->referenceNumber,
+            'document_original' => $this->documentOriginal,
             'date' => $this->date?->format('Y-m-d'),
             'total_debit' => $this->totalDebit,
             'total_credit' => $this->totalCredit,

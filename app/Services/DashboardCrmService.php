@@ -26,7 +26,7 @@
 
 namespace App\Services;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Models\Crm\ArLedger;
@@ -80,13 +80,13 @@ class DashboardCrmService
     private function getPostedInvoiceCount(Carbon $month): int
     {
         $purchaseCount = PurchaseInvoice::query()
-            ->where('status', LedgerStatus::POSTED->value)
+            ->where('status', DocumentStatus::POSTED->value)
             ->whereMonth('date', $month->month)
             ->whereYear('date', $month->year)
             ->count();
 
         $salesCount = SalesInvoice::query()
-            ->where('status', LedgerStatus::POSTED->value)
+            ->where('status', DocumentStatus::POSTED->value)
             ->whereMonth('date', $month->month)
             ->whereYear('date', $month->year)
             ->count();
@@ -103,7 +103,7 @@ class DashboardCrmService
     private function getPostedPurchaseInvoiceTotal(Carbon $month): float
     {
         return (float) PurchaseInvoice::query()
-            ->where('status', LedgerStatus::POSTED->value)
+            ->where('status', DocumentStatus::POSTED->value)
             ->whereMonth('date', $month->month)
             ->whereYear('date', $month->year)
             ->sum('total_amount');
@@ -118,7 +118,7 @@ class DashboardCrmService
     private function getPostedSalesInvoiceTotal(Carbon $month): float
     {
         return (float) SalesInvoice::query()
-            ->where('status', LedgerStatus::POSTED->value)
+            ->where('status', DocumentStatus::POSTED->value)
             ->whereMonth('date', $month->month)
             ->whereYear('date', $month->year)
             ->sum('total_amount');

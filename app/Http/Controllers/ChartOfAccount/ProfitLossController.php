@@ -36,7 +36,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProfitLossController extends Controller
 {
@@ -87,40 +86,6 @@ class ProfitLossController extends Controller
     }
 
     /**
-     * Download the formula-driven Profit & Loss report as PDF.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return Response Returns the HTTP response.
-     */
-    public function exportPdf(Request $request): Response
-    {
-        $this->allows(FileResources::LEDGERS);
-
-        [$startDate, $endDate, $periodLabel, $filters, $comparison] = $this->periods->range($request, 'year');
-        $report = $this->reports->profitLoss($startDate, $endDate);
-
-        if ($comparison !== null) {
-            $report = $this->reports->withComparison(
-                $report,
-                $this->reports->profitLoss($comparison['start'], $comparison['end']),
-                $comparison['label'],
-            );
-        }
-        $reportView = $filters['reportView'];
-        $report = $this->addPeriodColumns($report, is_string($reportView) ? $reportView : '', $periodLabel);
-
-        $setting = Setting::query()->first();
-
-        $pdf = Pdf::loadView('chart-of-account.profit-loss.pdf', [
-            ...$report,
-            'periodLabel' => $periodLabel,
-            'setting' => $setting,
-        ])->setPaper('a4', isset($report['periodColumns']) ? 'landscape' : 'portrait');
-
-        return $pdf->download('profit_loss_'.$endDate->format('Ymd').'.pdf');
-    }
-
-    /**
      * Download the clean Profit & Loss report as PDF.
      *
      * @param  Request  $request  The HTTP request instance.
@@ -149,36 +114,7 @@ class ProfitLossController extends Controller
             'setting' => $setting,
         ])->setPaper('a4');
 
-        return $pdf->download('profit_loss_clean_'.$endDate->format('Ymd').'.pdf');
-    }
-
-    /**
-     * Download the formula-driven Profit & Loss report as Excel.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return StreamedResponse Returns the HTTP response.
-     */
-    public function exportExcel(Request $request): StreamedResponse
-    {
-        $this->allows(FileResources::LEDGERS);
-
-        [$startDate, $endDate, $periodLabel, $filters, $comparison] = $this->periods->range($request, 'year');
-        $report = $this->reports->profitLoss($startDate, $endDate);
-
-        if ($comparison !== null) {
-            $report = $this->reports->withComparison(
-                $report,
-                $this->reports->profitLoss($comparison['start'], $comparison['end']),
-                $comparison['label'],
-            );
-        }
-        $reportView = $filters['reportView'];
-        $report = $this->addPeriodColumns($report, is_string($reportView) ? $reportView : '', $periodLabel);
-
-        return $this->excel->profitLoss(
-            $report,
-            $periodLabel,
-        );
+        return $pdf->stream('profit_loss_clean_'.$endDate->format('Ymd').'.pdf');
     }
 
     /** @param array<string, mixed> $report  The report data structure.

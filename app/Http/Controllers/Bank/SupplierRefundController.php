@@ -28,7 +28,7 @@ namespace App\Http\Controllers\Bank;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Enums\Finance\PaymentTransferType;
@@ -106,7 +106,7 @@ class SupplierRefundController extends Controller
         $endDate = $request->string('end_date')->toString();
 
         $refunds = SupplierRefund::query()
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
                 $query->where('document_number', 'like', "%$search%")
                     ->orWhere('company_name', 'like', "%$search%")
@@ -146,7 +146,10 @@ class SupplierRefundController extends Controller
     {
         $refund = SupplierRefund::query()->where('document_number', $documentNumber)->firstOrFail();
 
-        return view('bank.supplier-refund.show', compact('refund', 'documentNumber'));
+        /** @var Collection<int, ApLedger> $ledgers */
+        $ledgers = ApLedger::query()->where('document_number', $documentNumber)->get();
+
+        return view('bank.supplier-refund.show', compact('refund', 'documentNumber', 'ledgers'));
     }
 
     /**
@@ -167,15 +170,18 @@ class SupplierRefundController extends Controller
 
         DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
             $refund = SupplierRefund::query()->create([
-                'id' => (string) Str::uuid(), 'document_number' => $documentNumber,
+                'id' => (string) Str::uuid(),
+                'document_number' => $documentNumber,
                 'company_id' => $data->companyId,
                 'company_name' => Company::query()->whereKey($data->companyId)->value('name') ?? '',
                 'date' => $data->date?->format('Y-m-d'),
                 'status' => $data->status,
                 'payment_transfer_type' => $transferType,
                 ...$this->moneyAccountColumns($transferType, $data),
-                'reference_number' => $data->referenceNumber, 'attachment_path' => $attachmentPath,
-                'notes' => $data->notes, 'total_amount' => $amount,
+                'reference_number' => $data->referenceNumber,
+                'attachment_path' => $attachmentPath,
+                'notes' => $data->notes,
+                'total_amount' => $amount,
             ]);
         });
 
@@ -207,7 +213,9 @@ class SupplierRefundController extends Controller
                 'date' => $data->date?->format('Y-m-d'),
                 'payment_transfer_type' => $transferType,
                 ...$this->moneyAccountColumns($transferType, $data),
-                'reference_number' => $data->referenceNumber, 'notes' => $data->notes, 'total_amount' => $amount,
+                'reference_number' => $data->referenceNumber,
+                'notes' => $data->notes,
+                'total_amount' => $amount,
             ]);
         });
 
@@ -227,14 +235,23 @@ class SupplierRefundController extends Controller
     {
         DB::transaction(function () use ($documentNumber): void {
             $refund = SupplierRefund::query()->where('document_number', $documentNumber)->lockForUpdate()->firstOrFail();
-            abort_if($refund->status === LedgerStatus::POSTED, 409);
+            abort_if($refund->status === DocumentStatus::POSTED, 409);
             [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($refund);
             $this->posting->postPayment(
-                $refund, $refund->document_number, $refund->date, LedgerType::PAYMENT, LedgerSubType::SUPPLIER_REFUND,
-                $debitChartId, $creditChartId, $amount,
-                companyId: $refund->company_id, companyName: $refund->company_name, referenceNumber: $refund->reference_number, description: $refund->notes,
+                $refund,
+                $refund->document_number,
+                $refund->date,
+                LedgerType::PAYMENT,
+                LedgerSubType::SUPPLIER_REFUND,
+                $debitChartId,
+                $creditChartId,
+                $amount,
+                companyId: $refund->company_id,
+                companyName: $refund->company_name,
+                referenceNumber: $refund->reference_number,
+                description: $refund->notes,
             );
-            $refund->update(['status' => LedgerStatus::POSTED]);
+            $refund->update(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($refund);
         });
 
@@ -256,14 +273,23 @@ class SupplierRefundController extends Controller
         DB::transaction(function () use ($documentNumbers, &$count): void {
             foreach ($documentNumbers as $documentNumber) {
                 $refund = SupplierRefund::query()->where('document_number', $documentNumber)->lockForUpdate()->firstOrFail();
-                abort_if($refund->status === LedgerStatus::POSTED, 409);
+                abort_if($refund->status === DocumentStatus::POSTED, 409);
                 [$debitChartId, $creditChartId, $amount] = $this->postingAccountsFor($refund);
                 $this->posting->postPayment(
-                    $refund, $refund->document_number, $refund->date, LedgerType::PAYMENT, LedgerSubType::SUPPLIER_REFUND,
-                    $debitChartId, $creditChartId, $amount,
-                    companyId: $refund->company_id, companyName: $refund->company_name, referenceNumber: $refund->reference_number, description: $refund->notes,
+                    $refund,
+                    $refund->document_number,
+                    $refund->date,
+                    LedgerType::PAYMENT,
+                    LedgerSubType::SUPPLIER_REFUND,
+                    $debitChartId,
+                    $creditChartId,
+                    $amount,
+                    companyId: $refund->company_id,
+                    companyName: $refund->company_name,
+                    referenceNumber: $refund->reference_number,
+                    description: $refund->notes,
                 );
-                $refund->update(['status' => LedgerStatus::POSTED]);
+                $refund->update(['status' => DocumentStatus::POSTED]);
                 $this->attributeApproved($refund);
                 $count++;
             }
@@ -286,11 +312,11 @@ class SupplierRefundController extends Controller
     {
         $refunds = SupplierRefund::query()
             ->whereIn('document_number', $request->documentNumbers())
-            ->where('status', LedgerStatus::PENDING)
+            ->where('status', DocumentStatus::PENDING)
             ->get();
 
         foreach ($refunds as $refund) {
-            $refund->update(['status' => LedgerStatus::CANCELLED]);
+            $refund->update(['status' => DocumentStatus::CANCELLED]);
             $this->attributeCancelled($refund);
         }
 
@@ -389,7 +415,7 @@ class SupplierRefundController extends Controller
             'setting' => Setting::query()->first(),
         ])
             ->setPaper('a4')
-            ->download("refund_$documentNumber.pdf");
+            ->stream("refund_$documentNumber.pdf");
     }
 
     /**

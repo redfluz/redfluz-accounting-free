@@ -31,7 +31,7 @@ namespace App\Http\Controllers\Bank;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Bank\Concerns\HandlesTransfers;
@@ -189,7 +189,7 @@ class CashTransferController extends Controller
             'reference_number' => $fields['referenceNumber'],
             'description' => $fields['description'],
             'notes' => $fields['notes'],
-            'status' => LedgerStatus::PENDING,
+            'status' => DocumentStatus::PENDING,
         ]);
 
         return redirect()
@@ -249,7 +249,7 @@ class CashTransferController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            abort_if($transfer->status !== LedgerStatus::PENDING, 409);
+            abort_if($transfer->status !== DocumentStatus::PENDING, 409);
 
             $account = $transfer->cashAccount;
 
@@ -302,7 +302,7 @@ class CashTransferController extends Controller
                 description: $transfer->description,
             );
 
-            $transfer->update(['status' => LedgerStatus::POSTED]);
+            $transfer->update(['status' => DocumentStatus::POSTED]);
 
             // Recorded after the posting so an approver is never recorded against
             // a transfer that did not post.
@@ -332,7 +332,7 @@ class CashTransferController extends Controller
             $transfer = Transfer::query()
                 ->where('document_number', $documentNumber)
                 ->where('direction', Transfer::DIRECTION_OUT)
-                ->where('status', LedgerStatus::PENDING)
+                ->where('status', DocumentStatus::PENDING)
                 ->lockForUpdate()
                 ->first();
 
@@ -341,7 +341,7 @@ class CashTransferController extends Controller
             // did not happen.
             abort_if($transfer === null, 404);
 
-            $transfer->update(['status' => LedgerStatus::CANCELLED]);
+            $transfer->update(['status' => DocumentStatus::CANCELLED]);
 
             $this->attributeCancelled($transfer);
         });
@@ -362,7 +362,7 @@ class CashTransferController extends Controller
 
         $transfer = $this->findOutbound($documentNumber);
 
-        abort_if($transfer->status !== LedgerStatus::PENDING, 409);
+        abort_if($transfer->status !== DocumentStatus::PENDING, 409);
 
         $transfer->delete();
 
@@ -459,12 +459,12 @@ class CashTransferController extends Controller
      */
     private function statusFrom(Request $request): string
     {
-        $statusInput = $request->input('status', LedgerStatus::PENDING->value);
+        $statusInput = $request->input('status', DocumentStatus::PENDING->value);
         $status = is_string($statusInput) ? $statusInput : '';
 
-        return in_array($status, array_column(LedgerStatus::cases(), 'value'), true)
+        return in_array($status, array_column(DocumentStatus::cases(), 'value'), true)
             ? $status
-            : LedgerStatus::PENDING->value;
+            : DocumentStatus::PENDING->value;
     }
 
     /**

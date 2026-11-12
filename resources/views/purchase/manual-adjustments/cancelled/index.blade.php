@@ -7,7 +7,7 @@
 
 @php
     use App\Enums\FileResources;
-    use App\Models\Finance\ManualPurchaseAdjustment;
+    use App\Models\Purchase\ManualPurchaseAdjustment;
     use App\Models\System\Setting;
     use Illuminate\Pagination\LengthAwarePaginator;
 @endphp
@@ -33,14 +33,6 @@
                 <span class="fg-secondary small">{{ __('manual_purchase_adjustments.cancelled_subtitle') }}</span>
             </div>
             <div class="d-flex gap-1">
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('purchase.manual-adjustments.cancelled.export-excel', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i>{{ __('common.actions.export_excel') }}
-                </a>
-                <a class="btn btn-solid theme-info btn-sm"
-                    href="{{ route('purchase.manual-adjustments.cancelled.export-pdf', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-text"></i>{{ __('common.actions.export_pdf') }}
-                </a>
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('purchase.manual-adjustments.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}
                 </a>
@@ -79,7 +71,7 @@
                                         href="{{ route('purchase.manual-adjustments.cancelled.show', $entry->document_number) }}">{{ $entry->document_number }}</a>
                                 </td>
                                 <td>{{ $entry->reference_number ?? '-' }}</td>
-                                <td>{{ $entry->subtype->label() }}</td>
+                                <td>{{ __('ledgers.sub_type.' . $entry->subtype->value) }}</td>
                                 <td>{{ $entry->date->format(Setting::getDefaultDate()) }}</td>
                                 <td>{{ $entry->company_name ?? ($entry->company?->name ?? '-') }}</td>
                                 <td class="fw-bold fg-primary text-end">
@@ -91,6 +83,11 @@
                                             href="{{ route('purchase.manual-adjustments.cancelled.show', $entry->document_number) }}"
                                             title="{{ __('common.actions.view') }}">
                                             <i data-lucide="eye"></i>
+                                        </a>
+                                        <a class="btn btn-sm btn-solid theme-primary"
+                                            href="{{ route('purchase.manual-adjustments.cancelled.pdf', $entry->document_number) }}"
+                                            target="_blank" title="{{ __('common.actions.print_pdf') }}">
+                                            <i data-lucide="printer"></i>
                                         </a>
                                     </div>
                                 </td>

@@ -30,7 +30,7 @@ use App\Enums\FileResources;
 $canApprove = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::APPROVE);
 $canRemove = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::REMOVE);
 $canUpdate = auth()->user()->hasFilePermission(FileResources::SALES_INVOICES, FileAction::UPDATE);
-$canReverse = $canApprove && $isPosted && ! $invoice->reversal_id && ! $invoice->undone_at;
+$canReverse = $canApprove && $isPosted && ! $invoice->undone_at;
 ?>
 
 @props([

@@ -26,14 +26,6 @@
                 <span class="fg-secondary small">{{ __('ledgers.history_subtitle') }}</span>
             </div>
             <div class="d-flex gap-1">
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('purchase.invoices.history.export-excel', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i>{{ __('common.actions.export_excel') }}
-                </a>
-                <a class="btn btn-solid theme-info btn-sm"
-                    href="{{ route('purchase.invoices.history.export-pdf', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-text"></i>{{ __('common.actions.export_pdf') }}
-                </a>
                 <a class="btn btn-solid theme-secondary btn-sm" href="{{ route('purchase.invoices.index') }}">
                     <i class="me-1" data-lucide="arrow-left"></i>{{ __('common.actions.back') }}
                 </a>

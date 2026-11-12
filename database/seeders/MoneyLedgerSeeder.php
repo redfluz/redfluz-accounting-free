@@ -26,7 +26,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\PaymentVoucher;
@@ -217,7 +217,7 @@ class MoneyLedgerSeeder extends Seeder
                 'party' => 'Horizon Wealth Management',
                 'transfer_type' => PaymentTransferType::CASH,
                 'notes' => 'Awaiting approval, so the drawer has not been credited yet.',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
             ],
         ];
     }
@@ -314,15 +314,15 @@ class MoneyLedgerSeeder extends Seeder
                 'company_id' => $company->id,
                 'company_name' => $company->name,
                 'date' => $receipt['date'],
-                'status' => $receipt['status'] ?? LedgerStatus::POSTED,
+                'status' => $receipt['status'] ?? DocumentStatus::POSTED,
                 'payment_transfer_type' => $receipt['transfer_type'],
                 'reference_number' => $receipt['reference_number'],
                 'notes' => $receipt['notes'],
                 'total_amount' => $receipt['amount'],
                 'created_name' => 'System Seeder',
                 'created_at' => $receipt['date'],
-                'approved_name' => ($receipt['status'] ?? LedgerStatus::POSTED) === LedgerStatus::POSTED ? 'Manager User' : null,
-                'approved_at' => ($receipt['status'] ?? LedgerStatus::POSTED) === LedgerStatus::POSTED ? $receipt['date'] : null,
+                'approved_name' => ($receipt['status'] ?? DocumentStatus::POSTED) === DocumentStatus::POSTED ? 'Manager User' : null,
+                'approved_at' => ($receipt['status'] ?? DocumentStatus::POSTED) === DocumentStatus::POSTED ? $receipt['date'] : null,
             ]);
 
             $this->postSeededDocument($model, LedgerSubType::RECEIPT, 'document_number', $this->posting, $debitChartId, $creditChartId, (string) $receipt['amount']);
@@ -360,7 +360,7 @@ class MoneyLedgerSeeder extends Seeder
                 'company_id' => $company->id,
                 'company_name' => $company->name,
                 'date' => $voucher['date'],
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'payment_transfer_type' => $voucher['transfer_type'],
                 ...$this->moneyAccountColumns($creditChartId),
                 'reference_number' => $voucher['reference_number'],

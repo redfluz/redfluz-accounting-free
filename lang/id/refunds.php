@@ -84,4 +84,19 @@ return [
         'authorised_signature' => 'Tanda Tangan Berwenang',
         'company_placeholder' => 'PERUSAHAAN ANDA',
     ],
+    'audit' => [
+        'role' => 'Peran',
+        'name' => 'Nama',
+        'date' => 'Tanggal',
+        'signature' => 'Tanda Tangan',
+
+        'created_by' => 'Dibuat Oleh',
+        'created_at' => 'Dibuat Pada',
+        'approved_at' => 'Disetujui Pada',
+        'cancelled_at' => 'Dibatalkan Pada',
+        'undone_at' => 'Dipulihkan Pada',
+        'approved_by' => 'Disetujui Oleh',
+        'cancelled_by' => 'Dibatalkan Oleh',
+        'undone_by' => 'Dipulihkan Oleh',
+    ],
 ];

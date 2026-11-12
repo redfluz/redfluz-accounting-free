@@ -116,6 +116,28 @@
             padding: 15px;
         }
 
+        .payment-table {
+            margin-top: 10px;
+        }
+
+        .payment-table th {
+            background: #e5e7eb;
+            font-size: 10px;
+            padding: 8px 9px;
+            text-align: left;
+        }
+
+        .payment-table td {
+            border-bottom: 1px solid #d1d5db;
+            padding: 8px 9px;
+        }
+
+        .payment-table tfoot th {
+            border-top: 2px solid #1e3a8a;
+            padding: 8px 9px;
+            font-size: 10px;
+        }
+
         .footer {
             background: #f3f4f6;
             bottom: 0;
@@ -167,7 +189,7 @@
                 </td>
                 <td>
                     <div class="title">
-                        {{ __('invoice_designs.pdf.sales_title') }}
+                        {{ __('invoice_designs.pdf.purchase_title') }}
                     </div>
                     <div class="text-right">{{ $documentNumber }}</div>
                 </td>
@@ -196,18 +218,18 @@
             <thead>
                 <tr>
                     <th scope="col">{{ __('invoice_designs.pdf.description') }}</th>
-                    <th scope="col" class="text-right">{{ __('invoice_designs.pdf.quantity') }}</th>
-                    <th scope="col" class="text-right">{{ __('invoice_designs.pdf.unit_price') }}</th>
-                    <th scope="col" class="text-right">{{ __('invoice_designs.pdf.amount') }}</th>
+                    <th scope="col">{{ __('invoice_designs.pdf.quantity') }}</th>
+                    <th scope="col">{{ __('invoice_designs.pdf.unit_price') }}</th>
+                    <th scope="col">{{ __('invoice_designs.pdf.amount') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($lines as $line)
                     <tr>
                         <td>{{ $line->product?->name ?? ($line->description ?? '-') }}</td>
-                        <td class="text-right">{{ $line->quantity }}</td>
-                        <td class="text-right">{{ number_format((float) $line->unit_price, 2) }}</td>
-                        <td class="text-right">
+                        <td>{{ $line->quantity }}</td>
+                        <td>{{ number_format((float) $line->unit_price, 2) }}</td>
+                        <td>
                             {{
                                 number_format(
                                     (float) $line->line_total_amount !== 0.0
@@ -225,7 +247,7 @@
         <table class="total">
             <tr>
                 <td>{{ __('ledgers.table.column_subtotal_amount') }}</td>
-                <td class="text-right">{{ number_format($subtotal, 2) }}</td>
+                <td>{{ number_format($subtotal, 2) }}</td>
             </tr>
             @if ($discountTotal > 0)
                 <tr>
@@ -233,18 +255,26 @@
                         {{ __('ledgers.table.column_discount_amount') }}
                         @if ($invoice->discount_name) ({{ $invoice->discount_name }}-{{ $discountType === 'percent' ? number_format((float) $invoice->discount_value, 4).'%' : $currencySymbol . ' ' . number_format((float) $invoice->discount_value, 2) }})@endif
                     </td>
-                    <td class="text-right">{{ number_format($discountTotal, 2) }}</td>
+                    <td>{{ number_format($discountTotal, 2) }}</td>
                 </tr>
             @endif
             @if ($taxTotal > 0)
                 <tr>
                     <td>{{ __('ledgers.table.column_tax_amount') }}</td>
-                    <td class="text-right">{{ number_format($taxTotal, 2) }}</td>
+                    <td>{{ number_format($taxTotal, 2) }}</td>
                 </tr>
             @endif
             <tr>
                 <td>{{ __('invoice_designs.pdf.total') }}</td>
-                <td class="accent text-right">{{ number_format($grandTotal, 2) }}</td>
+                <td class="accent">{{ number_format($grandTotal, 2) }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('invoices.payment_received') ?? 'Amount Paid' }}</td>
+                <td>{{ number_format((float) ($amountPaid ?? '0.00'), 2) }}</td>
+            </tr>
+            <tr>
+                <td>{{ __('invoices.balance_due') ?? 'Balance Due' }}</td>
+                <td>{{ number_format((float) ($balanceDue ?? $grandTotal), 2) }}</td>
             </tr>
         </table>
 
@@ -255,13 +285,56 @@
             </div>
         @endif
 
-        @if (true)
-            <div class="payment-box">
-                <strong>{{ __('invoice_designs.pdf.payment_details') }}</strong>
-                <br />
-                {{ __('invoice_designs.pdf.bank_details_placeholder') }}
-            </div>
-        @endif
+        <div class="payment-box">
+            <strong>{{ __('invoice_designs.pdf.payment_details') }}</strong>
+
+            <table style="margin-top: 8px; width: 100%;">
+                <tr>
+                    <td style="width: 50%;"><span class="muted">{{ __('invoices.payment_received') }}</span><br /><strong>{{ number_format((float) ($amountPaid ?? '0.00'), 2) }}</strong></td>
+                    <td style="width: 50%;"><span class="muted">{{ __('invoices.balance_due') }}</span><br /><strong class="accent">{{ number_format((float) ($balanceDue ?? $grandTotal), 2) }}</strong></td>
+                </tr>
+            </table>
+
+            @if (!empty($payments) && $payments->isNotEmpty())
+                <table class="payment-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_document_number') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_type') }}</th>
+                            <th scope="col">{{ __('ledgers.table.column_amount') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($payments as $payment)
+                            @php
+                                $applied = bcsub((string) $payment->debit_amount, (string) $payment->credit_amount, 2);
+                                $subtype = $payment->subtype->value ?? $payment->subtype ?? null;
+                                $typeLabel = $subtype ? __('ledgers.sub_type.' . $subtype) : '-';
+                            @endphp
+                            <tr>
+                                <td>{{ $payment->date?->format(Setting::getDefaultDate()) ?? '-' }}</td>
+                                <td>{{ $payment->document_number }}</td>
+                                <td>{{ $typeLabel }}</td>
+                                <td>{{ number_format((float) $applied, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row" colspan="3">{{ __('invoices.payment_received') }}</th>
+                            <th scope="row">{{ number_format((float) ($amountPaid ?? '0.00'), 2) }}</th>
+                        </tr>
+                        <tr>
+                            <th scope="row" colspan="3">{{ __('invoices.balance_due') }}</th>
+                            <th scope="row">{{ number_format((float) ($balanceDue ?? $grandTotal), 2) }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            @else
+                <div class="muted" style="margin-top: 8px;">{{ __('invoices.no_payments') }}</div>
+            @endif
+        </div>
     </div>
 
     </body>

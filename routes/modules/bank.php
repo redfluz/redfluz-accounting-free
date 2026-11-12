@@ -44,6 +44,8 @@ use App\Http\Controllers\Bank\Refund\CustomerHistoryController;
 use App\Http\Controllers\Bank\Refund\SupplierCancelledController;
 use App\Http\Controllers\Bank\Refund\SupplierHistoryController;
 use App\Http\Controllers\Bank\SupplierRefundController;
+use App\Http\Controllers\Bank\Transfer\CancelledController as TransferCancelledController;
+use App\Http\Controllers\Bank\Transfer\HistoryController as TransferHistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('banks', BankController::class)->names('bank.banks');
@@ -78,16 +80,14 @@ Route::post('receipts/batch-cancel', [ReceiptController::class, 'batchCancel'])-
 Route::get('receipts/invoices', [ReceiptController::class, 'invoiceOptions'])->name('bank.receipts.invoices');
 
 Route::get('receipts/history', [ReceiptHistoryController::class, 'index'])->name('bank.receipts.history.index');
-Route::get('receipts/history/export-excel', [ReceiptHistoryController::class, 'exportExcel'])->name('bank.receipts.history.export-excel');
-Route::get('receipts/history/export-pdf', [ReceiptHistoryController::class, 'exportPdf'])->name('bank.receipts.history.export-pdf');
 Route::get('receipts/history/{documentNumber}/pdf', [ReceiptHistoryController::class, 'pdf'])->name('bank.receipts.history.pdf');
 Route::get('receipts/history/{documentNumber}', [ReceiptHistoryController::class, 'show'])->name('bank.receipts.history.show');
 
 Route::get('receipts/cancelled', [ReceiptCancelledController::class, 'index'])->name('bank.receipts.cancelled.index');
-Route::get('receipts/cancelled/export-pdf', [ReceiptCancelledController::class, 'exportPdf'])->name('bank.receipts.cancelled.export-pdf');
 Route::patch('receipts/cancelled/{documentNumber}/uncancel', [ReceiptCancelledController::class, 'uncancel'])->name('bank.receipts.cancelled.uncancel');
 Route::get('receipts/cancelled/{documentNumber}/pdf', [ReceiptCancelledController::class, 'pdf'])->name('bank.receipts.cancelled.pdf');
 Route::get('receipts/cancelled/{documentNumber}', [ReceiptCancelledController::class, 'show'])->name('bank.receipts.cancelled.show');
+
 Route::get('receipts/{documentNumber}/edit', [ReceiptController::class, 'edit'])->name('bank.receipts.edit');
 Route::delete('receipts/{documentNumber}', [ReceiptController::class, 'destroy'])->name('bank.receipts.destroy');
 Route::get('receipts/{documentNumber}/pdf', [ReceiptController::class, 'pdf'])->name('bank.receipts.pdf');
@@ -104,13 +104,10 @@ Route::post('payment-vouchers/batch-cancel', [PaymentVoucherController::class, '
 Route::get('payment-vouchers/invoices', [PaymentVoucherController::class, 'invoiceOptions'])->name('bank.payment-vouchers.invoices');
 
 Route::get('payment-vouchers/history', [VoucherHistoryController::class, 'index'])->name('bank.payment-vouchers.history.index');
-Route::get('payment-vouchers/history/export-excel', [VoucherHistoryController::class, 'exportExcel'])->name('bank.payment-vouchers.history.export-excel');
-Route::get('payment-vouchers/history/export-pdf', [VoucherHistoryController::class, 'exportPdf'])->name('bank.payment-vouchers.history.export-pdf');
 Route::get('payment-vouchers/history/{documentNumber}/pdf', [VoucherHistoryController::class, 'pdf'])->name('bank.payment-vouchers.history.pdf');
 Route::get('payment-vouchers/history/{documentNumber}', [VoucherHistoryController::class, 'show'])->name('bank.payment-vouchers.history.show');
 
 Route::get('payment-vouchers/cancelled', [VoucherCancelledController::class, 'index'])->name('bank.payment-vouchers.cancelled.index');
-Route::get('payment-vouchers/cancelled/export-pdf', [VoucherCancelledController::class, 'exportPdf'])->name('bank.payment-vouchers.cancelled.export-pdf');
 Route::patch('payment-vouchers/cancelled/{documentNumber}/uncancel', [VoucherCancelledController::class, 'uncancel'])->name('bank.payment-vouchers.cancelled.uncancel');
 Route::get('payment-vouchers/cancelled/{documentNumber}/pdf', [VoucherCancelledController::class, 'pdf'])->name('bank.payment-vouchers.cancelled.pdf');
 Route::get('payment-vouchers/cancelled/{documentNumber}', [VoucherCancelledController::class, 'show'])->name('bank.payment-vouchers.cancelled.show');
@@ -148,6 +145,14 @@ Route::get('cash-transfers/{documentNumber}', [CashTransferController::class, 's
 Route::get('bank-transfers', [BankTransferController::class, 'index'])->name('bank.bank-transfers.index');
 Route::get('bank-transfers/create', [BankTransferController::class, 'create'])->name('bank.bank-transfers.create');
 Route::post('bank-transfers', [BankTransferController::class, 'store'])->name('bank.bank-transfers.store');
+
+Route::get('bank-transfers/history', [TransferHistoryController::class, 'index'])->name('bank.bank-transfers.history.index');
+Route::get('bank-transfers/history/{documentNumber}', [TransferHistoryController::class, 'show'])->name('bank.bank-transfers.history.show');
+
+Route::get('bank-transfers/cancelled', [TransferCancelledController::class, 'index'])->name('bank.bank-transfers.cancelled.index');
+Route::patch('bank-transfers/cancelled/{documentNumber}/uncancel', [TransferCancelledController::class, 'uncancel'])->name('bank.bank-transfers.cancelled.uncancel');
+Route::get('bank-transfers/cancelled/{documentNumber}', [TransferCancelledController::class, 'show'])->name('bank.bank-transfers.cancelled.show');
+
 Route::get('bank-transfers/{documentNumber}/edit', [BankTransferController::class, 'edit'])->name('bank.bank-transfers.edit');
 Route::put('bank-transfers/{documentNumber}', [BankTransferController::class, 'update'])->name('bank.bank-transfers.update');
 Route::patch('bank-transfers/{documentNumber}/approve', [BankTransferController::class, 'approve'])->name('bank.bank-transfers.approve');
@@ -167,13 +172,10 @@ Route::post('customer-refunds/batch-cancel', [CustomerRefundController::class, '
 Route::get('customer-refunds/invoices', [CustomerRefundController::class, 'invoiceOptions'])->name('bank.customer-refunds.invoices');
 
 Route::get('customer-refunds/history', [CustomerHistoryController::class, 'index'])->name('bank.customer-refunds.history.index');
-Route::get('customer-refunds/history/export-excel', [CustomerHistoryController::class, 'exportExcel'])->name('bank.customer-refunds.history.export-excel');
-Route::get('customer-refunds/history/export-pdf', [CustomerHistoryController::class, 'exportPdf'])->name('bank.customer-refunds.history.export-pdf');
 Route::get('customer-refunds/history/{documentNumber}/pdf', [CustomerHistoryController::class, 'pdf'])->name('bank.customer-refunds.history.pdf');
 Route::get('customer-refunds/history/{documentNumber}', [CustomerHistoryController::class, 'show'])->name('bank.customer-refunds.history.show');
 
 Route::get('customer-refunds/cancelled', [CustomerCancelledController::class, 'index'])->name('bank.customer-refunds.cancelled.index');
-Route::get('customer-refunds/cancelled/export-pdf', [CustomerCancelledController::class, 'exportPdf'])->name('bank.customer-refunds.cancelled.export-pdf');
 Route::patch('customer-refunds/cancelled/{documentNumber}/uncancel', [CustomerCancelledController::class, 'uncancel'])->name('bank.customer-refunds.cancelled.uncancel');
 Route::get('customer-refunds/cancelled/{documentNumber}/pdf', [CustomerCancelledController::class, 'pdf'])->name('bank.customer-refunds.cancelled.pdf');
 Route::get('customer-refunds/cancelled/{documentNumber}', [CustomerCancelledController::class, 'show'])->name('bank.customer-refunds.cancelled.show');
@@ -191,13 +193,10 @@ Route::post('supplier-refunds/batch-cancel', [SupplierRefundController::class, '
 Route::get('supplier-refunds/invoices', [SupplierRefundController::class, 'invoiceOptions'])->name('bank.supplier-refunds.invoices');
 
 Route::get('supplier-refunds/history', [SupplierHistoryController::class, 'index'])->name('bank.supplier-refunds.history.index');
-Route::get('supplier-refunds/history/export-excel', [SupplierHistoryController::class, 'exportExcel'])->name('bank.supplier-refunds.history.export-excel');
-Route::get('supplier-refunds/history/export-pdf', [SupplierHistoryController::class, 'exportPdf'])->name('bank.supplier-refunds.history.export-pdf');
 Route::get('supplier-refunds/history/{documentNumber}/pdf', [SupplierHistoryController::class, 'pdf'])->name('bank.supplier-refunds.history.pdf');
 Route::get('supplier-refunds/history/{documentNumber}', [SupplierHistoryController::class, 'show'])->name('bank.supplier-refunds.history.show');
 
 Route::get('supplier-refunds/cancelled', [SupplierCancelledController::class, 'index'])->name('bank.supplier-refunds.cancelled.index');
-Route::get('supplier-refunds/cancelled/export-pdf', [SupplierCancelledController::class, 'exportPdf'])->name('bank.supplier-refunds.cancelled.export-pdf');
 Route::patch('supplier-refunds/cancelled/{documentNumber}/uncancel', [SupplierCancelledController::class, 'uncancel'])->name('bank.supplier-refunds.cancelled.uncancel');
 Route::get('supplier-refunds/cancelled/{documentNumber}/pdf', [SupplierCancelledController::class, 'pdf'])->name('bank.supplier-refunds.cancelled.pdf');
 Route::get('supplier-refunds/cancelled/{documentNumber}', [SupplierCancelledController::class, 'show'])->name('bank.supplier-refunds.cancelled.show');

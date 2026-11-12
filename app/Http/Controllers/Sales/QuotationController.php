@@ -28,7 +28,7 @@ namespace App\Http\Controllers\Sales;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Sales\QuotationStatus;
 use App\Enums\Sales\SalesOrderStatus;
@@ -459,7 +459,7 @@ class QuotationController extends Controller
                 'contact_name' => $quotation->contact?->name,
                 'date' => $quotation->getRawOriginal('date'),
                 'due_date' => null,
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'attachment_path' => $quotation->attachment_path,
                 'notes' => $quotation->notes,
                 'subtotal' => $quotedLines->sum('total_amount'),

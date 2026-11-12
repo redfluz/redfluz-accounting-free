@@ -27,7 +27,6 @@
 return [
     'title' => 'Chart of Accounts',
     'subtitle' => 'Manage accounting system account codes and classifications.',
-    'export_excel' => 'Export Excel',
     'yes' => 'Yes',
     'no' => 'No',
     'all_types' => 'All Types',
@@ -46,6 +45,14 @@ return [
         'report_group_help' => 'Controls where this account appears in financial reports. Available groups are filtered by the selected chart type.',
         'report_group_select_type' => 'Select a chart type first',
         'report_group_empty' => 'No report group is available for this chart type',
+    ],
+    'chart_type' => [
+        'asset' => 'Asset',
+        'liability' => 'Liability',
+        'equity' => 'Equity',
+        'income' => 'Income',
+        'expenses' => 'Expenses',
+        'none' => 'None',
     ],
     'report_group' => [
         'property_plant_equipment' => 'Property, Plant and Equipment',

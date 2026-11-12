@@ -30,12 +30,12 @@ use App\Models\ChartOfAccount\Chart;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -75,10 +75,24 @@ use Spatie\Activitylog\Support\LogOptions;
  */
 #[Table('banks', key: 'id')]
 #[Fillable([
-    'chart_id', 'name', 'account_name', 'account_number', 'account_type',
-    'branch_name', 'bank_code', 'swift_code', 'iban', 'routing_number',
-    'country_code', 'email', 'phone', 'website', 'address', 'notes',
-    'is_active', 'is_default',
+    'chart_id',
+    'name',
+    'account_name',
+    'account_number',
+    'account_type',
+    'branch_name',
+    'bank_code',
+    'swift_code',
+    'iban',
+    'routing_number',
+    'country_code',
+    'email',
+    'phone',
+    'website',
+    'address',
+    'notes',
+    'is_active',
+    'is_default',
 ])]
 class Bank extends Model
 {

@@ -1,12 +1,12 @@
 @php use App\Models\System\Setting; @endphp
 @php
-    use App\Enums\Finance\LedgerStatus;
+    use App\Enums\Finance\DocumentStatus;
 
-    $isPosted = $journalEntry->status === LedgerStatus::POSTED;
+    $isPosted = $journalEntry->status === DocumentStatus::POSTED;
     $statusLabel =
-        $journalEntry->reversal_of_id !== null
+        $journalEntry->document_original !== null
             ? __('journal_entries.reversal_status')
-            : ($journalEntry->reversal !== null
+            : ($journalEntry->undone_at !== null
                 ? __('journal_entries.reversed_status')
                 : ($isPosted
                     ? __('journal_entries.status_approved')

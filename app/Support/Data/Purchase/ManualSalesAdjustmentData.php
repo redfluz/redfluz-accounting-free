@@ -28,7 +28,7 @@ declare(strict_types=1);
 
 namespace App\Support\Data\Sales;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Models\Sales\SalesInvoice;
 use Carbon\CarbonImmutable;
@@ -85,7 +85,7 @@ class ManualSalesAdjustmentData extends Data
         public ?CarbonImmutable $date = null,
 
         #[MapName('status')]
-        public ?LedgerStatus $status = null,
+        public ?DocumentStatus $status = null,
 
         #[MapName('attachment')]
         public mixed $attachment = null,

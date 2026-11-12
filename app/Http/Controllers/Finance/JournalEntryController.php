@@ -29,7 +29,7 @@ namespace App\Http\Controllers\Finance;
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
@@ -96,8 +96,8 @@ class JournalEntryController extends Controller
         $endDate = $request->input('end_date');
 
         $entries = JournalEntry::query()
-            ->with(['charts', 'reversal'])
-            ->where('status', LedgerStatus::PENDING)
+            ->with('charts')
+            ->where('status', DocumentStatus::PENDING)
             ->when(is_string($search) && $search !== '', function ($q) use ($search) {
                 $q->where(function ($sq) use ($search) {
                     $sq->where('document_number', 'like', "%$search%")
@@ -174,7 +174,7 @@ class JournalEntryController extends Controller
                 'date' => $data->date,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'notes' => $data->notes,
             ]);
 
@@ -208,11 +208,15 @@ class JournalEntryController extends Controller
     public function show(JournalEntry $journalEntry): View
     {
         $this->allows(FileResources::JOURNAL_ENTRIES);
-        $journalEntry->load(['charts', 'reversal', 'reversalOf']);
+        $journalEntry->load('charts');
+
+        $reversalNumber = JournalEntry::query()
+            ->where('document_original', $journalEntry->document_number)
+            ->value('document_number');
 
         return view(
             'finance.journal-entries.show',
-            compact('journalEntry') + ['postingDateMin' => null, 'postingDateMax' => null]
+            compact('journalEntry', 'reversalNumber') + ['postingDateMin' => null, 'postingDateMax' => null]
         );
     }
 
@@ -225,7 +229,7 @@ class JournalEntryController extends Controller
     public function pdf(JournalEntry $journalEntry): Response
     {
         $this->allows(FileResources::JOURNAL_ENTRIES);
-        $journalEntry->load(['charts', 'reversal', 'reversalOf']);
+        $journalEntry->load('charts');
         $setting = Setting::query()->first();
 
         return Pdf::loadView(
@@ -410,7 +414,7 @@ class JournalEntryController extends Controller
 
             $this->posting->generalLedger($ledgerDtos);
 
-            $lockedEntry->update(['status' => LedgerStatus::POSTED]);
+            $lockedEntry->update(['status' => DocumentStatus::POSTED]);
             $this->attributeApproved($lockedEntry);
         });
 
@@ -451,17 +455,17 @@ class JournalEntryController extends Controller
                 ->firstOrFail();
 
             abort_if(
-                $lockedEntry->status !== LedgerStatus::POSTED,
+                $lockedEntry->status !== DocumentStatus::POSTED,
                 409,
                 __('journal_entries.reversal_posted_only')
             );
             abort_if(
-                $lockedEntry->reversal_of_id !== null,
+                $lockedEntry->document_original !== null,
                 409,
                 __('journal_entries.reversal_cannot_reverse')
             );
             abort_if(
-                $lockedEntry->reversal_id !== null,
+                $lockedEntry->undone_at !== null,
                 409,
                 __('journal_entries.reversal_already_exists')
             );
@@ -491,17 +495,16 @@ class JournalEntryController extends Controller
             );
 
             $reversalEntry = JournalEntry::query()->create([
-                'reversal_of_id' => $lockedEntry->id,
                 'document_number' => $this->generateDocumentNumber(LedgerSubType::JOURNAL),
-                'reference_number' => $lockedEntry->reference_number,
+                'reference_number' => $lockedEntry->document_number,
+                'document_original' => $lockedEntry->document_number,
                 'date' => $reversalDate,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'notes' => $validated['reason'],
             ]);
 
-            $lockedEntry->reversal_id = $reversalEntry->id;
             $this->attributeUndone($lockedEntry);
 
             $now = now();
@@ -726,7 +729,7 @@ class JournalEntryController extends Controller
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                if ($lockedEntry->status === LedgerStatus::POSTED) {
+                if ($lockedEntry->status === DocumentStatus::POSTED) {
                     throw ValidationException::withMessages([
                         'entry_ids' => __('common.batch_rejected.already_posted', ['number' => $entryId]),
                     ]);
@@ -768,7 +771,7 @@ class JournalEntryController extends Controller
                     ->all();
 
                 $this->posting->generalLedger($ledgerDtos);
-                $lockedEntry->update(['status' => LedgerStatus::POSTED]);
+                $lockedEntry->update(['status' => DocumentStatus::POSTED]);
                 $this->attributeApproved($lockedEntry);
 
                 $count++;
@@ -794,8 +797,8 @@ class JournalEntryController extends Controller
         $count = 0;
 
         /** @var JournalEntry $entry */
-        foreach (JournalEntry::query()->whereIn('id', $entryIds)->where('status', LedgerStatus::PENDING)->get() as $entry) {
-            $entry->update(['status' => LedgerStatus::CANCELLED]);
+        foreach (JournalEntry::query()->whereIn('id', $entryIds)->where('status', DocumentStatus::PENDING)->get() as $entry) {
+            $entry->update(['status' => DocumentStatus::CANCELLED]);
             $this->attributeCancelled($entry);
             $count++;
         }
@@ -858,7 +861,7 @@ class JournalEntryController extends Controller
     private function abortIfApproved(JournalEntry $journalEntry): void
     {
         abort_if(
-            $journalEntry->status === LedgerStatus::POSTED,
+            $journalEntry->status === DocumentStatus::POSTED,
             409,
             __('journal_entries.approved_locked')
         );

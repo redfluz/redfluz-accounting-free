@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementSource;
 use App\Enums\Inventory\ProductMovementStatus;
@@ -109,7 +109,7 @@ class PurchaseDocumentSeeder extends Seeder
             'amount' => '2750.00',
             'date' => '2026-07-20',
             'due_date' => '2026-08-19',
-            'status' => LedgerStatus::CANCELLED,
+            'status' => DocumentStatus::CANCELLED,
             'notes' => 'Cancelled purchase invoice — wrong supplier selected.',
         ],
         [
@@ -126,7 +126,7 @@ class PurchaseDocumentSeeder extends Seeder
             'amount' => '1800.00',
             'date' => '2026-08-08',
             'due_date' => '2026-09-07',
-            'status' => LedgerStatus::POSTED,
+            'status' => DocumentStatus::POSTED,
             'notes' => 'Posted purchase invoice used to demonstrate supplier document flow.',
         ],
         [
@@ -139,7 +139,7 @@ class PurchaseDocumentSeeder extends Seeder
             'amount' => '1220.00',
             'date' => '2026-09-25',
             'due_date' => '2026-10-25',
-            'status' => LedgerStatus::PENDING,
+            'status' => DocumentStatus::PENDING,
             'notes' => 'Supplier invoice received, awaiting posting to the ledger.',
         ],
         [
@@ -152,7 +152,7 @@ class PurchaseDocumentSeeder extends Seeder
             'amount' => '5050.00',
             'date' => '2026-09-26',
             'due_date' => '2026-10-26',
-            'status' => LedgerStatus::PENDING,
+            'status' => DocumentStatus::PENDING,
             'notes' => 'Second supplier invoice awaiting posting.',
         ],
     ];
@@ -285,7 +285,7 @@ class PurchaseDocumentSeeder extends Seeder
         // from an earlier seed are removed rather than left to contradict its
         // status. A posted invoice's rows belong to the ledger stream and are
         // left exactly as that seeder wrote them.
-        if ($invoice['status'] !== LedgerStatus::POSTED) {
+        if ($invoice['status'] !== DocumentStatus::POSTED) {
             DB::table('ledgers')->where('document_number', $invoice['number'])->delete();
         }
     }

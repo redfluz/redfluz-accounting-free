@@ -48,11 +48,6 @@
                 <p class="fg-secondary small mb-0">{{ __('charts.subtitle') }}</p>
             </h4>
             <div class="d-flex gap-2">
-                <a class="btn btn-solid theme-success btn-sm"
-                    href="{{ route('chart-of-account.charts.export-excel', request()->query()) }}">
-                    <i class="me-1" data-lucide="file-spreadsheet"></i>
-                    {{ __('charts.export_excel') }}
-                </a>
                 @if ($canCreate)
                     <a class="btn btn-solid theme-success btn-sm" href="{{ route('chart-of-account.charts.create') }}">
                         <i class="me-1" data-lucide="plus"></i>

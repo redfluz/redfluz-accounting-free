@@ -28,16 +28,12 @@ namespace App\Http\Controllers\ChartOfAccount;
 
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;
-use App\Models\System\Setting;
 use App\Services\FinancialReportExcelExporter;
 use App\Services\FinancialReportService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TrialBalanceController extends Controller
 {
@@ -73,48 +69,6 @@ class TrialBalanceController extends Controller
             'ledgerStartDate' => $startDate->toDateString(),
             'ledgerEndDate' => $endDate->toDateString(),
         ]);
-    }
-
-    /**
-     * Download the Trial Balance report as PDF.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return Response Returns the HTTP response.
-     */
-    public function exportPdf(Request $request): Response
-    {
-        $this->allows(FileResources::TRIAL_BALANCE);
-
-        [$startDate, $endDate, $periodLabel] = $this->resolvePeriod($request);
-        $report = $this->reports->trialBalance($startDate, $endDate);
-
-        $setting = Setting::query()->first();
-
-        $pdf = Pdf::loadView('chart-of-account.trial-balance.pdf', [
-            ...$report,
-            'periodLabel' => $periodLabel,
-            'setting' => $setting,
-        ])->setPaper('a4', 'landscape');
-
-        return $pdf->download('trial_balance_'.$endDate->format('Ymd').'.pdf');
-    }
-
-    /**
-     * Download the Trial Balance report as Excel.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return StreamedResponse Returns the HTTP response.
-     */
-    public function exportExcel(Request $request): StreamedResponse
-    {
-        $this->allows(FileResources::TRIAL_BALANCE);
-
-        [$startDate, $endDate, $periodLabel] = $this->resolvePeriod($request);
-
-        return $this->excel->trialBalance(
-            $this->reports->trialBalance($startDate, $endDate),
-            $periodLabel,
-        );
     }
 
     /**

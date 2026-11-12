@@ -30,11 +30,11 @@ use App\Models\Inventory\Product;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @mixin Builder<DeliveryOrderLine>
@@ -61,9 +61,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Table('delivery_order_lines', key: 'id')]
 #[Fillable([
-    'delivery_order_id', 'sales_order_line_id', 'product_id',
-    'product_sku', 'product_name', 'description', 'quantity', 'unit_price',
-    'unit_cost', 'total_amount',
+    'delivery_order_id',
+    'sales_order_line_id',
+    'product_id',
+    'product_sku',
+    'product_name',
+    'description',
+    'quantity',
+    'unit_price',
+    'unit_cost',
+    'total_amount',
 ])]
 class DeliveryOrderLine extends Model
 {

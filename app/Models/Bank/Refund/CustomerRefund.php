@@ -26,7 +26,7 @@
 
 namespace App\Models\Bank\Refund;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Bank;
@@ -39,13 +39,13 @@ use App\Support\Traits\RecordsRefundStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 
@@ -73,7 +73,7 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  * @property string|null $contact_id
  * @property string|null $bank_account_id
  * @property string|null $e_wallet_account_id
- * @property LedgerStatus $status
+ * @property DocumentStatus $status
  * @property PaymentTransferType|null $payment_transfer_type
  * @property string $document_number
  * @property string $company_name
@@ -109,12 +109,20 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  */
 #[Table('customer_refunds')]
 #[Fillable([
-    'company_id', 'contact_id',
-    'bank_account_id', 'e_wallet_account_id',
-    'status', 'payment_transfer_type',
-    'document_number', 'company_name', 'contact_name',
-    'date', 'reference_number',
-    'attachment_path', 'notes', 'total_amount',
+    'company_id',
+    'contact_id',
+    'bank_account_id',
+    'e_wallet_account_id',
+    'status',
+    'payment_transfer_type',
+    'document_number',
+    'company_name',
+    'contact_name',
+    'date',
+    'reference_number',
+    'attachment_path',
+    'notes',
+    'total_amount',
     'created_by',
     'created_name',
     'created_at',
@@ -147,7 +155,7 @@ class CustomerRefund extends Model
     protected function casts(): array
     {
         return [
-            'status' => LedgerStatus::class,
+            'status' => DocumentStatus::class,
             'payment_transfer_type' => PaymentTransferType::class,
             'date' => 'date',
             'total_amount' => 'decimal:2',

@@ -205,7 +205,7 @@ class MenuSeeder extends Seeder
                 'groupings' => [
                     'BANKING' => [
                         'icon' => 'landmark',
-                        'pages' => ['BANK ACCOUNTS', 'CASH ACCOUNTS', 'E-WALLET ACCOUNTS', 'CASH LEDGER', 'BANK LEDGER', 'E-WALLET LEDGER', 'CASH TRANSFERS', 'BANK TRANSFERS', 'BANK JOURNALS'],
+                        'pages' => ['CASH TRANSFERS', 'BANK JOURNALS'],
                     ],
                     'RECEIPTS' => ['icon' => 'arrow-down-to-line', 'pages' => ['RECEIPTS', 'CANCELLED RECEIPTS', 'RECEIPTS HISTORY']],
                     'PAYMENT VOUCHERS' => ['icon' => 'receipt-text', 'pages' => ['PAYMENT VOUCHERS', 'CANCELLED PAYMENT VOUCHERS', 'PAYMENT VOUCHERS HISTORY']],
@@ -215,42 +215,6 @@ class MenuSeeder extends Seeder
                 'icon' => 'landmark',
                 'access' => $roles,
                 'pages' => [
-                    [
-                        'name' => 'BANK ACCOUNTS',
-                        'route_name' => FileResources::BANKS->value,
-                        'icon' => 'building-2',
-                        'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove']),
-                    ],
-                    [
-                        'name' => 'CASH ACCOUNTS',
-                        'route_name' => FileResources::CASH_ACCOUNTS->value,
-                        'icon' => 'wallet',
-                        'access' => $this->allAccess($roles, ['read']),
-                    ],
-                    [
-                        'name' => 'E-WALLET ACCOUNTS',
-                        'route_name' => FileResources::E_WALLET_ACCOUNTS->value,
-                        'icon' => 'smartphone',
-                        'access' => $this->allAccess($roles, ['read']),
-                    ],
-                    [
-                        'name' => 'CASH LEDGER',
-                        'route_name' => FileResources::CASH_LEDGERS->value,
-                        'icon' => 'wallet',
-                        'access' => $this->allAccess($roles, ['read']),
-                    ],
-                    [
-                        'name' => 'BANK LEDGER',
-                        'route_name' => FileResources::BANK_LEDGERS->value,
-                        'icon' => 'landmark',
-                        'access' => $this->allAccess($roles, ['read']),
-                    ],
-                    [
-                        'name' => 'E-WALLET LEDGER',
-                        'route_name' => FileResources::E_WALLET_LEDGERS->value,
-                        'icon' => 'smartphone',
-                        'access' => $this->allAccess($roles, ['read']),
-                    ],
                     [
                         'name' => 'BANK JOURNALS',
                         'route_name' => FileResources::BANK_JOURNALS->value,
@@ -262,13 +226,6 @@ class MenuSeeder extends Seeder
                         'name' => 'CASH TRANSFERS',
                         'route_name' => FileResources::CASH_TRANSFERS->value,
                         'icon' => 'banknote',
-                        'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove', 'approve', 'cancel']),
-                    ],
-                    [
-                        // Transit to bank: the second half, once the bank credits it.
-                        'name' => 'BANK TRANSFERS',
-                        'route_name' => FileResources::BANK_TRANSFERS->value,
-                        'icon' => 'landmark',
                         'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove', 'approve', 'cancel']),
                     ],
                     [
@@ -341,6 +298,79 @@ class MenuSeeder extends Seeder
                         'name' => 'SUPPLIER REFUNDS HISTORY',
                         'route_name' => FileResources::SUPPLIER_REFUNDS_HISTORY->value,
                         'icon' => 'history',
+                        'access' => $this->allAccess($roles, ['read']),
+                    ],
+                ],
+            ],
+            'BANK TRANSFER' => [
+                'icon' => 'arrow-left-right',
+                'access' => $roles,
+                'pages' => [
+                    [
+                        // Transit to bank: the second half, once the bank credits it.
+                        'name' => 'BANK TRANSFERS',
+                        'route_name' => FileResources::BANK_TRANSFERS->value,
+                        'icon' => 'landmark',
+                        'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove', 'approve', 'cancel']),
+                    ],
+                    [
+                        'name' => 'CANCELLED BANK TRANSFERS',
+                        'route_name' => FileResources::BANK_TRANSFERS_CANCELLED->value,
+                        'icon' => 'x-circle',
+                        'access' => $this->allAccess($roles, ['read', 'add']),
+                    ],
+                    [
+                        'name' => 'BANK TRANSFERS HISTORY',
+                        'route_name' => FileResources::BANK_TRANSFERS_HISTORY->value,
+                        'icon' => 'history',
+                        'access' => $this->allAccess($roles, ['read']),
+                    ],
+                ],
+            ],
+            'LEDGERS' => [
+                'icon' => 'book-open',
+                'access' => $roles,
+                'pages' => [
+                    [
+                        'name' => 'BANK LEDGER',
+                        'route_name' => FileResources::BANK_LEDGERS->value,
+                        'icon' => 'landmark',
+                        'access' => $this->allAccess($roles, ['read']),
+                    ],
+                    [
+                        'name' => 'E-WALLET LEDGER',
+                        'route_name' => FileResources::E_WALLET_LEDGERS->value,
+                        'icon' => 'smartphone',
+                        'access' => $this->allAccess($roles, ['read']),
+                    ],
+                    [
+                        'name' => 'CASH LEDGER',
+                        'route_name' => FileResources::CASH_LEDGERS->value,
+                        'icon' => 'wallet',
+                        'access' => $this->allAccess($roles, ['read']),
+                    ],
+                ],
+            ],
+            'ACCOUNTS' => [
+                'icon' => 'wallet',
+                'access' => $roles,
+                'pages' => [
+                    [
+                        'name' => 'BANK ACCOUNTS',
+                        'route_name' => FileResources::BANKS->value,
+                        'icon' => 'building-2',
+                        'access' => $this->allAccess($roles, ['read', 'add', 'update', 'remove']),
+                    ],
+                    [
+                        'name' => 'E-WALLET ACCOUNTS',
+                        'route_name' => FileResources::E_WALLET_ACCOUNTS->value,
+                        'icon' => 'smartphone',
+                        'access' => $this->allAccess($roles, ['read']),
+                    ],
+                    [
+                        'name' => 'CASH ACCOUNTS',
+                        'route_name' => FileResources::CASH_ACCOUNTS->value,
+                        'icon' => 'wallet',
                         'access' => $this->allAccess($roles, ['read']),
                     ],
                 ],
@@ -663,6 +693,10 @@ class MenuSeeder extends Seeder
                         'name' => $pageConfig['name'],
                         'route_name' => $pageConfig['route_name'],
                         'icon' => $pageConfig['icon'],
+                        // Reset the grouping so a page moved between folders does
+                        // not keep a grouping that belongs to its old folder; the
+                        // groupings below re-claim the pages that belong to them.
+                        'page_grouping_id' => null,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]

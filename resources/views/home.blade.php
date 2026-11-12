@@ -126,6 +126,7 @@
                             @php
                                 $subtypeVal = $ledger->subtype->value ?? ($ledger->type->value ?? '—');
                                 $statusVal = $ledger->status->value ?? 'pending';
+                                $subtypeKey = $ledger->subtype->value ?? $ledger->subtype;
 
                                 $statusBadgeClass = match ($statusVal) {
                                     'paid', 'posted' => 'theme-success',
@@ -142,7 +143,7 @@
                                 <td>
                                     <span class="badge theme-secondary">
                                         {{ __(
-                                            match ($ledger->subtype->value ?? $ledger->subtype) {
+                                            match ($subtypeKey) {
                                                 'sales_invoice' => 'ledgers.sub_type.sales_invoice',
                                                 'purchase_invoice' => 'ledgers.sub_type.purchase_invoice',
                                                 'receipt' => 'ledgers.sub_type.receipt',
@@ -154,6 +155,7 @@
                                                 'transfer' => 'ledgers.sub_type.transfer',
                                                 'withdrawal' => 'ledgers.sub_type.withdrawal',
                                                 'journal' => 'ledgers.sub_type.journal',
+                                                default => 'ledgers.sub_type.' . $subtypeKey,
                                             },
                                         ) }}
                                     </span>

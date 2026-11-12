@@ -160,7 +160,7 @@
 
 <body>
     @php
-        /** @var \App\Models\Finance\ManualSalesAdjustment $adjustment */
+        /** @var \App\Models\Sales\ManualSalesAdjustment $adjustment */
         $lines = $adjustment->charts;
         $totalDebit = $lines->sum(fn($line) => (float) $line->debit_amount);
         $totalCredit = $lines->sum(fn($line) => (float) $line->credit_amount);
@@ -240,7 +240,7 @@
         <table class="detail">
             <tr>
                 <td class="label">{{ __('manual_sales_adjustments.form.note_type') }}</td>
-                <td>{{ $adjustment->subtype->label() }}</td>
+                <td>{{ __('ledgers.sub_type.' . $adjustment->subtype->value) }}</td>
             </tr>
             @if ($adjustment->reference_number)
                 <tr>

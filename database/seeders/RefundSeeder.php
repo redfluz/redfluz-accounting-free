@@ -32,7 +32,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\LedgerStatus;
+use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\PaymentTransferType;
 use App\Models\Bank\Refund\CustomerRefund;
@@ -153,10 +153,10 @@ class RefundSeeder extends Seeder
                     // one rather than a posted refund nobody approved.
                     'created_name' => 'System Seeder',
                     'created_at' => $refund['date'],
-                    'approved_name' => $refund['status'] === LedgerStatus::POSTED ? 'Manager User' : null,
-                    'approved_at' => $refund['status'] === LedgerStatus::POSTED ? $refund['date'] : null,
-                    'cancelled_name' => $refund['status'] === LedgerStatus::CANCELLED ? 'Manager User' : null,
-                    'cancelled_at' => $refund['status'] === LedgerStatus::CANCELLED ? $refund['date'] : null,
+                    'approved_name' => $refund['status'] === DocumentStatus::POSTED ? 'Manager User' : null,
+                    'approved_at' => $refund['status'] === DocumentStatus::POSTED ? $refund['date'] : null,
+                    'cancelled_name' => $refund['status'] === DocumentStatus::CANCELLED ? 'Manager User' : null,
+                    'cancelled_at' => $refund['status'] === DocumentStatus::CANCELLED ? $refund['date'] : null,
                 ]);
 
                 $this->postSeededDocument(
@@ -180,10 +180,12 @@ class RefundSeeder extends Seeder
         // highest number already issued. Reading a shared table for both would
         // let one kind's numbers push the other kind's sequence forward, and a
         // new document would be issued a number the other kind already holds.
-        foreach ([
-            [LedgerSubType::CUSTOMER_REFUND, 'customer_refunds'],
-            [LedgerSubType::SUPPLIER_REFUND, 'supplier_refunds'],
-        ] as [$subtype, $table]) {
+        foreach (
+            [
+                [LedgerSubType::CUSTOMER_REFUND, 'customer_refunds'],
+                [LedgerSubType::SUPPLIER_REFUND, 'supplier_refunds'],
+            ] as [$subtype, $table]
+        ) {
             $this->seedDocumentSequence(
                 $subtype->value,
                 $subtype->prefix(),
@@ -212,7 +214,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1200',
                 'credit_code' => '1100',
                 'amount' => '450.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Partial refund to a customer, awaiting posting.',
@@ -225,7 +227,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1200',
                 'credit_code' => '1150',
                 'amount' => '275.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Tradenet Financial Terminals',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer refund paid out of Touch n Go Wallet.',
@@ -238,7 +240,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1200',
                 'credit_code' => '1100',
                 'amount' => '120.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::CHEQUE,
                 'notes' => 'Cancelled refund: the cheque was never presented.',
@@ -254,7 +256,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1100',
                 'credit_code' => '2000',
                 'amount' => '610.00',
-                'status' => LedgerStatus::PENDING,
+                'status' => DocumentStatus::PENDING,
                 'party' => 'VSTECS Berhad',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Money recovered from a supplier, awaiting posting.',
@@ -267,7 +269,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1110',
                 'credit_code' => '2000',
                 'amount' => '900.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'SNS Network (M) Sdn Bhd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Supplier refund posted against PV-DEMO-0001.',
@@ -280,7 +282,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1100',
                 'credit_code' => '2000',
                 'amount' => '340.00',
-                'status' => LedgerStatus::CANCELLED,
+                'status' => DocumentStatus::CANCELLED,
                 'party' => 'VSTECS Berhad',
                 'transfer_type' => PaymentTransferType::CHEQUE,
                 'notes' => 'Cancelled supplier refund: raised against the wrong invoice.',
@@ -293,7 +295,7 @@ class RefundSeeder extends Seeder
                 'debit_code' => '1200',
                 'credit_code' => '1120',
                 'amount' => '900.00',
-                'status' => LedgerStatus::POSTED,
+                'status' => DocumentStatus::POSTED,
                 'party' => 'Apex Capital Advisory Ltd',
                 'transfer_type' => PaymentTransferType::BANK_TRANSFER,
                 'notes' => 'Customer refund paid out of Public Bank.',

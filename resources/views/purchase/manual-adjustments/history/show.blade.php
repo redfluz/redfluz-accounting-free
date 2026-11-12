@@ -6,11 +6,11 @@
 --}}
 
 @php
-    use App\Models\Finance\ManualPurchaseAdjustment;
+    use App\Models\Purchase\ManualPurchaseAdjustment;
     use App\Models\System\Setting;
 @endphp
 
-@props(['adjustment', 'documentNumber'])
+@props(['adjustment', 'documentNumber', 'reversalNumber'])
 
 @extends('layouts.app')
 
@@ -28,9 +28,19 @@
                     {{ $adjustment->date->format(Setting::getDefaultDate()) }}</span>
             </div>
             <div class="d-flex gap-2">
-                <span class="badge theme-success d-flex align-items-center">
-                    {{ __('journal_entries.status_approved') }}
-                </span>
+                @if ($adjustment->document_original !== null)
+                    <span class="badge theme-info d-flex align-items-center">
+                        {{ __('journal_entries.reversal_status') }}
+                    </span>
+                @elseif ($adjustment->undone_at !== null)
+                    <span class="badge theme-danger d-flex align-items-center">
+                        {{ __('journal_entries.reversed_status') }}
+                    </span>
+                @else
+                    <span class="badge theme-success d-flex align-items-center">
+                        {{ __('journal_entries.status_approved') }}
+                    </span>
+                @endif
                 <a class="btn btn-solid theme-primary btn-sm text-nowrap"
                     href="{{ route('purchase.manual-adjustments.history.pdf', $documentNumber) }}" target="_blank">
                     <i class="me-1" data-lucide="printer"></i>
@@ -46,10 +56,24 @@
         <div class="card-body">
             @include('partials.alerts')
 
+            @if ($adjustment->document_original !== null)
+                <div class="alert alert theme-info">
+                    {{ __('journal_entries.reversal_of') }}:
+                    <a class="alert-link"
+                        href="{{ route('purchase.manual-adjustments.history.show', $adjustment->document_original) }}">{{ $adjustment->document_original }}</a>
+                </div>
+            @elseif ($adjustment->undone_at !== null && $reversalNumber !== null)
+                <div class="alert alert theme-warning">
+                    {{ __('journal_entries.reversed_by') }}:
+                    <a class="alert-link"
+                        href="{{ route('purchase.manual-adjustments.history.show', $reversalNumber) }}">{{ $reversalNumber }}</a>
+                </div>
+            @endif
+
             <div class="row mb-4">
                 <div class="md:col-6">
                     <span class="fg-secondary small">{{ __('manual_purchase_adjustments.form.note_type') }}:</span>
-                    <span class="fw-bold">{{ $adjustment->subtype->label() }}</span>
+                    <span class="fw-bold">{{ __('ledgers.sub_type.' . $adjustment->subtype->value) }}</span>
                 </div>
                 @if ($adjustment->reference_number)
                     <div class="md:col-6">

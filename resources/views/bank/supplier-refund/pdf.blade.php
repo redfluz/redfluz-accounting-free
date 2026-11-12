@@ -246,41 +246,6 @@
             @endif
         </table>
 
-        <div class="section-title">{{ __('payments.table.column_entry') }}</div>
-        <table class="item-table">
-            <thead>
-                <tr>
-                    <th scope="col" style="width: 28px">#</th>
-                    <th scope="col">{{ __('ledgers.table.column_debit_acc') }}</th>
-                    <th scope="col">{{ __('ledgers.table.column_credit_acc') }}</th>
-                    <th scope="col" class="text-right">{{ __('ledgers.table.column_debit_amount') }}</th>
-                    <th scope="col" class="text-right">{{ __('ledgers.table.column_credit_amount') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($entries as $line)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ (float) ($line->debit_amount ?? 0) > 0 ? trim(($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                        <td>{{ (float) ($line->credit_amount ?? 0) > 0 ? trim(($line->chart_code ?? $line->chart?->code ?? '') . ' ' . ($line->chart_name ?? $line->chart?->name ?? '')) : '-' }}</td>
-                        <td class="text-right">{{ (float) ($line->debit_amount ?? 0) > 0 ? number_format((float) $line->debit_amount, 2) : '' }}</td>
-                        <td class="text-right">{{ (float) ($line->credit_amount ?? 0) > 0 ? number_format((float) $line->credit_amount, 2) : '' }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-right">{{ $refund->status?->value === 'posted' ? '-' : __('ledgers.no_records') }}</td>
-                    </tr>
-                @endforelse
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="3" scope="row">{{ __('common.labels.total') }}</th>
-                    <th scope="row">{{ number_format((float) $refund->total_amount, 2) }}</th>
-                    <th scope="row">{{ number_format((float) $refund->total_amount, 2) }}</th>
-                </tr>
-            </tfoot>
-        </table>
-
         <div class="section-title">{{ __('common.labels.audit_trail') }}</div>
         <table class="item-table audit-table">
             <thead>

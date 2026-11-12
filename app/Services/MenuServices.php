@@ -53,6 +53,9 @@ class MenuServices
         'DESIGN' => 120,
         'PURCHASES' => 130,
         'BANK' => 140,
+        'BANK TRANSFER' => 141,
+        'LEDGERS' => 142,
+        'ACCOUNTS' => 143,
         'FIXED ASSETS' => 150,
         'FINANCE' => 160,
         'CHARTS' => 170,
@@ -111,12 +114,26 @@ class MenuServices
         ],
         'BANK' => [
             'DASHBOARD' => 10,
-            'BANK ACCOUNTS' => 20,
             'RECEIPTS' => 30,
             'CUSTOMER REFUNDS' => 40,
             'PAYMENT VOUCHERS' => 50,
             'SUPPLIER REFUNDS' => 60,
             'BANK RECONCILIATION' => 70,
+        ],
+        'BANK TRANSFER' => [
+            'BANK TRANSFERS' => 10,
+            'CANCELLED BANK TRANSFERS' => 20,
+            'BANK TRANSFERS HISTORY' => 30,
+        ],
+        'LEDGERS' => [
+            'BANK LEDGER' => 10,
+            'E-WALLET LEDGER' => 20,
+            'CASH LEDGER' => 30,
+        ],
+        'ACCOUNTS' => [
+            'BANK ACCOUNTS' => 10,
+            'E-WALLET ACCOUNTS' => 20,
+            'CASH ACCOUNTS' => 30,
         ],
         'LEAVE' => [
             'DASHBOARD' => 10,

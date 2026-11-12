@@ -36,13 +36,13 @@ use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @mixin Builder<DeliveryOrder>
@@ -96,19 +96,44 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Table('delivery_orders', key: 'id')]
 #[Fillable([
-    'sales_order_id', 'company_address_id', 'stock_location_id', 'courier_company_id',
-    'shipping_status', 'status',
+    'sales_order_id',
+    'company_address_id',
+    'stock_location_id',
+    'courier_company_id',
+    'shipping_status',
+    'status',
     'document_number',
-    'stock_location_name', 'delivery_date', 'recipient_name', 'recipient_phone', 'delivery_address',
-    'courier', 'tracking_number', 'shipping_date',
-    'attachment_path', 'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
-    'posted_by', 'posted_name', 'posted_at',
+    'stock_location_name',
+    'delivery_date',
+    'recipient_name',
+    'recipient_phone',
+    'delivery_address',
+    'courier',
+    'tracking_number',
+    'shipping_date',
+    'attachment_path',
+    'notes',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
+    'posted_by',
+    'posted_name',
+    'posted_at',
 ])]
 class DeliveryOrder extends Model
 {

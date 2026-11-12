@@ -16,6 +16,9 @@ return [
     'balance_status_balanced' => 'Balanced',
     'balance_status_unbalanced' => 'Unbalanced',
     'reversal_line_description' => 'Reversal of :entry_number - :description',
+    'reverse_title' => 'Undo Posted Sales Note',
+    'reverse_explanation' => 'This does not delete or edit the original note. A new posted opposite note will be created with all debit and credit amounts reversed.',
+    'confirm_reverse' => 'Create the reversal note now?',
     'form' => [
         'note_type' => 'Note Type',
     ],
@@ -34,6 +37,8 @@ return [
         'chart_not_found' => 'The selected account was not found.',
         'one_side_only' => 'Each line must have either a debit or credit amount, not both.',
         'posted_delete_forbidden' => 'Cannot delete a posted manual sales adjustment.',
+        'reversal_cannot_reverse' => 'A reversal note cannot be reversed using this action. Create a separate correcting note if another correction is required.',
+        'reversal_already_exists' => 'This note has already been reversed.',
         'batch_approve_failed' => 'Failed to approve document :document.',
         'batch_cancel_failed' => 'Failed to cancel document :document.',
     ],

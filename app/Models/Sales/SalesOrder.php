@@ -34,7 +34,6 @@ use App\Support\Traits\RecordsAuthor;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Query\Builder;
 
 /**
  * @mixin Builder<SalesOrder>
@@ -90,19 +90,38 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Table('sales_orders', key: 'id')]
 #[Fillable([
-    'company_id', 'contact_id',
+    'company_id',
+    'contact_id',
     'status',
     'quotation_id',
     'document_number',
-    'customer_reference_number', 'company_name', 'contact_name',
-    'order_date', 'expected_delivery_date',
-    'subtotal', 'total_amount', 'attachment_path', 'notes',
-    'created_by', 'created_name', 'created_at',
-    'updated_by', 'updated_name', 'updated_at',
-    'deleted_by', 'deleted_name', 'deleted_at',
-    'approved_by', 'approved_name', 'approved_at',
-    'cancelled_by', 'cancelled_name', 'cancelled_at',
-    'undone_by', 'undone_name', 'undone_at',
+    'customer_reference_number',
+    'company_name',
+    'contact_name',
+    'order_date',
+    'expected_delivery_date',
+    'subtotal',
+    'total_amount',
+    'attachment_path',
+    'notes',
+    'created_by',
+    'created_name',
+    'created_at',
+    'updated_by',
+    'updated_name',
+    'updated_at',
+    'deleted_by',
+    'deleted_name',
+    'deleted_at',
+    'approved_by',
+    'approved_name',
+    'approved_at',
+    'cancelled_by',
+    'cancelled_name',
+    'cancelled_at',
+    'undone_by',
+    'undone_name',
+    'undone_at',
 ])]
 class SalesOrder extends Model
 {

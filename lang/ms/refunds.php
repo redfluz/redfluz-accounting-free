@@ -84,4 +84,19 @@ return [
         'authorised_signature' => 'Tandatangan Dibenarkan',
         'company_placeholder' => 'SYARIKAT ANDA',
     ],
+    'audit' => [
+        'role' => 'Peranan',
+        'name' => 'Nama',
+        'date' => 'Tarikh',
+        'signature' => 'Tandatangan',
+
+        'created_by' => 'Dicipta Oleh',
+        'created_at' => 'Dicipta Pada',
+        'approved_at' => 'Diluluskan Pada',
+        'cancelled_at' => 'Dibatalkan Pada',
+        'undone_at' => 'Dipulihkan Pada',
+        'approved_by' => 'Diluluskan Oleh',
+        'cancelled_by' => 'Dibatalkan Oleh',
+        'undone_by' => 'Dipulihkan Oleh',
+    ],
 ];

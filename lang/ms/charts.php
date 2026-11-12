@@ -27,7 +27,6 @@
 return [
     'title' => 'Carta Akaun',
     'subtitle' => 'Urus kod akaun dan pengelasan sistem perakaunan.',
-    'export_excel' => 'Eksport Excel',
     'yes' => 'Ya',
     'no' => 'Tidak',
     'all_types' => 'Semua Jenis',
@@ -46,6 +45,14 @@ return [
         'report_group_help' => 'Mengawal lokasi akaun ini dipaparkan dalam laporan kewangan. Kumpulan yang tersedia ditapis mengikut jenis carta yang dipilih.',
         'report_group_select_type' => 'Pilih jenis carta dahulu',
         'report_group_empty' => 'Tiada kumpulan laporan tersedia untuk jenis carta ini',
+    ],
+    'chart_type' => [
+        'asset' => 'Aset',
+        'liability' => 'Liabiliti',
+        'equity' => 'Ekuiti',
+        'income' => 'Pendapatan',
+        'expenses' => 'Perbelanjaan',
+        'none' => 'Tiada',
     ],
     'report_group' => [
         'property_plant_equipment' => 'Harta, Loji dan Peralatan',
