@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Inventory\Brand;
+namespace app\Http\Requests\Inventory\Brand;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

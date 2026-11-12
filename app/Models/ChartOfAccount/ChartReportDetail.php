@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\ChartOfAccount;
+namespace app\Models\ChartOfAccount;
 
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\ChartOfAccount\ChartReportTypeEnum;

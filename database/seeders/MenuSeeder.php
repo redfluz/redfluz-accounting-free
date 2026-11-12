@@ -211,6 +211,9 @@ class MenuSeeder extends Seeder
                     'PAYMENT VOUCHERS' => ['icon' => 'receipt-text', 'pages' => ['PAYMENT VOUCHERS', 'CANCELLED PAYMENT VOUCHERS', 'PAYMENT VOUCHERS HISTORY']],
                     'CUSTOMER REFUNDING' => ['icon' => 'user-x', 'pages' => ['CUSTOMER REFUNDS', 'CANCELLED CUSTOMER REFUNDS', 'CUSTOMER REFUNDS HISTORY']],
                     'SUPPLIER REFUNDING' => ['icon' => 'truck-x', 'pages' => ['SUPPLIER REFUNDS', 'CANCELLED SUPPLIER REFUNDS', 'SUPPLIER REFUNDS HISTORY']],
+                    'BANK TRANSFERRING' => ['icon' => 'arrow-left-right', 'pages' => ['BANK TRANSFERS', 'CANCELLED BANK TRANSFERS', 'BANK TRANSFERS HISTORY']],
+                    'LEDGERS' => ['icon' => 'book-open', 'pages' => ['BANK LEDGER', 'E-WALLET LEDGER', 'CASH LEDGER']],
+                    'ACCOUNTS' => ['icon' => 'wallet', 'pages' => ['BANK ACCOUNTS', 'E-WALLET ACCOUNTS', 'CASH ACCOUNTS']],
                 ],
                 'icon' => 'landmark',
                 'access' => $roles,
@@ -300,12 +303,6 @@ class MenuSeeder extends Seeder
                         'icon' => 'history',
                         'access' => $this->allAccess($roles, ['read']),
                     ],
-                ],
-            ],
-            'BANK TRANSFER' => [
-                'icon' => 'arrow-left-right',
-                'access' => $roles,
-                'pages' => [
                     [
                         // Transit to bank: the second half, once the bank credits it.
                         'name' => 'BANK TRANSFERS',
@@ -325,12 +322,6 @@ class MenuSeeder extends Seeder
                         'icon' => 'history',
                         'access' => $this->allAccess($roles, ['read']),
                     ],
-                ],
-            ],
-            'LEDGERS' => [
-                'icon' => 'book-open',
-                'access' => $roles,
-                'pages' => [
                     [
                         'name' => 'BANK LEDGER',
                         'route_name' => FileResources::BANK_LEDGERS->value,
@@ -349,12 +340,6 @@ class MenuSeeder extends Seeder
                         'icon' => 'wallet',
                         'access' => $this->allAccess($roles, ['read']),
                     ],
-                ],
-            ],
-            'ACCOUNTS' => [
-                'icon' => 'wallet',
-                'access' => $roles,
-                'pages' => [
                     [
                         'name' => 'BANK ACCOUNTS',
                         'route_name' => FileResources::BANKS->value,
@@ -737,6 +722,50 @@ class MenuSeeder extends Seeder
 
             $this->seedGroupings($folderId, $folderConfig['groupings'] ?? [], $roleIds, $folderConfig['access']);
         }
+
+        $this->pruneStaleFolders($structure);
+    }
+
+    /**
+     * Remove folders that are no longer part of the menu structure, together
+     * with their permissions and page groupings, so a folder that has been
+     * merged into another one does not linger as an empty sidebar entry.
+     *
+     * Must run after the structure loop: pages are reparented there, and a
+     * folder cannot be deleted while pages still reference it.
+     *
+     * @param  array<string, array<string, mixed>>  $structure  Menu structure configuration.
+     */
+    private function pruneStaleFolders(array $structure): void
+    {
+        $validFolderNames = array_keys($structure);
+
+        $staleFolders = DB::table('folders')
+            ->whereNotIn('name', $validFolderNames)
+            ->get(['id']);
+
+        if ($staleFolders->isEmpty()) {
+            return;
+        }
+
+        $staleFolderIds = $staleFolders->pluck('id');
+
+        $staleGroupings = DB::table('page_groupings')
+            ->whereIn('folder_id', $staleFolderIds)
+            ->get(['id']);
+
+        DB::table('page_grouping_permissions')
+            ->whereIn('page_grouping_id', $staleGroupings->pluck('id'))
+            ->delete();
+        DB::table('page_groupings')
+            ->whereIn('id', $staleGroupings->pluck('id'))
+            ->delete();
+        DB::table('folder_permissions')
+            ->whereIn('folder_id', $staleFolderIds)
+            ->delete();
+        DB::table('folders')
+            ->whereIn('id', $staleFolderIds)
+            ->delete();
     }
 
     /**

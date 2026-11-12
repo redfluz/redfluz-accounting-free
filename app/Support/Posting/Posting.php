@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Posting;
+namespace app\Support\Posting;
 
 use App\Enums\Bank\BankAccountKind;
 use App\Enums\Finance\LedgerSubType;

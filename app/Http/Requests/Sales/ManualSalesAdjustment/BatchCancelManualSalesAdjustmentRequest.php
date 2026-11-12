@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Sales\ManualSalesAdjustment;
+namespace app\Http\Requests\Sales\ManualSalesAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

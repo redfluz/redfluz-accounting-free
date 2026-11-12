@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Services;
+namespace app\Services;
 
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\ChartOfAccount\ChartReportTypeEnum;
@@ -882,7 +882,6 @@ class FinancialReportService
             'closing_debit',
             'closing_credit',
         ], fn ($column) => abs((float) $row[$column]) < 0.005);
-
     }
 
     /**

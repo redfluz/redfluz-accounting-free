@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\ChartOfAccount;
+namespace app\Http\Controllers\ChartOfAccount;
 
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;

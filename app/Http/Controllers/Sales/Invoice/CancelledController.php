@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Sales\Invoice;
+namespace app\Http\Controllers\Sales\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

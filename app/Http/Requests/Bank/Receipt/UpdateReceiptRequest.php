@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Bank\Receipt;
+namespace app\Http\Requests\Bank\Receipt;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

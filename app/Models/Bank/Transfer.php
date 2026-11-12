@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models\Bank;
+namespace app\Models\Bank;
 
 use App\Enums\Finance\DocumentStatus;
 use App\Models\ChartOfAccount\Chart;

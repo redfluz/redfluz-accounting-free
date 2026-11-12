@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Bank;
+namespace app\Http\Controllers\Bank;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;

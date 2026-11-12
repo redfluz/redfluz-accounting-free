@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums\Inventory;
+namespace app\Enums\Inventory;
 
 enum StockLocationType: string
 {

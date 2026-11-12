@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Providers;
+namespace app\Providers;
 
 use App\Http\Controllers\Controller;
 use App\Models\System\Setting;

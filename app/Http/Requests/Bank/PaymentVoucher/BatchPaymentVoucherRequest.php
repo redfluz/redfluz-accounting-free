@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Bank\PaymentVoucher;
+namespace app\Http\Requests\Bank\PaymentVoucher;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

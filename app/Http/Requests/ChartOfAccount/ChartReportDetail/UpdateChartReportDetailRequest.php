@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\ChartOfAccount\ChartReportDetail;
+namespace app\Http\Requests\ChartOfAccount\ChartReportDetail;
 
 use App\Enums\ChartOfAccount\ChartReportTypeEnum;
 use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;

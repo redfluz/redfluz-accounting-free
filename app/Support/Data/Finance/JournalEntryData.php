@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Finance;
+namespace app\Support\Data\Finance;
 
 use App\Enums\Finance\DocumentStatus;
 use App\Models\Finance\JournalEntry;

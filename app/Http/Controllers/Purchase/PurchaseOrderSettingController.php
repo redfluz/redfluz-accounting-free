@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Purchase;
+namespace app\Http\Controllers\Purchase;
 
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;

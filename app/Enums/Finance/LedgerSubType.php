@@ -22,7 +22,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums\Finance;
+namespace app\Enums\Finance;
 
 enum LedgerSubType: string
 {

@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Crm\Company;
+namespace app\Http\Requests\Crm\Company;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

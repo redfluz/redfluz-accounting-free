@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models\Year;
+namespace app\Models\Year;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

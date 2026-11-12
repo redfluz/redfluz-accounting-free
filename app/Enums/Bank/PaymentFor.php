@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums\Bank;
+namespace app\Enums\Bank;
 
 /**
  * What a payment voucher is settling.

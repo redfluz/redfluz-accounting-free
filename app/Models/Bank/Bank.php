@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\Bank;
+namespace app\Models\Bank;
 
 use App\Models\ChartOfAccount\Chart;
 use Carbon\CarbonInterface;

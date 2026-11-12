@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Purchase\PurchaseInvoice;
+namespace app\Http\Requests\Purchase\PurchaseInvoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

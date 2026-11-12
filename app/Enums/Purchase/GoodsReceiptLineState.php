@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums\Purchase;
+namespace app\Enums\Purchase;
 
 /**
  * How much of an ordered quantity one goods received note line accounts for.

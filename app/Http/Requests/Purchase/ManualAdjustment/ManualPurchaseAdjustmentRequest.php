@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Purchase\ManualAdjustment;
+namespace app\Http\Requests\Purchase\ManualAdjustment;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

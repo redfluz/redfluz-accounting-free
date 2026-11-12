@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Bank\Transfer;
+namespace app\Http\Controllers\Bank\Transfer;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;

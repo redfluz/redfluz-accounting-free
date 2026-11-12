@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Inventory\Product;
+namespace app\Http\Requests\Inventory\Product;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
@@ -81,12 +81,14 @@ class UpdateProductRequest extends ProductRequest
             'mpn' => ['nullable', 'string', 'max:100'],
             'brand_id' => ['nullable', 'uuid', 'exists:brands,id'],
             'supplier_company_id' => [
-                'nullable', 'uuid',
+                'nullable',
+                'uuid',
                 Rule::exists('companies', 'id')->where(fn (Builder $query) => $query->where('is_creditor', true)),
             ],
             'product_category_id' => ['required', 'uuid', 'exists:product_categories,id'],
             'product_type_id' => [
-                'required', 'uuid',
+                'required',
+                'uuid',
                 Rule::exists('product_types', 'id')
                     ->where('product_category_id', $this->inputStringOrEmpty('product_category_id')),
             ],
@@ -108,7 +110,10 @@ class UpdateProductRequest extends ProductRequest
             'variants.*.id' => ['nullable', 'uuid', 'distinct'],
             'variants.*.variant_name' => ['nullable', 'string', 'max:255', 'required_with:variants.*.sku'],
             'variants.*.sku' => [
-                'nullable', 'string', 'max:100', 'distinct:ignore_case',
+                'nullable',
+                'string',
+                'max:100',
+                'distinct:ignore_case',
                 'required_with:variants.*.variant_name',
             ],
             'variants.*.variant_details' => ['nullable', 'string'],

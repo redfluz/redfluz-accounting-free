@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Bank\CashAccount;
+namespace app\Http\Requests\Bank\CashAccount;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

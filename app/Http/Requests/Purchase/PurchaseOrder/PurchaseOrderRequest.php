@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Purchase\PurchaseOrder;
+namespace app\Http\Requests\Purchase\PurchaseOrder;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

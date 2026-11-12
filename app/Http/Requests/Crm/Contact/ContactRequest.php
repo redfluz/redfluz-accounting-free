@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Crm\Contact;
+namespace app\Http\Requests\Crm\Contact;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Personnel;
+namespace app\Http\Controllers\Personnel;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Personnel\Profile\UpdateProfileRequest;

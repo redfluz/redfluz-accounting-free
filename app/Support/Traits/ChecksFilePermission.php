@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Traits;
+namespace app\Support\Traits;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

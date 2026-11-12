@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Purchase;
+namespace app\Http\Controllers\Purchase;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -215,7 +215,8 @@ class PurchaseReturnController extends Controller
                 throw ValidationException::withMessages(['quantity' => __('purchase_returns.validation.insufficient_stock')]);
             }
             ProductLedger::query()->whereKey($return->id)->update([
-                'status' => ProductMovementStatus::ACTIVE->value, 'activated_at' => now(),
+                'status' => ProductMovementStatus::ACTIVE->value,
+                'activated_at' => now(),
             ]);
         });
 

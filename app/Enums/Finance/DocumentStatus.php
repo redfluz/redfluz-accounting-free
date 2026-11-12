@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums\Finance;
+namespace app\Enums\Finance;
 
 /**
  * @noinspection PhpUnused
@@ -34,5 +34,4 @@ enum DocumentStatus: string
     case PENDING = 'pending';
     case CANCELLED = 'cancelled';
     case POSTED = 'posted';
-
 }

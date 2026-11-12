@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support;
+namespace app\Support;
 
 use RuntimeException;
 
@@ -29,7 +29,7 @@ final class PostingException extends RuntimeException
     {
         return new self(
             'No default currency is set, so no figure can be posted. '
-            .'Mark a currency as the default before posting any document.'
+                .'Mark a currency as the default before posting any document.'
         );
     }
 
@@ -42,7 +42,7 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "No money ledger exists for account kind [{$kind}]. "
-            .'A money ledger is defined for bank, cash and e_wallet accounts only.'
+                .'A money ledger is defined for bank, cash and e_wallet accounts only.'
         );
     }
 
@@ -55,8 +55,8 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "No ledger source type is defined for document sub-type [{$subtype}]. "
-            .'A general ledger row must name the document that raised it, so the '
-            .'sub-type has to be mapped to a source before it can be posted.'
+                .'A general ledger row must name the document that raised it, so the '
+                .'sub-type has to be mapped to a source before it can be posted.'
         );
     }
 
@@ -70,8 +70,8 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "Entry [{$identifier}] does not name one side of a posting. An entry "
-            .'is a debit or a credit against a single chart of account; an amount '
-            .'on both sides, or a chart on neither side, cannot be filed.'
+                .'is a debit or a credit against a single chart of account; an amount '
+                .'on both sides, or a chart on neither side, cannot be filed.'
         );
     }
 
@@ -84,10 +84,10 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "The posting for [{$documentNumber}] was given nothing to write, or "
-            .'was given both its legs and its general ledger rows. A posting takes '
-            .'exactly one input: the document\'s legs, or the general ledger rows '
-            .'it was approved into, with the legs left empty for the poster to '
-            .'derive from them.'
+                .'was given both its legs and its general ledger rows. A posting takes '
+                .'exactly one input: the document\'s legs, or the general ledger rows '
+                .'it was approved into, with the legs left empty for the poster to '
+                .'derive from them.'
         );
     }
 
@@ -101,10 +101,10 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "Posting [{$documentNumber}] as [{$sourceType}] wrote no receivable "
-            .'or payable row. An invoice or adjustment moves a customer or supplier '
-            .'balance, which only happens when one of its charts belongs to the '
-            .'receivable or payable report group, so if none did the counterparty '
-            .'chart is misconfigured.'
+                .'or payable row. An invoice or adjustment moves a customer or supplier '
+                .'balance, which only happens when one of its charts belongs to the '
+                .'receivable or payable report group, so if none did the counterparty '
+                .'chart is misconfigured.'
         );
     }
 
@@ -117,10 +117,10 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "The posting for [{$documentNumber}] moved a customer or supplier "
-            .'balance without naming the company it belongs to. A receivable or '
-            .'payable row answers what one company owes or is owed, so a movement '
-            .'against the receivable or payable chart on a document that names no '
-            .'company cannot be filed.'
+                .'balance without naming the company it belongs to. A receivable or '
+                .'payable row answers what one company owes or is owed, so a movement '
+                .'against the receivable or payable chart on a document that names no '
+                .'company cannot be filed.'
         );
     }
 
@@ -136,8 +136,8 @@ final class PostingException extends RuntimeException
     {
         return new self(
             "The posting for [{$documentNumber}] names a {$kind} [{$id}] that does "
-            .'not exist. A posting must reference a real account, company or product '
-            .'before it can be written.'
+                .'not exist. A posting must reference a real account, company or product '
+                .'before it can be written.'
         );
     }
 }

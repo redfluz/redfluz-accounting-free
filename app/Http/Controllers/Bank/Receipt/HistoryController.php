@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Bank\Receipt;
+namespace app\Http\Controllers\Bank\Receipt;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;
@@ -94,7 +94,34 @@ class HistoryController extends Controller
             ->where('status', DocumentStatus::POSTED)
             ->firstOrFail();
 
-        return view('bank.receipt.history.show', compact('receipt', 'documentNumber'));
+        /** @var Collection<int, \App\Models\Bank\BankLedger> $bankLedgers */
+        $bankLedgers = BankLedger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
+        /** @var Collection<int, \App\Models\Bank\CashLedger> $cashLedgers */
+        $cashLedgers = CashLedger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
+        /** @var Collection<int, \App\Models\Bank\EWalletLedger> $eWalletLedgers */
+        $eWalletLedgers = EWalletLedger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
+        /** @var Collection<int, \App\Models\Crm\ArLedger> $arLedgers */
+        $arLedgers = ArLedger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
+        return view('bank.receipt.history.show', compact(
+            'receipt',
+            'documentNumber',
+            'bankLedgers',
+            'cashLedgers',
+            'eWalletLedgers',
+            'arLedgers',
+        ));
     }
 
     /**

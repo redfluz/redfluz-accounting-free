@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Services;
+namespace app\Services;
 
 use App\Enums\ChartOfAccount\ChartTotalReportTypeEnum;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;

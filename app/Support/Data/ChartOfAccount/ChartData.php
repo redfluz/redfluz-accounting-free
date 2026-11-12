@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\ChartOfAccount;
+namespace app\Support\Data\ChartOfAccount;
 
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Models\ChartOfAccount\Chart;

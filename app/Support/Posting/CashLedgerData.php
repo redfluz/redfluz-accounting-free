@@ -22,7 +22,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Posting;
+namespace app\Support\Posting;
 
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Attributes\MapName;

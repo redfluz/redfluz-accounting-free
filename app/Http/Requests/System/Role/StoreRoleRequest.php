@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\System\Role;
+namespace app\Http\Requests\System\Role;
 
 use App\Enums\DashboardRole;
 use App\Enums\FileAction;

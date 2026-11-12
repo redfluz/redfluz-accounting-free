@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Menu;
+namespace app\Http\Controllers\Menu;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileResources;
@@ -107,7 +107,8 @@ class FolderPermissionController extends Controller
             [
                 'status' => 'success',
                 'message' => FlashMessage::updated(FileResources::FOLDER_PERMISSIONS),
-            ]);
+            ]
+        );
     }
 
     /**

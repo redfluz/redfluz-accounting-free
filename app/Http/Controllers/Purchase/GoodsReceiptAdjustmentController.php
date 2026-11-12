@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Purchase;
+namespace app\Http\Controllers\Purchase;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -298,11 +298,11 @@ class GoodsReceiptAdjustmentController extends Controller
         return ProductLedger::query()
             ->selectRaw(
                 'MIN(id) as id, document_number, MAX(reference_number) as reference_number, '
-                .'MAX(date) as date, MAX(status) as status, MAX(notes) as notes, '
-                .'MAX(company_name) as company_name, '
-                .'SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END) as increase_quantity, '
-                .'SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END) as decrease_quantity, '
-                .'COUNT(*) as line_count',
+                    .'MAX(date) as date, MAX(status) as status, MAX(notes) as notes, '
+                    .'MAX(company_name) as company_name, '
+                    .'SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END) as increase_quantity, '
+                    .'SUM(CASE WHEN direction = ? THEN quantity ELSE 0 END) as decrease_quantity, '
+                    .'COUNT(*) as line_count',
                 [ProductMovementDirection::IN->value, ProductMovementDirection::OUT->value]
             )
             ->where('source_type', ProductMovementSource::GOODS_RECEIPT)
@@ -422,8 +422,10 @@ class GoodsReceiptAdjustmentController extends Controller
 
             // Only check ceiling when INCREASING. Reductions (corrected < current)
             // are always allowed — you can return items even if the PO is complete.
-            if (bccomp(DecimalService::normalize($lineQuantity), $current, 4) === 1
-                && bccomp(DecimalService::normalize($lineQuantity), $ceiling, 4) === 1) {
+            if (
+                bccomp(DecimalService::normalize($lineQuantity), $current, 4) === 1
+                && bccomp(DecimalService::normalize($lineQuantity), $ceiling, 4) === 1
+            ) {
                 throw ValidationException::withMessages([
                     "lines.{$index}.quantity" => __('goods_receipts.adjustment.validation.exceeds_ordered', [
                         'quantity' => number_format((float) $ceiling, 4),

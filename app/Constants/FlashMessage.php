@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Constants;
+namespace app\Constants;
 
 use App\Enums\FileResources;
 

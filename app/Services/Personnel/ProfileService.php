@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Personnel;
+namespace app\Services\Personnel;
 
 use App\Models\System\User;
 use App\Support\Traits\StoresUploads;

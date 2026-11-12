@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Bank;
+namespace app\Http\Controllers\Bank;
 
 use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileResources;
@@ -108,7 +108,7 @@ class CashLedgerController extends Controller
                 ->whereNull('deleted_at')
                 ->selectRaw(
                     'COALESCE(SUM(debit_amount), 0) as money_in, '
-                    .'COALESCE(SUM(credit_amount), 0) as money_out'
+                        .'COALESCE(SUM(credit_amount), 0) as money_out'
                 )
                 ->first();
 

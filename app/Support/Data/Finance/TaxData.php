@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Finance;
+namespace app\Support\Data\Finance;
 
 use App\Enums\Finance\TaxMode;
 use App\Models\Finance\Tax;

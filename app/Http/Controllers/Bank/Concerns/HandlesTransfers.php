@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Bank\Concerns;
+namespace app\Http\Controllers\Bank\Concerns;
 
 use App\Models\Bank\Bank;
 use App\Models\Bank\CashAccount;

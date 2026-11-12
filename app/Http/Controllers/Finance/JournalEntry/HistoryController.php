@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Finance\JournalEntry;
+namespace app\Http\Controllers\Finance\JournalEntry;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;

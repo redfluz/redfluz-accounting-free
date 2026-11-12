@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums\Bank;
+namespace app\Enums\Bank;
 
 /**
  * What kind of money account a bank record holds.

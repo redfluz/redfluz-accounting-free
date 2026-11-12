@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Sales\Invoice;
+namespace app\Http\Controllers\Sales\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
@@ -33,6 +33,7 @@ use App\Enums\Finance\LedgerType;
 use App\Enums\Sales\SalesType;
 use App\Http\Controllers\Controller;
 use App\Models\Crm\ArLedger;
+use App\Models\Finance\Ledger;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
@@ -110,6 +111,17 @@ class HistoryController extends Controller
             abort(404);
         }
 
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $documentNumber)
+            ->where('type', LedgerType::PAYMENT->value)
+            ->get();
+
+        /** @var Collection<int, ArLedger> $arLedgers */
+        $arLedgers = ArLedger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
         /** @var Collection<int, SalesInvoiceLine> $lines */
         $lines = $invoice->lines;
 
@@ -117,9 +129,16 @@ class HistoryController extends Controller
             ->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null && ! $line->deduct_inventory)
             ->values();
 
-        $canDeductInventory = $invoice->sales_type === SalesType::PRODUCT && $deductableLines->isNotEmpty();
+        $canDeductInventory = $invoice->sales_type === SalesType::PRODUCT && $deductableLines->isNotEmpty;
 
-        return view('sales.invoices.history.show', compact('documentNumber', 'lines', 'invoice', 'canDeductInventory', 'deductableLines'));
+        return view('sales.invoices.history.show', compact(
+            'documentNumber',
+            'lines',
+            'invoice',
+            'canDeductInventory',
+            'glLedgers',
+            'arLedgers',
+        ));
     }
 
     /**

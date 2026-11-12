@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Bank\Receipt;
+namespace app\Http\Requests\Bank\Receipt;
 
 use App\Enums\Finance\PaymentTransferType;
 use App\Http\Requests\BaseFormRequest;
@@ -103,11 +103,13 @@ abstract class ReceiptRequest extends BaseFormRequest
 
         $rules = [];
 
-        foreach ([
-            'bank_account_id' => 'banks',
-            'cash_account_id' => 'cash_accounts',
-            'e_wallet_account_id' => 'e_wallet_accounts',
-        ] as $field => $table) {
+        foreach (
+            [
+                'bank_account_id' => 'banks',
+                'cash_account_id' => 'cash_accounts',
+                'e_wallet_account_id' => 'e_wallet_accounts',
+            ] as $field => $table
+        ) {
             $rules[$field] = [
                 Rule::requiredIf($chosen === $field),
                 'nullable',

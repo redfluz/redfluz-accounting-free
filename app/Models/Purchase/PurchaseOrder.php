@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\Purchase;
+namespace app\Models\Purchase;
 
 use App\Enums\Purchase\PurchaseOrderType;
 use App\Models\Crm\Company;

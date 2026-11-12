@@ -27,9 +27,6 @@
 return [
 
     'BANK' => 'Bank',
-    'BANK TRANSFER' => 'Pemindahan Bank',
-    'LEDGERS' => 'Lejar',
-    'ACCOUNTS' => 'Akaun',
     'CHART OF ACCOUNTS' => 'Carta Akaun',
     'CRM' => 'Pelangan/Pembekal',
     'FINANCE' => 'Kewangan',

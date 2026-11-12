@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Bank\SupplierRefund;
+namespace app\Http\Requests\Bank\SupplierRefund;
 
 use App\Enums\Finance\LedgerType;
 use App\Enums\Finance\PaymentTransferType;
@@ -153,10 +153,12 @@ abstract class SupplierRefundRequest extends BaseFormRequest
 
         $rules = [];
 
-        foreach ([
-            'bank_account_id' => 'banks',
-            'e_wallet_account_id' => 'e_wallet_accounts',
-        ] as $field => $table) {
+        foreach (
+            [
+                'bank_account_id' => 'banks',
+                'e_wallet_account_id' => 'e_wallet_accounts',
+            ] as $field => $table
+        ) {
             $rules[$field] = [
                 Rule::requiredIf($chosen === $field),
                 'nullable',

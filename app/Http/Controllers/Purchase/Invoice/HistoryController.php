@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Purchase\Invoice;
+namespace app\Http\Controllers\Purchase\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
@@ -32,6 +32,7 @@ use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerType;
 use App\Http\Controllers\Controller;
 use App\Models\Crm\ApLedger;
+use App\Models\Finance\Ledger;
 use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\System\Setting;
@@ -110,10 +111,21 @@ class HistoryController extends Controller
             abort(404);
         }
 
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
+        /** @var Collection<int, ApLedger> $apLedgers */
+        $apLedgers = ApLedger::query()
+            ->where('document_number', $documentNumber)
+            ->get();
+
         $lines = $invoice->lines;
 
         return view('purchase.invoices.history.show', array_merge(
             compact('documentNumber', 'lines', 'invoice'),
+            ['glLedgers' => $glLedgers, 'apLedgers' => $apLedgers],
             ['postingDateMin' => null, 'postingDateMax' => null],
         ));
     }

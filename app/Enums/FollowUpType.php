@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums;
+namespace app\Enums;
 
 /**
  * How the balance on an order was discussed, shared by the sales and purchase

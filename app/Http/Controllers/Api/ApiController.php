@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace app\Http\Controllers\Api;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

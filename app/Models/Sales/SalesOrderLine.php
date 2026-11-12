@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\Sales;
+namespace app\Models\Sales;
 
 use App\Enums\Finance\DiscountType;
 use App\Enums\Finance\TaxMode;

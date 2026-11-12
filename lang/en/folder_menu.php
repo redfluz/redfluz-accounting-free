@@ -27,9 +27,6 @@
 return [
 
     'BANK' => 'Bank',
-    'BANK TRANSFER' => 'Bank Transfer',
-    'LEDGERS' => 'Ledgers',
-    'ACCOUNTS' => 'Accounts',
     'CHART OF ACCOUNTS' => 'Chart of Accounts',
     'CRM' => 'Crm',
     'FINANCE' => 'Finance',

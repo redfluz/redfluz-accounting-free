@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Traits;
+namespace app\Traits;
 
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;
@@ -423,9 +423,11 @@ trait HandlesInvoiceProductMovement
             ->lockForUpdate()
             ->get();
 
-        foreach ($pendingMovements->groupBy(
-            fn (ProductLedger $movement): string => $movement->stock_location_id.'|'.$movement->product_id
-        ) as $productMovements) {
+        foreach (
+            $pendingMovements->groupBy(
+                fn (ProductLedger $movement): string => $movement->stock_location_id.'|'.$movement->product_id
+            ) as $productMovements
+        ) {
             $firstMovement = $productMovements->first();
             if ($firstMovement === null) {
                 continue;

@@ -123,6 +123,7 @@ return [
     'PURCHASE RETURNING' => 'Retur Pembelian',
     'PURCHASE INVOICING' => 'Faktur Pembelian',
     'BANKING' => 'Perbankan',
+    'BANK TRANSFERRING' => 'Transfer Bank',
     'REPORTS' => 'Laporan',
     'STRUCTURE' => 'Struktur',
     'PERMISSIONS' => 'Izin',

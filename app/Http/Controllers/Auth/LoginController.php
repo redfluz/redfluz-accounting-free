@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Auth;
+namespace app\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\System\User;
@@ -74,6 +74,5 @@ class LoginController extends Controller
         $request->session()->put('locale', $locale);
         App::setLocale($locale);
         app()->setLocale($locale);
-
     }
 }

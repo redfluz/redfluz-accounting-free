@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Bank;
+namespace app\Support\Data\Bank;
 
 use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\PaymentTransferType;

@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Sales;
+namespace app\Support\Data\Sales;
 
 use App\Enums\Sales\DeliveryOrderStatus;
 use App\Enums\Sales\ShippingStatus;

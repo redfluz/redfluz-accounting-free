@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Enums;
+namespace app\Enums;
 
 /**
  * Please refer to route_name field in the table pages

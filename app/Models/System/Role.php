@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\System;
+namespace app\Models\System;
 
 use App\Enums\DashboardRole;
 use App\Models\Menu\Folder;

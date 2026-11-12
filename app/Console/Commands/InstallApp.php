@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace app\Console\Commands;
 
 use Database\Seeders\DatabaseSeeder;
 use Exception;

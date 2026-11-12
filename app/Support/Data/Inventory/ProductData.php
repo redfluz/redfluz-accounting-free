@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Inventory;
+namespace app\Support\Data\Inventory;
 
 use App\Enums\Inventory\AcquisitionType;
 use App\Models\Inventory\Product;

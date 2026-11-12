@@ -123,6 +123,7 @@ return [
     'PURCHASE RETURNING' => 'Purchase Returns',
     'PURCHASE INVOICING' => 'Purchase Invoicing',
     'BANKING' => 'Banking',
+    'BANK TRANSFERRING' => 'Bank Transfers',
     'REPORTS' => 'Reports',
     'STRUCTURE' => 'Structure',
     'PERMISSIONS' => 'Permissions',

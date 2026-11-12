@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Sales;
+namespace app\Http\Controllers\Sales;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;

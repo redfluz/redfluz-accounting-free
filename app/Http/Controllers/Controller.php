@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers;
+namespace app\Http\Controllers;
 
 use App\Support\Traits\AttributesDocuments;
 use App\Support\Traits\ChecksFilePermission;

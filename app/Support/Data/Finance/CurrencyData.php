@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Finance;
+namespace app\Support\Data\Finance;
 
 use App\Models\Finance\Currency;
 use Carbon\CarbonImmutable;

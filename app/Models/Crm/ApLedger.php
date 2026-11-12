@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\Crm;
+namespace app\Models\Crm;
 
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;

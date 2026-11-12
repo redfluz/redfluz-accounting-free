@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\Purchase;
+namespace app\Enums\Purchase;
 
 enum AcquisitionType: string
 {

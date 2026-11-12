@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\News;
+namespace app\Enums\News;
 
 enum LikeStatus: string
 {

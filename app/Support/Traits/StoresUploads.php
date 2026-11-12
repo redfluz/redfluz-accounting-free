@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Traits;
+namespace app\Support\Traits;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -91,7 +91,6 @@ trait StoresUploads
         }
 
         return array_find([self::DOCUMENT_DISK, self::PUBLIC_DISK], fn ($disk) => Storage::disk($disk)->exists($path));
-
     }
 
     /**

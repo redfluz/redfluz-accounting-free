@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace app\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
@@ -15,8 +15,10 @@ class RequirePasswordChange
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->must_change_password
-            && ! $request->routeIs('personnel.profile.edit', 'personnel.profile.update', 'logout')) {
+        if (
+            $request->user()?->must_change_password
+            && ! $request->routeIs('personnel.profile.edit', 'personnel.profile.update', 'logout')
+        ) {
             return redirect()->route('personnel.profile.edit');
         }
 

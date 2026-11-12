@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Purchase\GoodsReceiptAdjustment;
+namespace app\Http\Requests\Purchase\GoodsReceiptAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

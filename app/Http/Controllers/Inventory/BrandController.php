@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Inventory;
+namespace app\Http\Controllers\Inventory;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;

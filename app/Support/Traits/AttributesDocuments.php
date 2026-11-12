@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Traits;
+namespace app\Support\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;

@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Bank\PaymentVoucher;
+namespace app\Http\Controllers\Bank\PaymentVoucher;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace app\Services;
 
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementStatus;
@@ -28,8 +28,10 @@ class DashboardInventoryService
             ->where('stock_bucket', ProductStockBucket::SALEABLE->value)
             ->select('product_id')
             ->selectRaw('COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity WHEN status = ? AND direction = ? THEN -quantity ELSE 0 END), 0) as available_quantity', [
-                ProductMovementStatus::ACTIVE->value, ProductMovementDirection::IN->value,
-                ProductMovementStatus::ACTIVE->value, ProductMovementDirection::OUT->value,
+                ProductMovementStatus::ACTIVE->value,
+                ProductMovementDirection::IN->value,
+                ProductMovementStatus::ACTIVE->value,
+                ProductMovementDirection::OUT->value,
             ])
             ->selectRaw('COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_in_quantity', [ProductMovementStatus::PENDING->value, ProductMovementDirection::IN->value])
             ->selectRaw('COALESCE(SUM(CASE WHEN status = ? AND direction = ? THEN quantity ELSE 0 END), 0) as pending_out_quantity', [ProductMovementStatus::PENDING->value, ProductMovementDirection::OUT->value])

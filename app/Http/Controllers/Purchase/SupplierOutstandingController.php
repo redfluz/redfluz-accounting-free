@@ -10,7 +10,7 @@
  * PROPRIETARY AND CONFIDENTIAL
  */
 
-namespace App\Http\Controllers\Purchase;
+namespace app\Http\Controllers\Purchase;
 
 use App\Enums\Finance\DocumentStatus;
 use App\Enums\Inventory\ProductMovementDirection;

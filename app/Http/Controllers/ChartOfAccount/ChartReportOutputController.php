@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\ChartOfAccount;
+namespace app\Http\Controllers\ChartOfAccount;
 
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;

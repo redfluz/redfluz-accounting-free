@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Bank\Transfer;
+namespace app\Http\Requests\Bank\Transfer;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

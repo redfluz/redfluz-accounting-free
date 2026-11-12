@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Services;
+namespace app\Services;
 
 use App\Models\System\User;
 use Illuminate\Support\Collection;
@@ -53,9 +53,6 @@ class MenuServices
         'DESIGN' => 120,
         'PURCHASES' => 130,
         'BANK' => 140,
-        'BANK TRANSFER' => 141,
-        'LEDGERS' => 142,
-        'ACCOUNTS' => 143,
         'FIXED ASSETS' => 150,
         'FINANCE' => 160,
         'CHARTS' => 170,
@@ -114,26 +111,30 @@ class MenuServices
         ],
         'BANK' => [
             'DASHBOARD' => 10,
+            'BANK JOURNALS' => 20,
+            'CASH TRANSFERS' => 21,
             'RECEIPTS' => 30,
+            'CANCELLED RECEIPTS' => 30.1,
+            'RECEIPTS HISTORY' => 30.2,
             'CUSTOMER REFUNDS' => 40,
+            'CANCELLED CUSTOMER REFUNDS' => 40.1,
+            'CUSTOMER REFUNDS HISTORY' => 40.2,
             'PAYMENT VOUCHERS' => 50,
+            'CANCELLED PAYMENT VOUCHERS' => 50.1,
+            'PAYMENT VOUCHERS HISTORY' => 50.2,
             'SUPPLIER REFUNDS' => 60,
-            'BANK RECONCILIATION' => 70,
-        ],
-        'BANK TRANSFER' => [
-            'BANK TRANSFERS' => 10,
-            'CANCELLED BANK TRANSFERS' => 20,
-            'BANK TRANSFERS HISTORY' => 30,
-        ],
-        'LEDGERS' => [
-            'BANK LEDGER' => 10,
-            'E-WALLET LEDGER' => 20,
-            'CASH LEDGER' => 30,
-        ],
-        'ACCOUNTS' => [
-            'BANK ACCOUNTS' => 10,
-            'E-WALLET ACCOUNTS' => 20,
-            'CASH ACCOUNTS' => 30,
+            'CANCELLED SUPPLIER REFUNDS' => 60.1,
+            'SUPPLIER REFUNDS HISTORY' => 60.2,
+            'BANK TRANSFERS' => 70,
+            'CANCELLED BANK TRANSFERS' => 70.1,
+            'BANK TRANSFERS HISTORY' => 70.2,
+            'BANK LEDGER' => 80,
+            'E-WALLET LEDGER' => 81,
+            'CASH LEDGER' => 82,
+            'BANK ACCOUNTS' => 90,
+            'E-WALLET ACCOUNTS' => 91,
+            'CASH ACCOUNTS' => 92,
+            'BANK RECONCILIATION' => 95,
         ],
         'LEAVE' => [
             'DASHBOARD' => 10,

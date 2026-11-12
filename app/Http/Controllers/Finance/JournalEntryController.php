@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Http\Controllers\Finance;
+namespace app\Http\Controllers\Finance;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;

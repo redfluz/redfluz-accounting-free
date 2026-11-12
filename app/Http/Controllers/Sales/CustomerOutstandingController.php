@@ -10,7 +10,7 @@
  * PROPRIETARY AND CONFIDENTIAL
  */
 
-namespace App\Http\Controllers\Sales;
+namespace app\Http\Controllers\Sales;
 
 use App\Enums\Finance\LedgerType;
 use App\Enums\Inventory\ProductMovementDirection;
@@ -61,7 +61,7 @@ class CustomerOutstandingController extends Controller
             ->join('sales_orders as orders', 'orders.id', '=', 'order_lines.sales_order_id')
             ->selectRaw(
                 'orders.document_number as reference_number, '
-                .'SUM(order_lines.ordered_quantity) as ordered_quantity'
+                    .'SUM(order_lines.ordered_quantity) as ordered_quantity'
             )
             ->groupBy('orders.document_number');
         $receivedQuantities = ProductLedger::query()
@@ -95,13 +95,13 @@ class CustomerOutstandingController extends Controller
             })
             ->selectRaw(
                 'invoices.id, invoices.document_number, '
-                .'COALESCE(invoices.company_name, companies.name) as company_name, '
-                .'invoices.date as invoice_date, '
-                .'invoices.due_date, '
-                .'invoices.total_amount as invoice_amount, '
-                .'COALESCE(payment_totals.paid_amount, 0) as paid_amount, '
-                .'COALESCE(ordered_quantities.ordered_quantity, 0) as ordered_quantity, '
-                .'COALESCE(received_quantities.delivered_quantity, 0) as delivered_quantity'
+                    .'COALESCE(invoices.company_name, companies.name) as company_name, '
+                    .'invoices.date as invoice_date, '
+                    .'invoices.due_date, '
+                    .'invoices.total_amount as invoice_amount, '
+                    .'COALESCE(payment_totals.paid_amount, 0) as paid_amount, '
+                    .'COALESCE(ordered_quantities.ordered_quantity, 0) as ordered_quantity, '
+                    .'COALESCE(received_quantities.delivered_quantity, 0) as delivered_quantity'
             )
             ->where('invoices.status', 'posted')
             ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search): void {
@@ -142,7 +142,8 @@ class CustomerOutstandingController extends Controller
             'startDate',
             'endDate',
             'asOfDate',
-            'status', 'totals'
+            'status',
+            'totals'
         ));
     }
 

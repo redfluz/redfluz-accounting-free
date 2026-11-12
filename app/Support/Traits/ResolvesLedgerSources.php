@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Support\Traits;
+namespace app\Support\Traits;
 
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;

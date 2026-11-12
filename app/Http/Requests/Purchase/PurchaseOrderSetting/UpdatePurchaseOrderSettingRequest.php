@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Purchase\PurchaseOrderSetting;
+namespace app\Http\Requests\Purchase\PurchaseOrderSetting;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

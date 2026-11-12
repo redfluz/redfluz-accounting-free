@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Data\Inventory;
+namespace app\Support\Data\Inventory;
 
 use App\Models\Inventory\ProductCategory;
 use Carbon\CarbonImmutable;

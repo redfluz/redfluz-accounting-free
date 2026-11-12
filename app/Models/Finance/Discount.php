@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace App\Models\Finance;
+namespace app\Models\Finance;
 
 use App\Enums\Finance\DiscountType;
 use Carbon\CarbonInterface;
