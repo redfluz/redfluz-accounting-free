@@ -125,6 +125,17 @@ return [
         'title' => 'Filter',
         'account' => 'Akun drill-down',
     ],
+    'sections' => [
+        'ar_ledgers' => 'AR LEDGERS',
+        'ap_ledgers' => 'AP LEDGERS',
+        'bank_ledgers' => 'BANK LEDGERS',
+        'cash_ledgers' => 'CASH LEDGERS',
+        'e_wallet_ledgers' => 'E-WALLET LEDGERS',
+        'ledgers' => 'LEDGERS',
+        'account' => 'Akun',
+        'reference' => 'Referensi',
+        'balance' => 'Saldo',
+    ],
     'table' => [
         'column_id' => 'ID',
         'column_company' => 'Perusahaan',

@@ -125,6 +125,17 @@ return [
         'title' => 'Penapis',
         'account' => 'Akaun perincian',
     ],
+    'sections' => [
+        'ar_ledgers' => 'AR LEDGERS',
+        'ap_ledgers' => 'AP LEDGERS',
+        'bank_ledgers' => 'BANK LEDGERS',
+        'cash_ledgers' => 'CASH LEDGERS',
+        'e_wallet_ledgers' => 'E-WALLET LEDGERS',
+        'ledgers' => 'LEDGERS',
+        'account' => 'Akaun',
+        'reference' => 'Rujukan',
+        'balance' => 'Baki',
+    ],
     'table' => [
         'column_id' => 'ID',
         'column_company' => 'Syarikat',

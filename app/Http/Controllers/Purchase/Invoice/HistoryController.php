@@ -114,11 +114,13 @@ class HistoryController extends Controller
         /** @var Collection<int, Ledger> $glLedgers */
         $glLedgers = Ledger::query()
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
         /** @var Collection<int, ApLedger> $apLedgers */
         $apLedgers = ApLedger::query()
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
         $lines = $invoice->lines;

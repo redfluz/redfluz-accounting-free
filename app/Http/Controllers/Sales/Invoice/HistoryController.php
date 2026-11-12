@@ -114,12 +114,13 @@ class HistoryController extends Controller
         /** @var Collection<int, Ledger> $glLedgers */
         $glLedgers = Ledger::query()
             ->where('document_number', $documentNumber)
-            ->where('type', LedgerType::PAYMENT->value)
+            ->orderBy('id')
             ->get();
 
         /** @var Collection<int, ArLedger> $arLedgers */
         $arLedgers = ArLedger::query()
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
         /** @var Collection<int, SalesInvoiceLine> $lines */
@@ -129,7 +130,7 @@ class HistoryController extends Controller
             ->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null && ! $line->deduct_inventory)
             ->values();
 
-        $canDeductInventory = $invoice->sales_type === SalesType::PRODUCT && $deductableLines->isNotEmpty;
+        $canDeductInventory = $invoice->sales_type === SalesType::PRODUCT && $deductableLines->isNotEmpty();
 
         return view('sales.invoices.history.show', compact(
             'documentNumber',

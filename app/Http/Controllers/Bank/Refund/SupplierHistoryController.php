@@ -31,6 +31,7 @@ use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\Refund\SupplierRefund;
 use App\Models\Crm\ApLedger;
+use App\Models\Finance\Ledger;
 use App\Models\System\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -106,9 +107,16 @@ class SupplierHistoryController extends Controller
         /** @var Collection<int, ApLedger> $ledgers */
         $ledgers = ApLedger::query()
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
-        return view('bank.supplier-refund.history.show', compact('refund', 'documentNumber', 'ledgers'));
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $documentNumber)
+            ->orderBy('id')
+            ->get();
+
+        return view('bank.supplier-refund.history.show', compact('refund', 'documentNumber', 'ledgers', 'glLedgers'));
     }
 
     /**

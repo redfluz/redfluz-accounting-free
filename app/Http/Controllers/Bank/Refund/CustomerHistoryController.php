@@ -31,6 +31,7 @@ use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\Crm\ArLedger;
+use App\Models\Finance\Ledger;
 use App\Models\System\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -106,9 +107,16 @@ class CustomerHistoryController extends Controller
         /** @var Collection<int, ArLedger> $ledgers */
         $ledgers = ArLedger::query()
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
-        return view('bank.customer-refund.history.show', compact('refund', 'documentNumber', 'ledgers'));
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $documentNumber)
+            ->orderBy('id')
+            ->get();
+
+        return view('bank.customer-refund.history.show', compact('refund', 'documentNumber', 'ledgers', 'glLedgers'));
     }
 
     /**

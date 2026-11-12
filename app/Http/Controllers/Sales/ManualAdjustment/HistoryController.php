@@ -29,10 +29,13 @@ namespace app\Http\Controllers\Sales\ManualAdjustment;
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Crm\ArLedger;
+use App\Models\Finance\Ledger;
 use App\Models\Sales\ManualSalesAdjustment;
 use App\Models\System\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -110,10 +113,24 @@ class HistoryController extends Controller
             ->where('document_original', $adjustment->document_number)
             ->value('document_number');
 
+        /** @var Collection<int, ArLedger> $arLedgers */
+        $arLedgers = ArLedger::query()
+            ->where('document_number', $documentNumber)
+            ->orderBy('id')
+            ->get();
+
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $documentNumber)
+            ->orderBy('id')
+            ->get();
+
         return view('sales.manual-adjustments.history.show', [
             'adjustment' => $adjustment,
             'documentNumber' => $documentNumber,
             'reversalNumber' => $reversalNumber,
+            'arLedgers' => $arLedgers,
+            'glLedgers' => $glLedgers,
         ]);
     }
 

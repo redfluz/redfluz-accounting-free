@@ -29,10 +29,16 @@ namespace app\Http\Controllers\Bank\Receipt;
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Bank\BankLedger;
+use App\Models\Bank\CashLedger;
+use App\Models\Bank\EWalletLedger;
 use App\Models\Bank\Receipt;
+use App\Models\Crm\ArLedger;
+use App\Models\Finance\Ledger;
 use App\Models\System\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -94,24 +100,37 @@ class HistoryController extends Controller
             ->where('status', DocumentStatus::POSTED)
             ->firstOrFail();
 
-        /** @var Collection<int, \App\Models\Bank\BankLedger> $bankLedgers */
+        /** @var Collection<int, BankLedger> $bankLedgers */
         $bankLedgers = BankLedger::query()
+            ->with('bankAccount.chart')
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
-        /** @var Collection<int, \App\Models\Bank\CashLedger> $cashLedgers */
+        /** @var Collection<int, CashLedger> $cashLedgers */
         $cashLedgers = CashLedger::query()
+            ->with('cashAccount.chart')
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
-        /** @var Collection<int, \App\Models\Bank\EWalletLedger> $eWalletLedgers */
+        /** @var Collection<int, EWalletLedger> $eWalletLedgers */
         $eWalletLedgers = EWalletLedger::query()
+            ->with('eWalletAccount.chart')
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
-        /** @var Collection<int, \App\Models\Crm\ArLedger> $arLedgers */
+        /** @var Collection<int, ArLedger> $arLedgers */
         $arLedgers = ArLedger::query()
             ->where('document_number', $documentNumber)
+            ->orderBy('id')
+            ->get();
+
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $documentNumber)
+            ->orderBy('id')
             ->get();
 
         return view('bank.receipt.history.show', compact(
@@ -121,6 +140,7 @@ class HistoryController extends Controller
             'cashLedgers',
             'eWalletLedgers',
             'arLedgers',
+            'glLedgers',
         ));
     }
 

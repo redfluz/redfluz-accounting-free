@@ -26,7 +26,15 @@
 ?>
 @php use App\Models\System\Setting; @endphp
 
-@props(['voucher', 'documentNumber'])
+@props([
+    'voucher',
+    'documentNumber',
+    'bankLedgers' => collect(),
+    'cashLedgers' => collect(),
+    'eWalletLedgers' => collect(),
+    'apLedgers' => collect(),
+    'glLedgers' => collect(),
+])
 
 @extends('layouts.app')
 
@@ -81,6 +89,303 @@
                         <strong>{{ $voucher->payment_transfer_type?->label() ?? '-' }}</strong>
                     </div>
                 </div>
+            </div>
+
+<div class="accordion mb-4 accordion-gap">
+                <details class="accordion-item" open>
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="truck"></i>
+                        <span class="fw-bold">{{ __('ledgers.sections.ap_ledgers') }}</span>
+                        <span class="badge theme-secondary ms-2">{{ $apLedgers->count() }}</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body">
+                        <div class="table-responsive rounded border">
+                            <table class="table-hover table-striped mb-0 table align-middle">
+                                <thead class="bg-1">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                                        <th scope="col">{{ __('ledgers.sections.account') }}</th>
+                                        <th scope="col">{{ __('ledgers.sections.reference') }}</th>
+                                        <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                                        <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                        <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($apLedgers as $line)
+                                        <tr>
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td class="text-nowrap">
+                                                {{ $line->date?->format(Setting::getDefaultDate()) ?? '-' }}</td>
+                                            <td>{{ trim(($line->chart_code ?? '') . ' ' . ($line->chart_name ?? '')) ?: '-' }}</td>
+                                            <td>{{ $line->reference_number ?? '-' }}</td>
+                                            <td><small>{{ $line->description ?? '-' }}</small></td>
+                                            <td class="fw-bold fg-success text-end">
+                                                {{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '-' }}
+                                            </td>
+                                            <td class="fw-bold fg-danger text-end">
+                                                {{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td class="fg-secondary py-3 text-center" colspan="7">
+                                                {{ __('ledgers.no_records') }}</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                                @if ($apLedgers->isNotEmpty())
+                                    <tfoot class="bg-1 fw-bold border-top">
+                                        <tr>
+                                            <td class="text-end" colspan="5">{{ __('common.labels.total') }}:</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $apLedgers->sum('debit_amount'), 2) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $apLedgers->sum('credit_amount'), 2) }}</td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
+                            </table>
+                        </div>
+                    </div>
+                </details>
+
+                @if ($bankLedgers->isNotEmpty())
+                    <details class="accordion-item" open>
+                        <summary class="accordion-header">
+                            <i class="me-2" data-lucide="landmark"></i>
+                            <span class="fw-bold">{{ __('ledgers.sections.bank_ledgers') }}</span>
+                            <span class="badge theme-secondary ms-2">{{ $bankLedgers->count() }}</span>
+                            <i class="accordion-icon" data-lucide="chevron-down"></i>
+                        </summary>
+                        <div class="accordion-body">
+                            <div class="table-responsive rounded border">
+                                <table class="table-hover table-striped mb-0 table align-middle">
+                                    <thead class="bg-1">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                                            <th scope="col">{{ __('ledgers.sections.account') }}</th>
+                                            <th scope="col">{{ __('ledgers.sections.reference') }}</th>
+                                            <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.sections.balance') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($bankLedgers as $line)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td class="text-nowrap">
+                                                    {{ $line->date?->format(Setting::getDefaultDate()) ?? '-' }}</td>
+                                                <td>{{ $line->bankAccount?->chart?->name ?? ($line->bankAccount?->name ?? '-') }}</td>
+                                                <td>{{ $line->reference_number ?? '-' }}</td>
+                                                <td><small>{{ $line->description ?? '-' }}</small></td>
+                                                <td class="fw-bold fg-success text-end">
+                                                    {{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '-' }}
+                                                </td>
+                                                <td class="fw-bold fg-danger text-end">
+                                                    {{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '-' }}
+                                                </td>
+                                                <td class="text-end">{{ number_format((float) $line->balance, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-1 fw-bold border-top">
+                                        <tr>
+                                            <td class="text-end" colspan="5">{{ __('common.labels.total') }}:</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $bankLedgers->sum('debit_amount'), 2) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $bankLedgers->sum('credit_amount'), 2) }}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
+                @endif
+
+                @if ($cashLedgers->isNotEmpty())
+                    <details class="accordion-item" open>
+                        <summary class="accordion-header">
+                            <i class="me-2" data-lucide="banknote"></i>
+                            <span class="fw-bold">{{ __('ledgers.sections.cash_ledgers') }}</span>
+                            <span class="badge theme-secondary ms-2">{{ $cashLedgers->count() }}</span>
+                            <i class="accordion-icon" data-lucide="chevron-down"></i>
+                        </summary>
+                        <div class="accordion-body">
+                            <div class="table-responsive rounded border">
+                                <table class="table-hover table-striped mb-0 table align-middle">
+                                    <thead class="bg-1">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                                            <th scope="col">{{ __('ledgers.sections.account') }}</th>
+                                            <th scope="col">{{ __('ledgers.sections.reference') }}</th>
+                                            <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.sections.balance') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($cashLedgers as $line)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td class="text-nowrap">
+                                                    {{ $line->date?->format(Setting::getDefaultDate()) ?? '-' }}</td>
+                                                <td>{{ $line->cashAccount?->chart?->name ?? ($line->cashAccount?->name ?? '-') }}</td>
+                                                <td>{{ $line->reference_number ?? '-' }}</td>
+                                                <td><small>{{ $line->description ?? '-' }}</small></td>
+                                                <td class="fw-bold fg-success text-end">
+                                                    {{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '-' }}
+                                                </td>
+                                                <td class="fw-bold fg-danger text-end">
+                                                    {{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '-' }}
+                                                </td>
+                                                <td class="text-end">{{ number_format((float) $line->balance, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-1 fw-bold border-top">
+                                        <tr>
+                                            <td class="text-end" colspan="5">{{ __('common.labels.total') }}:</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $cashLedgers->sum('debit_amount'), 2) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $cashLedgers->sum('credit_amount'), 2) }}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
+                @endif
+
+                @if ($eWalletLedgers->isNotEmpty())
+                    <details class="accordion-item" open>
+                        <summary class="accordion-header">
+                            <i class="me-2" data-lucide="wallet"></i>
+                            <span class="fw-bold">{{ __('ledgers.sections.e_wallet_ledgers') }}</span>
+                            <span class="badge theme-secondary ms-2">{{ $eWalletLedgers->count() }}</span>
+                            <i class="accordion-icon" data-lucide="chevron-down"></i>
+                        </summary>
+                        <div class="accordion-body">
+                            <div class="table-responsive rounded border">
+                                <table class="table-hover table-striped mb-0 table align-middle">
+                                    <thead class="bg-1">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                                            <th scope="col">{{ __('ledgers.sections.account') }}</th>
+                                            <th scope="col">{{ __('ledgers.sections.reference') }}</th>
+                                            <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                            <th scope="col" class="text-end">{{ __('ledgers.sections.balance') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($eWalletLedgers as $line)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td class="text-nowrap">
+                                                    {{ $line->date?->format(Setting::getDefaultDate()) ?? '-' }}</td>
+                                                <td>{{ $line->eWalletAccount?->chart?->name ?? ($line->eWalletAccount?->name ?? '-') }}</td>
+                                                <td>{{ $line->reference_number ?? '-' }}</td>
+                                                <td><small>{{ $line->description ?? '-' }}</small></td>
+                                                <td class="fw-bold fg-success text-end">
+                                                    {{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '-' }}
+                                                </td>
+                                                <td class="fw-bold fg-danger text-end">
+                                                    {{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '-' }}
+                                                </td>
+                                                <td class="text-end">{{ number_format((float) $line->balance, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-1 fw-bold border-top">
+                                        <tr>
+                                            <td class="text-end" colspan="5">{{ __('common.labels.total') }}:</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $eWalletLedgers->sum('debit_amount'), 2) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $eWalletLedgers->sum('credit_amount'), 2) }}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
+                @endif
+
+                <details class="accordion-item" open>
+                    <summary class="accordion-header">
+                        <i class="me-2" data-lucide="book-open"></i>
+                        <span class="fw-bold">{{ __('ledgers.sections.ledgers') }}</span>
+                        <span class="badge theme-secondary ms-2">{{ $glLedgers->count() }}</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body">
+                        <div class="table-responsive rounded border">
+                            <table class="table-hover table-striped mb-0 table align-middle">
+                                <thead class="bg-1">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">{{ __('ledgers.table.column_date') }}</th>
+                                        <th scope="col">{{ __('ledgers.sections.account') }}</th>
+                                        <th scope="col">{{ __('ledgers.sections.reference') }}</th>
+                                        <th scope="col">{{ __('ledgers.table.column_description') }}</th>
+                                        <th scope="col" class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                        <th scope="col" class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($glLedgers as $line)
+                                        <tr>
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td class="text-nowrap">
+                                                {{ $line->date?->format(Setting::getDefaultDate()) ?? '-' }}</td>
+                                            <td>{{ trim(($line->chart_code ?? '') . ' ' . ($line->chart_name ?? '')) ?: '-' }}</td>
+                                            <td>{{ $line->reference_number ?? '-' }}</td>
+                                            <td><small>{{ $line->description ?? ($line->line_description ?? '-') }}</small>
+                                            </td>
+                                            <td class="fw-bold fg-success text-end">
+                                                {{ (float) $line->debit_amount > 0 ? number_format((float) $line->debit_amount, 2) : '-' }}
+                                            </td>
+                                            <td class="fw-bold fg-danger text-end">
+                                                {{ (float) $line->credit_amount > 0 ? number_format((float) $line->credit_amount, 2) : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td class="fg-secondary py-3 text-center" colspan="7">
+                                                {{ __('ledgers.no_records') }}</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                                @if ($glLedgers->isNotEmpty())
+                                    <tfoot class="bg-1 fw-bold border-top">
+                                        <tr>
+                                            <td class="text-end" colspan="5">{{ __('common.labels.total') }}:</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $glLedgers->sum('debit_amount'), 2) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format((float) $glLedgers->sum('credit_amount'), 2) }}</td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
+                            </table>
+                        </div>
+                    </div>
+                </details>
             </div>
 
             @if ($voucher->notes)

@@ -125,6 +125,17 @@ return [
         'title' => 'Filters',
         'account' => 'Drill-down account',
     ],
+    'sections' => [
+        'ar_ledgers' => 'AR LEDGERS',
+        'ap_ledgers' => 'AP LEDGERS',
+        'bank_ledgers' => 'BANK LEDGERS',
+        'cash_ledgers' => 'CASH LEDGERS',
+        'e_wallet_ledgers' => 'E-WALLET LEDGERS',
+        'ledgers' => 'LEDGERS',
+        'account' => 'Account',
+        'reference' => 'Reference',
+        'balance' => 'Balance',
+    ],
     'table' => [
         'column_id' => 'ID',
         'column_company' => 'Company',
