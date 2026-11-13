@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Console\Commands;
+namespace App\Console\Commands;
 
 use App\Http\Controllers\Bank\BankTransferController;
 use App\Http\Controllers\Bank\CashTransferController;

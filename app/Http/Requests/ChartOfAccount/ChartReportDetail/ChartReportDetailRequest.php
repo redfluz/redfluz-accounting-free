@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\ChartOfAccount\ChartReportDetail;
+namespace App\Http\Requests\ChartOfAccount\ChartReportDetail;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

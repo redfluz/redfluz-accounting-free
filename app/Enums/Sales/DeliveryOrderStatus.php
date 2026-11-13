@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Enums\Sales;
+namespace App\Enums\Sales;
 
 enum DeliveryOrderStatus: string
 {

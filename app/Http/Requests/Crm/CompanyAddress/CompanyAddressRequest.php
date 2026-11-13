@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Crm\CompanyAddress;
+namespace App\Http\Requests\Crm\CompanyAddress;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

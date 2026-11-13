@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Finance\JournalEntry;
+namespace App\Http\Requests\Finance\JournalEntry;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Menu;
+namespace App\Http\Controllers\Menu;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileResources;

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers\Inventory;
+namespace App\Http\Controllers\Inventory;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -11,6 +11,7 @@ use App\Http\Requests\Inventory\ProductCategory\UpdateProductCategoryRequest;
 use App\Models\Inventory\ProductCategory;
 use App\Support\Data\Inventory\ProductCategoryData;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -31,7 +32,7 @@ class ProductCategoryController extends Controller
         $categories = ProductCategory::query()
             ->withCount([
                 'types',
-                'products' => fn ($query) => $query->whereNull('parent_product_id'),
+                'products' => fn (Builder $query) => $query->whereNull('parent_product_id'),
             ])
             ->when($search !== '', fn ($query) => $query->where(
                 fn ($subQuery) => $subQuery->where('code', 'like', "%$search%")

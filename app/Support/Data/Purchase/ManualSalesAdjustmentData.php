@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\Sales;
+namespace App\Support\Data\Sales;
 
 use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;

@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\ChartOfAccount;
+namespace App\Support\Data\ChartOfAccount;
 
 use App\Models\ChartOfAccount\ChartReport;
 use Carbon\CarbonImmutable;

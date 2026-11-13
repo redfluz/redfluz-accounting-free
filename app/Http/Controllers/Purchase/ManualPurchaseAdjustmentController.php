@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Purchase;
+namespace App\Http\Controllers\Purchase;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -292,6 +292,7 @@ class ManualPurchaseAdjustmentController extends Controller
         if (! $data->subtype instanceof LedgerSubType || ! $date instanceof CarbonImmutable) {
             abort(422);
         }
+        $subtype = $data->subtype;
 
         $adjustmentDate = $date->format('Y-m-d');
         /** @var array<int, array<string, mixed>> $lineInputs */
@@ -299,14 +300,14 @@ class ManualPurchaseAdjustmentController extends Controller
         $this->ensureFinancialPostingDate($adjustmentDate);
         $this->linkInvoice($data);
 
-        $preparedLines = $this->prepareLines($lineInputs, $data->subtype);
+        $preparedLines = $this->prepareLines($lineInputs, $subtype);
 
         $attachmentPath = $request->hasFile('attachment')
             ? $request->file('attachment')->store('ledger_attachments', 'public')
             : null;
         $data->attachmentPath = is_string($attachmentPath) ? $attachmentPath : null;
 
-        $docNumber = $this->generateDocumentNumber($data->subtype);
+        $docNumber = $this->generateDocumentNumber($subtype);
         $total = $preparedLines['total'];
         $data->subtotal = $total;
         $data->totalAmount = $total;
@@ -419,13 +420,14 @@ class ManualPurchaseAdjustmentController extends Controller
         if (! $data->subtype instanceof LedgerSubType || ! $date instanceof CarbonImmutable) {
             abort(422);
         }
+        $subtype = $data->subtype;
 
         $this->ensureFinancialPostingDate($date->format('Y-m-d'));
         $this->linkInvoice($data);
 
         /** @var array<int, array<string, mixed>> $lineInputs */
         $lineInputs = array_values(is_array($lines = $request->validated('lines')) ? $lines : []);
-        $preparedLines = $this->prepareLines($lineInputs, $data->subtype);
+        $preparedLines = $this->prepareLines($lineInputs, $subtype);
 
         $adjustmentDate = $date->format('Y-m-d');
         $attachmentPath = $request->hasFile('attachment')

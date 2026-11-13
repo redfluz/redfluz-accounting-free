@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\ChartOfAccount\ChartReport;
+namespace App\Http\Requests\ChartOfAccount\ChartReport;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

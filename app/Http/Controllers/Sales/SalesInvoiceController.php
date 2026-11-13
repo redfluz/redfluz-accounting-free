@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Sales;
+namespace App\Http\Controllers\Sales;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -62,6 +62,7 @@ use App\Models\Sales\DeliveryOrder;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesInvoiceLine;
 use App\Models\System\Setting;
+use App\Services\DecimalService;
 use App\Support\Data\Sales\SalesInvoiceData;
 use App\Support\Posting\ArLedgerData;
 use App\Support\Posting\GeneralLedgerData;
@@ -287,12 +288,34 @@ class SalesInvoiceController extends Controller
             abort_if($eligibleLines->isEmpty(), 409);
 
             $deductAll = $request->boolean('deduct_all');
-            /** @var array<int, string> $selectedIds */
-            $selectedIds = array_values(array_filter((array) $request->input('line_ids', []), 'is_string'));
+            $rawLineIds = $request->input('line_ids', []);
+            $selectedIds = [];
+            if (is_array($rawLineIds)) {
+                foreach ($rawLineIds as $rawLineId) {
+                    if (is_string($rawLineId)) {
+                        $selectedIds[] = $rawLineId;
+                    }
+                }
+            }
 
-            $lineIds = $deductAll
-                ? $eligibleLines->pluck('id')->all()
-                : array_values(array_intersect($selectedIds, $eligibleLines->pluck('id')->all()));
+            $eligibleIds = $eligibleLines->pluck('id')->all();
+            $eligibleIdStrings = [];
+            foreach ($eligibleIds as $eligibleId) {
+                if (is_string($eligibleId)) {
+                    $eligibleIdStrings[] = $eligibleId;
+                }
+            }
+
+            if ($deductAll) {
+                $lineIds = $eligibleIdStrings;
+            } else {
+                $lineIds = [];
+                foreach ($selectedIds as $selectedId) {
+                    if (in_array($selectedId, $eligibleIdStrings, true)) {
+                        $lineIds[] = $selectedId;
+                    }
+                }
+            }
 
             if ($lineIds === []) {
                 throw ValidationException::withMessages([
@@ -351,16 +374,22 @@ class SalesInvoiceController extends Controller
             ->get();
 
         $amountPaid = $payments->reduce(
-            static fn (string $carry, ArLedger $payment): string => bcadd(
-                $carry,
-                bcsub((string) $payment->credit_amount, (string) $payment->debit_amount, 2),
-                2
-            ),
+            /**
+             * @param  numeric-string  $carry
+             * @return numeric-string
+             */
+            static function (string $carry, ArLedger $payment): string {
+                $diff = bcsub((string) $payment->credit_amount, (string) $payment->debit_amount, 2);
+
+                return bcadd($carry, $diff, 2);
+            },
             '0.00'
         );
         $amountPaid = bccomp($amountPaid, '0.00', 2) < 0 ? '0.00' : $amountPaid;
 
-        $balanceDue = bcsub(bcadd((string) $invoice->total_amount, '0', 2), $amountPaid, 2);
+        /** @var numeric-string $invoiceTotal */
+        $invoiceTotal = DecimalService::normalize((string) $invoice->total_amount);
+        $balanceDue = bcsub(bcadd($invoiceTotal, '0.00', 2), $amountPaid, 2);
         $balanceDue = bccomp($balanceDue, '0.00', 2) < 0 ? '0.00' : $balanceDue;
 
         $setting = Setting::query()->firstOrNew();

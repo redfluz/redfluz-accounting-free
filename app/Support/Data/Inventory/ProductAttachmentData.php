@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\Inventory;
+namespace App\Support\Data\Inventory;
 
 use App\Models\Inventory\ProductAttachment;
 use Carbon\CarbonImmutable;

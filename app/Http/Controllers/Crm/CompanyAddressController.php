@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers\Crm;
+namespace App\Http\Controllers\Crm;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

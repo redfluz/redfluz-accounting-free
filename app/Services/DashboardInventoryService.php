@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Services;
+namespace App\Services;
 
 use App\Enums\Inventory\ProductMovementDirection;
 use App\Enums\Inventory\ProductMovementStatus;

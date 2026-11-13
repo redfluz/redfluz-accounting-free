@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Sales\DeliveryOrder;
+namespace App\Http\Requests\Sales\DeliveryOrder;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

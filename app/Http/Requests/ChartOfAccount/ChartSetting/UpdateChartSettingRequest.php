@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\ChartOfAccount\ChartSetting;
+namespace App\Http\Requests\ChartOfAccount\ChartSetting;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

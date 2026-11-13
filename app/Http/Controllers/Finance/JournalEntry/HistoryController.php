@@ -24,15 +24,17 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Finance\JournalEntry;
+namespace App\Http\Controllers\Finance\JournalEntry;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Finance\JournalEntry;
+use App\Models\Finance\Ledger;
 use App\Models\System\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -62,6 +64,7 @@ class HistoryController extends Controller
 
         $entries = JournalEntry::query()
             ->with('charts')
+            ->where('status', DocumentStatus::POSTED)
             ->when(is_string($search) && $search !== '', function ($q) use ($search) {
                 $q->where(function ($sq) use ($search) {
                     $sq->where('document_number', 'like', "%$search%")
@@ -106,7 +109,13 @@ class HistoryController extends Controller
             ->where('document_original', $journalEntry->document_number)
             ->value('document_number');
 
-        return view('finance.journal-entries.history.show', compact('journalEntry', 'reversalNumber'));
+        /** @var Collection<int, Ledger> $glLedgers */
+        $glLedgers = Ledger::query()
+            ->where('document_number', $journalEntry->document_number)
+            ->orderBy('id')
+            ->get();
+
+        return view('finance.journal-entries.history.show', compact('journalEntry', 'reversalNumber', 'glLedgers'));
     }
 
     /**

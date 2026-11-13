@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers\Purchase;
+namespace App\Http\Controllers\Purchase;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -80,17 +80,21 @@ class PurchaseReturnController extends Controller
         // Group receipts by company → document for cascading filters.
         // Skip entries with no company (e.g. opening stock) — they have no
         // supplier to return to.
-        $grouped = $receipts->filter(fn (ProductLedger $row) => ! empty($row->company_name))
-            ->groupBy('company_name')->map(
-                fn (Collection $companyRows) => $companyRows->groupBy('document_number')->map(
-                    fn (Collection $docRows) => $docRows->map(fn (ProductLedger $row) => [
-                        'id' => $row->id,
-                        'product_name' => $row->product_name,
-                        'quantity' => $row->quantity,
-                        'reference_number' => $row->reference_number,
-                    ])
-                )
-            );
+        $grouped = $receipts
+            ->filter(fn (ProductLedger $row): bool => is_string($row->company_name) && $row->company_name !== '')
+            ->groupBy('company_name')
+            ->map(function ($companyRows) {
+                /** @var Collection<int, ProductLedger> $companyRows */
+                return $companyRows->groupBy('document_number')->map(function ($docRows) {
+                    /** @var Collection<int, ProductLedger> $docRows */
+                    return $docRows->map(fn (ProductLedger $row): array => [
+                        'id' => (string) $row->id,
+                        'product_name' => (string) $row->product_name,
+                        'quantity' => (string) $row->quantity,
+                        'reference_number' => is_string($row->reference_number) ? $row->reference_number : null,
+                    ])->values();
+                });
+            });
 
         return view('purchase.returns.create', [
             'groupedReceipts' => $grouped,

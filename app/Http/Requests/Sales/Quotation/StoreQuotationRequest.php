@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Sales\Quotation;
+namespace App\Http\Requests\Sales\Quotation;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

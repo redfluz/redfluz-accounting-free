@@ -10,7 +10,7 @@
  * PROPRIETARY AND CONFIDENTIAL
  */
 
-namespace app\Http\Controllers\Sales;
+namespace App\Http\Controllers\Sales;
 
 use App\Enums\Finance\LedgerType;
 use App\Enums\Inventory\ProductMovementDirection;

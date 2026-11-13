@@ -19,7 +19,7 @@
  * PROPRIETARY AND CONFIDENTIAL
  */
 
-namespace app\Services;
+namespace App\Services;
 
 use InvalidArgumentException;
 

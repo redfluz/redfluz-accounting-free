@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Bank;
+namespace App\Http\Controllers\Bank;
 
 use App\Constants\FlashMessage;
 use App\Enums\Bank\BankAccountKind;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Sales\CustomerOutstanding;
+namespace App\Http\Requests\Sales\CustomerOutstanding;
 
 use App\Enums\FileResources;
 

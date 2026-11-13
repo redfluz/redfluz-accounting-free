@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Sales;
+namespace App\Http\Controllers\Sales;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

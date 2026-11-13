@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Controllers\ChartOfAccount;
+namespace App\Http\Controllers\ChartOfAccount;
 
 use App\Constants\FlashMessage;
 use App\Enums\ChartOfAccount\ChartReportTypeEnum;

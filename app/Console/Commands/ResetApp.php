@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Console\Commands;
+namespace App\Console\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
@@ -103,7 +103,7 @@ class ResetApp extends Command
                     '--force' => true,
                     '--quiet' => true,
                 ]);
-                $this->info('  ✓ All MySQL tables dropped');
+                $this->info('  ✓ All  tables dropped');
             } catch (Exception $e) {
                 $this->error('  ✗ Database connection failed!');
                 $this->line('  '.$e->getMessage());

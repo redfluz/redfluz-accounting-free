@@ -3,7 +3,7 @@
 declare(strict_types=1);
 /** @noinspection PhpUnused */
 
-namespace app\Logging;
+namespace App\Logging;
 
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\FilterHandler;

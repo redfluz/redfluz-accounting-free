@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Crm;
+namespace App\Http\Controllers\Crm;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;

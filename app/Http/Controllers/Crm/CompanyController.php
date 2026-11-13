@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Crm;
+namespace App\Http\Controllers\Crm;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -39,6 +39,7 @@ use App\Models\Crm\CompanyFile;
 use App\Support\Data\Crm\CompanyData;
 use App\Support\Traits\ResolvesLedgerSources;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
@@ -210,24 +211,24 @@ class CompanyController extends Controller
      */
     private function accountStatement(Company $company, string $accountMarker, array $filters = []): Collection
     {
-        $search = $filters['search'] ?? null;
-        $startDate = $filters['start_date'] ?? null;
-        $endDate = $filters['end_date'] ?? null;
-        $type = $filters['type'] ?? null;
+        $search = is_string($filters['search'] ?? null) ? $filters['search'] : null;
+        $startDate = is_string($filters['start_date'] ?? null) ? $filters['start_date'] : null;
+        $endDate = is_string($filters['end_date'] ?? null) ? $filters['end_date'] : null;
+        $type = is_string($filters['type'] ?? null) ? $filters['type'] : null;
 
-        $applyFilters = function ($query) use ($search, $startDate, $endDate, $type) {
+        $applyFilters = function (Builder $query) use ($search, $startDate, $endDate, $type): Builder {
             return $query
-                ->when(is_string($search) && $search !== '', function ($q) use ($search) {
-                    $q->where(function ($sq) use ($search) {
+                ->when($search !== null && $search !== '', function (Builder $q) use ($search): void {
+                    $q->where(function (Builder $sq) use ($search): void {
                         $sq->where('reference_number', 'like', "%{$search}%")
                             ->orWhere('document_number', 'like', "%{$search}%")
                             ->orWhere('chart_name', 'like', "%{$search}%")
                             ->orWhere('description', 'like', "%{$search}%");
                     });
                 })
-                ->when(is_string($startDate) && $startDate !== '', fn ($q) => $q->whereDate('date', '>=', $startDate))
-                ->when(is_string($endDate) && $endDate !== '', fn ($q) => $q->whereDate('date', '<=', $endDate))
-                ->when(is_string($type) && $type !== '', fn ($q) => $q->where('type', $type));
+                ->when($startDate !== null && $startDate !== '', fn (Builder $q) => $q->whereDate('date', '>=', $startDate))
+                ->when($endDate !== null && $endDate !== '', fn (Builder $q) => $q->whereDate('date', '<=', $endDate))
+                ->when($type !== null && $type !== '', fn (Builder $q) => $q->where('type', $type));
         };
 
         if ($accountMarker === 'isDebtor') {

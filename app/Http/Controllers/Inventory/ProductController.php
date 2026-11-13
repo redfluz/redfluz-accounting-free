@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Inventory;
+namespace App\Http\Controllers\Inventory;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -45,13 +45,12 @@ use App\Models\Inventory\Product;
 use App\Models\Inventory\ProductAttachment;
 use App\Models\Inventory\ProductCategory;
 use App\Models\Inventory\ProductLedger;
-use App\Models\Inventory\ProductType;
 use App\Models\Inventory\StockLocation;
 use App\Services\DecimalService;
 use App\Support\Data\Inventory\ProductData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -400,8 +399,7 @@ class ProductController extends Controller
         $suppliers = Company::query()->where('is_creditor', true)->orderBy('name')->get(['id', 'name']);
         $categories = ProductCategory::query()
             ->where('is_active', true)
-            ->with(['types' => function ($query): void {
-                /** @var Builder<ProductCategory> $query */
+            ->with(['types' => function (HasMany $query): void {
                 $query->where('is_active', true);
             }])
             ->orderBy('name')
@@ -581,14 +579,11 @@ class ProductController extends Controller
             ->where(fn ($query) => $query->where('is_creditor', true)->orWhereKey($product->supplier_company_id))
             ->orderBy('name')->get(['id', 'name']);
         $categories = ProductCategory::query()
-            ->where(function ($query) use ($product): void {
-                /** @var Builder<ProductCategory> $query */
+            ->where(function (\Illuminate\Database\Eloquent\Builder $query) use ($product): void {
                 $query->where('is_active', true)->orWhereKey($product->product_category_id);
             })
-            ->with(['types' => function ($query) use ($product): void {
-                /** @var Builder<ProductType> $query */
-                $query->where(function ($typeQuery) use ($product): void {
-                    /** @var Builder<ProductType> $typeQuery */
+            ->with(['types' => function (HasMany $query) use ($product): void {
+                $query->where(function (\Illuminate\Database\Eloquent\Builder $typeQuery) use ($product): void {
                     $typeQuery->where('is_active', true)->orWhereKey($product->product_type_id);
                 });
             }])

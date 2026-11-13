@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Enums\Finance;
+namespace App\Enums\Finance;
 
 /**
  * @noinspection PhpUnused

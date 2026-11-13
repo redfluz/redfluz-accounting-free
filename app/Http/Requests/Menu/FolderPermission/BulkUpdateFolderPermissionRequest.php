@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Menu\FolderPermission;
+namespace App\Http\Requests\Menu\FolderPermission;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

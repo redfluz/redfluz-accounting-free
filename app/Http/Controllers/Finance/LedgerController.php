@@ -24,13 +24,14 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Finance;
+namespace App\Http\Controllers\Finance;
 
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\Finance\Ledger;
+use App\Services\DecimalService;
 use App\Support\Traits\ResolvesLedgerSources;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -157,8 +158,10 @@ class LedgerController extends Controller
             ->reorder()
             ->selectRaw('COALESCE(SUM(debit_amount), 0) as total_debit, COALESCE(SUM(credit_amount), 0) as total_credit')
             ->first();
-        $totalDebit = (string) ($totals->total_debit ?? '0.00');
-        $totalCredit = (string) ($totals->total_credit ?? '0.00');
+        $debitRaw = $totals->total_debit ?? '0.00';
+        $creditRaw = $totals->total_credit ?? '0.00';
+        $totalDebit = is_numeric($debitRaw) ? DecimalService::normalize((string) $debitRaw) : '0.00';
+        $totalCredit = is_numeric($creditRaw) ? DecimalService::normalize((string) $creditRaw) : '0.00';
         $totalBalance = bcsub($totalDebit, $totalCredit, 2);
 
         $ledgers = $filteredQuery

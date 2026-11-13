@@ -24,11 +24,10 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\ChartOfAccount;
+namespace App\Http\Controllers\ChartOfAccount;
 
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;
-use App\Services\FinancialReportExcelExporter;
 use App\Services\FinancialReportService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -41,11 +40,9 @@ class TrialBalanceController extends Controller
      * Create a new controller instance.
      *
      * @param  FinancialReportService  $reports  The reports resource instance.
-     * @param  FinancialReportExcelExporter  $excel  The excel resource instance.
      */
     public function __construct(
         private readonly FinancialReportService $reports,
-        private readonly FinancialReportExcelExporter $excel,
     ) {}
 
     /**

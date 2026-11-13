@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redfluz — Change List v1 → v2</title>
+<style>
+:root{
+  --paper:#faf8f6; --surface:#ffffff; --inset:#f6f0ec; --overlay:rgba(255,255,255,.86);
+  --ink:#1c1917; --muted:#6f655e; --line:#e8ded7; --line-soft:#f0e8e2;
+  --brand:#e11d48; --brand-deep:#be123c; --rose:#ffe4e6; --rose-soft:#fff1f2;
+  --new:#15803d; --new-bg:#e9f6ec; --swap:#b45309; --swap-bg:#fdf2df; --up:#1d4ed8; --up-bg:#e9effc;
+  --sans:"Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --head-h:60px; --ctl-h:64px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+body{
+  margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+  font-size:15px; line-height:1.55;
+}
+body::before{
+  content:""; position:fixed; inset:-20%; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 12% 6%, rgba(225,29,72,.10), transparent 70%),
+    radial-gradient(40% 34% at 88% 12%, rgba(180,83,9,.08), transparent 72%),
+    radial-gradient(52% 44% at 70% 96%, rgba(29,78,216,.06), transparent 74%);
+  animation:drift 30s ease-in-out infinite alternate;
+}
+@keyframes drift{ from{transform:translate3d(-2%,-1%,0) scale(1)} to{transform:translate3d(2%,2%,0) scale(1.06)} }
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.05; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce){ body::before{animation:none} }
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--rose),#fda4af);border-radius:8px;border:2px solid var(--paper)}
+::-webkit-scrollbar-thumb:hover{background:var(--brand)}
+*{scrollbar-width:thin;scrollbar-color:#fda4af var(--paper)}
+.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+header.top{
+  position:fixed; top:0; left:0; right:0; height:var(--head-h); z-index:40;
+  display:flex; align-items:center; gap:14px; padding:0 22px;
+  background:var(--overlay); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.wordmark{color:var(--brand);font-weight:800;font-size:21px;letter-spacing:-.02em}
+.top .sub{color:var(--muted);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.top .branches{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px}
+.chip{background:var(--inset);border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--muted)}
+.chip.now{background:var(--rose);border-color:#fecdd3;color:var(--brand-deep);font-weight:600}
+.arrow{color:var(--brand);font-weight:700}
+.controls{
+  position:sticky; top:var(--head-h); z-index:30; display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;
+  padding:12px 22px; background:var(--overlay); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label,.ctl .lab{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ctl input[type="search"],.ctl select{
+  height:38px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);
+  padding:0 12px;font-family:var(--sans);font-size:14px;min-width:0;
+}
+.ctl input[type="search"]{width:230px}
+.ctl select{width:180px}
+.ctl input:focus-visible,.ctl select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.seg{display:flex;height:38px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.segbtn{border:0;background:transparent;padding:0 15px;font-family:var(--sans);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
+.segbtn.on{background:var(--brand);color:#fff}
+.segbtn:not(.on):hover{background:var(--rose-soft);color:var(--brand-deep)}
+.switch{display:flex;align-items:center;gap:8px;height:38px}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{width:42px;height:24px;border-radius:999px;background:#d6cec7;position:relative;transition:background .2s;flex:none}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(28,25,23,.3)}
+.switch input:checked + .track{background:var(--brand)}
+.switch input:checked + .track::after{transform:translateX(18px)}
+.switch input:focus-visible + .track{outline:2px solid var(--brand);outline-offset:2px}
+.switch .txt{font-size:13.5px;color:var(--ink)}
+.btn{
+  height:38px;border:0;border-radius:10px;padding:0 16px;font-family:var(--sans);font-size:13.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:transform .12s, background .2s, box-shadow .2s;
+}
+.btn:active{transform:scale(.97)}
+.btn svg{width:15px;height:15px;flex:none}
+.btn-primary{background:var(--brand);color:#fff;box-shadow:0 6px 16px -8px rgba(225,29,72,.7)}
+.btn-primary:hover{background:var(--brand-deep)}
+.btn-soft{background:var(--inset);color:var(--ink);border:1px solid var(--line)}
+.btn-soft:hover{background:var(--rose-soft);border-color:#fecdd3}
+.spacer{flex:1}
+main{max-width:1240px;margin:0 auto;padding:calc(var(--head-h) + 18px) 22px 60px;display:grid;grid-template-columns:230px 1fr;gap:34px}
+.hero{grid-column:1 / -1;padding:26px 0 8px}
+.hero h1{margin:0 0 6px;font-size:clamp(30px,4.4vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.08}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.hero p{margin:0;max-width:760px;color:var(--muted);font-size:15.5px}
+.stats{display:flex;gap:0;flex-wrap:wrap;margin:22px 0 4px;border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.stat{flex:1 1 130px;padding:14px 18px;border-right:1px solid var(--line-soft)}
+.stat:last-child{border-right:0}
+.stat .n{font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .n.plus{color:var(--new)} .stat .n.minus{color:var(--brand)}
+.stat .l{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+nav.side{position:sticky;top:calc(var(--head-h) + var(--ctl-h) + 18px);align-self:start;max-height:calc(100vh - var(--head-h) - var(--ctl-h) - 40px);overflow:auto;padding-right:6px}
+nav.side .navlab{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+nav.side a{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;text-decoration:none;
+  color:var(--muted);font-size:13.5px;font-weight:500;border-left:2px solid transparent;
+}
+nav.side a .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;background:var(--inset);border-radius:999px;padding:1px 7px;color:var(--muted)}
+nav.side a:hover{background:var(--rose-soft);color:var(--ink)}
+nav.side a.on{background:var(--rose);color:var(--brand-deep);font-weight:700;border-left-color:var(--brand)}
+nav.side a.on .cnt{background:#fff;color:var(--brand-deep)}
+.content{min-width:0}
+section.grp{scroll-margin-top:calc(var(--head-h) + var(--ctl-h) + 16px);margin-bottom:34px}
+.grp > h2{display:flex;align-items:center;gap:12px;margin:0 0 4px;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.grp .num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.grp .gcount{font-size:12px;font-weight:600;color:var(--muted);background:var(--inset);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.grp .gdesc{margin:0 0 14px 42px;color:var(--muted);font-size:13.5px}
+article.feat{
+  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin:0 0 12px 42px;box-shadow:0 10px 24px -20px rgba(28,25,23,.35);
+  opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;
+}
+article.feat.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){ article.feat{opacity:1;transform:none;transition:none} }
+article.feat.t-baharu{border-left-color:var(--new)}
+article.feat.t-ganti{border-left-color:var(--swap)}
+article.feat.t-naik{border-left-color:var(--up)}
+.feat .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.feat h3{margin:0;font-size:16.5px;font-weight:700;letter-spacing:-.01em}
+.badge{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:3px 9px}
+.badge.baharu{background:var(--new-bg);color:var(--new)}
+.badge.ganti{background:var(--swap-bg);color:var(--swap)}
+.badge.naik{background:var(--up-bg);color:var(--up)}
+.feat p{margin:8px 0 0;color:#453c36;font-size:14px}
+.feat details{margin-top:10px}
+.feat summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);border-radius:8px;padding:3px 6px;margin-left:-6px}
+.feat summary::-webkit-details-marker{display:none}
+.feat summary:hover{color:var(--brand-deep);background:var(--rose-soft)}
+.feat summary svg{width:12px;height:12px;transition:transform .2s}
+.feat details[open] summary svg{transform:rotate(90deg)}
+.evlist{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;padding:0;list-style:none}
+.evlist li{font-family:var(--mono);font-size:11.5px;color:#57493f;background:var(--inset);border:1px solid var(--line-soft);border-radius:7px;padding:3px 8px;word-break:break-all}
+.empty{display:none;border:1px dashed var(--line);border-radius:14px;background:var(--surface);padding:34px;text-align:center;color:var(--muted)}
+.empty.show{display:block}
+.empty strong{color:var(--ink)}
+footer{border-top:1px solid var(--line);margin-top:10px;padding:18px 0 0;color:var(--muted);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:60;opacity:0;pointer-events:none;
+  background:var(--ink);color:#fff;font-size:13.5px;font-weight:600;border-radius:999px;padding:10px 20px;
+  box-shadow:0 14px 30px -12px rgba(28,25,23,.6);transition:opacity .25s,transform .25s;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width: 1200px) and (min-width: 941px){
+  :root{--ctl-h:112px}
+}
+@media (max-width: 940px){
+  :root{--ctl-h:64px}
+  .controls{position:static;top:auto;margin-top:var(--head-h)}
+  main{grid-template-columns:1fr;gap:18px;padding-left:16px;padding-right:16px;padding-top:18px}
+  section.grp{scroll-margin-top:calc(var(--head-h) + 16px)}
+  nav.side{position:static;max-height:none;display:flex;flex-wrap:wrap;gap:6px;overflow:visible;padding-right:0}
+  nav.side .navlab{width:100%;margin-bottom:2px}
+  nav.side a{border:1px solid var(--line);background:var(--surface);border-left-width:1px}
+  nav.side a.on{border-color:var(--brand)}
+  .grp .gdesc, article.feat{margin-left:0}
+  .ctl input[type="search"]{width:100%}
+  .ctl.grow{flex:1 1 100%}
+  .ctl select{width:100%}
+  .ctl.half{flex:1 1 40%}
+  .top .sub{display:none}
+  .stats .stat{flex:1 1 45%}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="wordmark">Redfluz</span>
+  <span class="sub" id="topSub">Release Notes · Accounting Free</span>
+  <span class="branches"><span class="chip">v1 · main</span><span class="arrow">→</span><span class="chip now">v2 · new-update</span></span>
+</header>
+
+<div class="controls">
+  <div class="ctl">
+    <span class="lab" id="labLang">Language</span>
+    <div class="seg" role="group" aria-labelledby="labLang">
+      <button class="segbtn" id="langMs" type="button" aria-pressed="false">MS</button>
+      <button class="segbtn on" id="langEn" type="button" aria-pressed="true">EN</button>
+    </div>
+  </div>
+  <div class="ctl grow">
+    <label for="q" id="labQ">Search features</label>
+    <input type="search" id="q" placeholder="e.g. manual, PDF, posting…" title="Press / to focus search">
+  </div>
+  <div class="ctl half">
+    <label for="mod" id="labMod">Group</label>
+    <select id="mod"><option value="">All groups</option></select>
+  </div>
+  <div class="ctl half">
+    <label for="typ" id="labTyp">Change type</label>
+    <select id="typ">
+      <option value="">All types</option>
+      <option value="baharu">New</option>
+      <option value="ganti">Replacement</option>
+      <option value="naik">Improvement</option>
+    </select>
+  </div>
+  <div class="ctl">
+    <span class="lab" id="evlab">File details</span>
+    <span class="switch">
+      <input type="checkbox" id="ev" aria-labelledby="evlab">
+      <span class="track"></span>
+      <label class="txt" for="ev" id="evTxt">Show evidence</label>
+    </span>
+  </div>
+  <span class="spacer"></span>
+  <button class="btn btn-soft" id="reset" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span id="resetTxt">Reset</span></button>
+  <button class="btn btn-soft" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copyTxt">Copy list</span></button>
+  <button class="btn btn-primary" id="dl" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg><span id="dlTxt">Download Markdown</span></button>
+</div>
+
+<main>
+  <div class="hero">
+    <h1 id="heroTitle">Change list <em>version 2</em></h1>
+    <p id="heroDesc">Differences between version 1 (branch <strong>main</strong>) and version 2 (branch <strong>new-update</strong>): new features, replacements and improvements added on the current branch, grouped by module.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">7</div><div class="l" id="stL1">Commits</div></div>
+      <div class="stat"><div class="n">892</div><div class="l" id="stL2">Files changed</div></div>
+      <div class="stat"><div class="n plus">+51,821</div><div class="l" id="stL3">Lines added</div></div>
+      <div class="stat"><div class="n minus">−35,476</div><div class="l" id="stL4">Lines removed</div></div>
+      <div class="stat"><div class="n" id="statFeat">22</div><div class="l" id="stL5">Features shown</div></div>
+      <div class="stat"><div class="n" id="statGrp">10</div><div class="l" id="stL6">Groups</div></div>
+    </div>
+  </div>
+
+  <nav class="side" id="nav" aria-label="Change groups">
+    <p class="navlab">Groups</p>
+  </nav>
+
+  <div class="content" id="content"></div>
+</main>
+
+<footer style="max-width:1240px;margin:0 auto;padding:0 22px 46px">
+  <span id="foot1">Source: <code>git diff main...new-update</code> · 7 commits · 892 files</span>
+  <span id="foot2">Redfluz Accounting Free — small steps, big progress.</span>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+var LANG='en';
+var GROUPS_MS=[
+ {id:'pelarasan',name:'Pelarasan Manual',desc:'Modul pelarasan berasaskan pilihan akaun carta, menggantikan pelarasan lama.'},
+ {id:'transfer',name:'Pemindahan Bank',desc:'Kitaran hayat dokumen pemindahan wang antara akaun.'},
+ {id:'posting',name:'Enjin Posting & Ledger',desc:'Satu aliran posting untuk semua dokumen dan ledger wang berasingan.'},
+ {id:'tahun',name:'Tahun & Tempoh Kewangan',desc:'Kawalan tarikh posting mengikut tahun dan tempoh perakaunan.'},
+ {id:'pdf',name:'PDF & Eksport',desc:'PDF per dokumen menggantikan eksport pukal senarai.'},
+ {id:'pemilih',name:'Carian & Pemilih',desc:'Pemilih produk dan akaun carta melalui carian dan dialog.'},
+ {id:'tindakan',name:'Tindakan Dokumen',desc:'Tindakan kelompok, pembalikan, revert dan lampiran.'},
+ {id:'borang',name:'Borang & Paparan Detail',desc:'Borang bertab dan paparan detail yang lebih lengkap.'},
+ {id:'struktur',name:'Struktur Kod & Enum',desc:'Namespace PSR-4 mengikut modul dan enum baharu.'},
+ {id:'alatan',name:'Tema, Bahasa & Alatan',desc:'Gaya antara muka, terjemahan, seeder dan alatan kualiti.'}
+];
+var GROUPS_EN=[
+ {id:'pelarasan',name:'Manual Adjustments',desc:'Account-chart-driven adjustment modules replacing the legacy adjustments.'},
+ {id:'transfer',name:'Bank Transfers',desc:'Full document lifecycle for money transfers between accounts.'},
+ {id:'posting',name:'Posting Engine & Ledgers',desc:'One posting flow for every document, with separate money ledgers.'},
+ {id:'tahun',name:'Financial Year & Periods',desc:'Posting-date control against accounting years and periods.'},
+ {id:'pdf',name:'PDF & Exports',desc:'Per-document PDFs replacing bulk list exports.'},
+ {id:'pemilih',name:'Search & Pickers',desc:'Product and chart-of-accounts selection via search and dialogs.'},
+ {id:'tindakan',name:'Document Actions',desc:'Bulk actions, reversals, revert and attachments.'},
+ {id:'borang',name:'Forms & Detail Views',desc:'Tabbed forms and richer detail pages.'},
+ {id:'struktur',name:'Code Structure & Enums',desc:'Per-module PSR-4 namespaces and new enums.'},
+ {id:'alatan',name:'Theme, Language & Tooling',desc:'Interface styling, translations, seeders and quality tooling.'}
+];
+var FEATS_MS=[
+ {g:'pelarasan',t:'baharu',title:'Pelarasan Jualan Manual',desc:'Modul baharu manual-sales-adjustments: cipta, edit, lulus, reverse, lulus/batal kelompok, halaman History dan Cancelled (dengan uncancel), PDF per dokumen, dialog pemilih COA dan pautan ke invois jualan.',ev:['routes/modules/sales.php','app/Http/Controllers/Sales/ManualSalesAdjustmentController.php','resources/views/sales/manual-adjustments/','database/migrations/2026_11_09_150000_create_manual_adjustment_tables.php']},
+ {g:'pelarasan',t:'baharu',title:'Pelarasan Belian Manual',desc:'Modul manual-purchase-adjustments dengan keupayaan sama: CRUD lengkap, lulus/reverse, tindakan kelompok, History, Cancelled + uncancel, PDF, pemilih COA dan pilihan invois belian.',ev:['routes/modules/purchase.php','app/Http/Controllers/Purchase/ManualPurchaseAdjustmentController.php','resources/views/purchase/manual-adjustments/']},
+ {g:'pelarasan',t:'ganti',title:'Modul pelarasan lama digantikan',desc:'SalesAdjustment dan PurchaseAdjustment (controller, model, line, migration dan seeder chart) dibuang sepenuhnya; digantikan oleh pelarasan manual berasaskan akaun carta pilihan pengguna.',ev:['app/Http/Controllers/Sales/SalesAdjustmentController.php (dibuang)','database/migrations/2026_01_01_00046_create_sales_adjustments_tables.php (dibuang)','database/migrations/2026_01_01_00049_create_purchase_adjustments_tables.php (dibuang)']},
+ {g:'transfer',t:'baharu',title:'History & Cancelled untuk pemindahan wang',desc:'Halaman history dan cancelled baharu untuk bank-transfers, termasuk paparan detail dan uncancel — melengkapkan kitaran hayat dokumen pemindahan antara akaun bank, tunai dan e-dompet.',ev:['app/Http/Controllers/Bank/Transfer/HistoryController.php','app/Http/Controllers/Bank/Transfer/CancelledController.php','resources/views/bank/bank-transfers/history/','resources/views/bank/bank-transfers/cancelled/']},
+ {g:'posting',t:'ganti',title:'Enjin posting bersepadu (Posting)',desc:'Kelas Posting tunggal menggantikan InvoiceLedgerPoster, PaymentLedgerPoster dan PostingLeg; semua dokumen kini membina DTO dan menulis ledger melalui satu aliran, dengan trait ResolvesLedgerSources untuk sumber ledger.',ev:['app/Support/Posting/Posting.php','app/Support/Traits/ResolvesLedgerSources.php','app/Support/Posting/InvoiceLedgerPoster.php (dibuang)']},
+ {g:'posting',t:'ganti',title:'Skema dokumen wang diringkaskan',desc:'Jadual line dan chart per dokumen wang dibuang (resit, baucar, refund, chart invois); resit kini menyimpan kolom akaun wang terus pada header; pautan reversal digantikan dengan document_original; label ledger tolakan inventori disemak semula.',ev:['2026_11_08_103643_drop_bank_document_line_tables.php','2026_11_12_000001_add_money_account_columns_to_receipts_table.php','2026_11_12_000003_replace_reversal_links_with_document_original.php','2026_11_12_000004_relabel_inventory_deduction_ledgers.php']},
+ {g:'posting',t:'baharu',title:'Ledger wang berasingan mengikut jenis akaun',desc:'Model BankLedger, CashLedger dan EWalletLedger berasingan — grid ledger Debit/Kredit sendiri untuk bank, tunai dan e-dompet, tanpa satu umbrella money ledgers.',ev:['app/Models/Bank/BankLedger.php','app/Models/Bank/CashLedger.php','app/Models/Bank/EWalletLedger.php']},
+ {g:'tahun',t:'baharu',title:'Kawalan tarikh posting mengikut tahun/tempoh',desc:'Model Year dan Period plus trait ChecksFinancialPostingDate: posting ditolak pada tahun/tempoh tertutup; mod strict_journal_posting menghadkan jurnal kepada tempoh semasa; picker tarikh borang automatik terhad kepada julat terbuka.',ev:['app/Models/Year/Year.php','app/Models/Year/Period.php','app/Traits/ChecksFinancialPostingDate.php']},
+ {g:'pdf',t:'baharu',title:'PDF per dokumen pada show/history/cancelled',desc:'Route dan template PDF berasingan bagi setiap dokumen: resit, baucar pembayaran, jurnal, invois jualan, invois belian, pelarasan GRN dan pelarasan manual — setiap jenis dokumen mempunyai fail print sendiri.',ev:['routes/modules/bank.php','resources/views/purchase/goods-receipt-adjustments/pdf.blade.php','resources/views/sales/manual-adjustments/pdf.blade.php','resources/views/purchase/manual-adjustments/pdf.blade.php']},
+ {g:'pdf',t:'ganti',title:'Eksport pukal senarai digantikan',desc:'Route export-excel/export-pdf pada halaman senarai (history, cancelled, carta, P&L, kunci kira-kira, trial balance, ledger, outstanding) dibuang; eksport kini melalui PDF per dokumen.',ev:['routes/modules/bank.php','routes/modules/chart.php','routes/modules/finance.php']},
+ {g:'pemilih',t:'baharu',title:'Carian produk dalam borang dokumen',desc:'Endpoint products/search untuk quotation, sales order, invois jualan dan GRN, plus partial pemilih produk (_product-picker) — pilihan produk melalui carian, bukan senarai flat yang panjang.',ev:['routes/modules/sales.php','routes/modules/purchase.php','resources/views/sales/invoices/_product-picker.blade.php']},
+ {g:'pemilih',t:'baharu',title:'Dialog pemilih COA',desc:'Pemilihan akaun carta dalam jurnal dan pelarasan manual menggunakan dialog pemilih COA dengan carian (charts/search), menggantikan dropdown rata.',ev:['resources/views/finance/journal-entries/_coa-picker.blade.php','resources/views/sales/manual-adjustments/_coa-picker.blade.php','resources/views/purchase/manual-adjustments/_coa-picker.blade.php']},
+ {g:'tindakan',t:'naik',title:'Form Request khusus untuk tindakan kelompok & pembalikan',desc:'Kelas Request berasingan untuk batch approve/cancel dan reverse bagi invois jualan/belian, jurnal, return belian dan pelarasan manual; halaman outstanding pelanggan/pembekal juga mendapat Request sendiri.',ev:['app/Http/Requests/Sales/SalesInvoice/BatchApproveSalesInvoiceRequest.php','app/Http/Requests/Finance/JournalEntry/ReverseJournalEntryRequest.php','app/Http/Requests/Sales/CustomerOutstanding/']},
+ {g:'tindakan',t:'baharu',title:'Revert Sales Order ke draf',desc:'Sales order yang telah diluluskan boleh dikembalikan ke draf (revert) selagi tiada invois jualan atau delivery order terjana — dengan kunci transaksi dan semakan status.',ev:['routes/modules/sales.php','app/Http/Controllers/Sales/SalesOrderController.php@revert']},
+ {g:'tindakan',t:'baharu',title:'Muat turun lampiran dokumen',desc:'Route attachment baharu untuk memuat turun lampiran sales order dan invois belian terus dari halaman dokumen.',ev:['sales-orders/{salesOrder}/attachment','purchase-invoices/{documentNumber}/attachment']},
+ {g:'borang',t:'naik',title:'Borang create/edit bertab merentas modul',desc:'Borang panjang disusun semula kepada partial _form dengan tab Bootstrap: bank, carta akaun, CRM, kewangan, inventori, personel, belian, jualan dan sistem — satu halaman edit yang kemas, bukan scroll panjang.',ev:['resources/views/sales/invoices/_form.blade.php','resources/views/bank/receipt/_form.blade.php','resources/views/inventory/products/_form.blade.php']},
+ {g:'borang',t:'baharu',title:'Jadual penyata pada halaman syarikat',desc:'Partial _statement-table memaparkan penyata urus niaga (penghutang/pemiutang) terus pada halaman show syarikat.',ev:['resources/views/crm/companies/_statement-table.blade.php','resources/views/crm/companies/show.blade.php']},
+ {g:'struktur',t:'naik',title:'Namespace enum mengikut modul (PSR-4)',desc:'Enum disusun semula ke namespace modul (Bank, ChartOfAccount, Crm, Finance, Inventory, Purchase, Sales) selaras standard PSR-4; nama lama seperti LedgerStatus menjadi DocumentStatus.',ev:['app/Enums/Finance/DocumentStatus.php','app/Enums/Purchase/PurchaseOrderStatus.php','app/Enums/Sales/SalesOrderStatus.php']},
+ {g:'struktur',t:'baharu',title:'Enum baharu disediakan',desc:'Enum baharu ditambah: PaymentFor, GeneralLedgerEntryType, LedgerSubType, PaymentTransferType, PurchaseOrderStatus, PurchaseQuotationStatus, PurchaseRequestStatus, AcquisitionType, FollowUpType, AppointmentStatus, NewsStatus dan LikeStatus.',ev:['app/Enums/Bank/PaymentFor.php','app/Enums/Finance/GeneralLedgerEntryType.php','app/Enums/News/NewsStatus.php']},
+ {g:'alatan',t:'naik',title:'Penambahbaikan tema & gaya',desc:'Kemas kini SCSS untuk tema glass, palet Bootstrap 6, latar belakang app dan tema: glass kekal jelas atas wallpaper, tepi kad neutral dan permukaan telus yang konsisten.',ev:['resources/sass/_glass.scss','resources/sass/_bs6-palettes.scss','resources/sass/_app-background.scss','resources/sass/_theme.scss']},
+ {g:'alatan',t:'baharu',title:'Terjemahan & seeder baharu',desc:'Fail bahasa ms/en/id untuk pelarasan jualan/belian manual dan mesej posting; ManualAdjustmentSeeder menambah data demo pelarasan; seeder lain dikemas kini mengikut enjin posting baharu.',ev:['lang/ms/manual_sales_adjustments.php','lang/ms/posting.php','database/seeders/ManualAdjustmentSeeder.php']},
+ {g:'alatan',t:'naik',title:'Analisis statik & lockfile',desc:'Konfigurasi PHPStan (phpstan.neon) ditambah untuk analisis statik; composer.lock dan package-lock.json dikomit untuk pemasangan berulang yang tepat.',ev:['phpstan.neon','composer.lock','package-lock.json']}
+];
+var FEATS_EN=[
+ {title:'Manual Sales Adjustments',desc:'New manual-sales-adjustments module: create, edit, approve, reverse, bulk approve/cancel, History and Cancelled pages (with uncancel), per-document PDF, COA picker dialog and links to sales invoices.'},
+ {title:'Manual Purchase Adjustments',desc:'manual-purchase-adjustments module with the same capabilities: full CRUD, approve/reverse, bulk actions, History, Cancelled + uncancel, PDF, COA picker and purchase-invoice options.'},
+ {title:'Legacy adjustment modules replaced',desc:'SalesAdjustment and PurchaseAdjustment (controllers, models, lines, migrations and chart seeders) removed entirely; replaced by manual adjustments based on user-selected chart accounts.'},
+ {title:'History & Cancelled for money transfers',desc:'New history and cancelled pages for bank-transfers, including detail views and uncancel — completing the lifecycle of transfer documents between bank, cash and e-wallet accounts.'},
+ {title:'Unified posting engine (Posting)',desc:'A single Posting class replaces InvoiceLedgerPoster, PaymentLedgerPoster and PostingLeg; every document now builds DTOs and writes ledgers through one flow, with the ResolvesLedgerSources trait for ledger sources.'},
+ {title:'Money document schema simplified',desc:'Per-document line and chart tables for money documents removed (receipts, vouchers, refunds, invoice charts); receipts now store money account columns on the header; reversal links replaced by document_original; inventory deduction ledger labels revised.'},
+ {title:'Separate money ledgers per account kind',desc:'Distinct BankLedger, CashLedger and EWalletLedger models — each with its own Debit/Credit ledger grid for bank, cash and e-wallet, without a single money-ledgers umbrella.'},
+ {title:'Posting-date control by year/period',desc:'Year and Period models plus the ChecksFinancialPostingDate trait: postings rejected in closed years/periods; strict_journal_posting mode limits journals to the current period; form date pickers automatically bounded to the open range.'},
+ {title:'Per-document PDF on show/history/cancelled',desc:'Separate PDF routes and templates per document: receipts, payment vouchers, journals, sales invoices, purchase invoices, GRN adjustments and manual adjustments — each document type has its own print file.'},
+ {title:'Bulk list exports replaced',desc:'export-excel/export-pdf routes on list pages (history, cancelled, charts, P&L, balance sheet, trial balance, ledgers, outstanding) removed; exports now go through per-document PDFs.'},
+ {title:'Product search inside document forms',desc:'products/search endpoints for quotations, sales orders, sales invoices and GRNs, plus a product picker partial (_product-picker) — products chosen by search instead of a long flat list.'},
+ {title:'COA picker dialog',desc:'Chart-of-accounts selection in journals and manual adjustments uses a searchable COA picker dialog (charts/search), replacing flat dropdowns.'},
+ {title:'Dedicated Form Requests for bulk & reversal actions',desc:'Separate Request classes for batch approve/cancel and reverse on sales/purchase invoices, journals, purchase returns and manual adjustments; customer/supplier outstanding pages also get their own Requests.'},
+ {title:'Revert Sales Order to draft',desc:'Approved sales orders can be returned to draft (revert) as long as no sales invoice or delivery order has been generated — with transaction locking and status checks.'},
+ {title:'Document attachment downloads',desc:'New attachment routes to download sales order and purchase invoice attachments straight from the document page.'},
+ {title:'Tabbed create/edit forms across modules',desc:'Long forms reorganised into Bootstrap-tabbed _form partials: bank, chart of accounts, CRM, finance, inventory, personnel, purchase, sales and system — one tidy edit page instead of a long scroll.'},
+ {title:'Statement table on company page',desc:'The _statement-table partial shows transaction statements (debtors/creditors) directly on the company show page.'},
+ {title:'Per-module enum namespaces (PSR-4)',desc:'Enums reorganised into module namespaces (Bank, ChartOfAccount, Crm, Finance, Inventory, Purchase, Sales) per PSR-4; legacy names such as LedgerStatus become DocumentStatus.'},
+ {title:'New enums added',desc:'New enums: PaymentFor, GeneralLedgerEntryType, LedgerSubType, PaymentTransferType, PurchaseOrderStatus, PurchaseQuotationStatus, PurchaseRequestStatus, AcquisitionType, FollowUpType, AppointmentStatus, NewsStatus and LikeStatus.'},
+ {title:'Theme & styling improvements',desc:'SCSS updates for the glass theme, Bootstrap 6 palettes, app background and themes: glass stays legible over wallpapers, neutral card edges and consistent translucent surfaces.'},
+ {title:'New translations & seeders',desc:'ms/en/id language files for manual sales/purchase adjustments and posting messages; ManualAdjustmentSeeder adds adjustment demo data; other seeders updated for the new posting engine.'},
+ {title:'Static analysis & lockfiles',desc:'PHPStan configuration (phpstan.neon) added for static analysis; composer.lock and package-lock.json committed for reproducible installs.'}
+];
+FEATS_EN.forEach(function(f,i){f.g=FEATS_MS[i].g;f.t=FEATS_MS[i].t;f.ev=FEATS_MS[i].ev;});
+var UI={
+ ms:{
+  doc:'Redfluz — Senarai Perubahan v1 → v2',topSub:'Nota Keluaran · Accounting Free',
+  heroTitle:'Senarai perubahan <em>versi 2</em>',
+  heroDesc:'Perbezaan antara versi 1 (branch <strong>main</strong>) dan versi 2 (branch <strong>new-update</strong>): ciri baharu, penggantian dan naik taraf yang ditambah dalam branch semasa, disusun mengikut kumpulan modul.',
+  st:['Commit','Fail berubah','Baris ditambah','Baris dibuang','Ciri dipapar','Kumpulan'],
+  labQ:'Cari ciri',ph:'cth: manual, PDF, posting…',phTitle:'Tekan / untuk fokus carian',
+  labMod:'Kumpulan',allMod:'Semua kumpulan',labTyp:'Jenis perubahan',allTyp:'Semua jenis',
+  typOpts:['Baharu','Penggantian','Naik taraf'],labEv:'Butiran fail',evTxt:'Buka bukti',
+  reset:'Set semula',copy:'Salin senarai',dl:'Muat turun Markdown',labLang:'Bahasa',navLab:'Kumpulan',
+  gcount:function(n){return n+' ciri';},evSummary:function(n){return 'Fail & route terlibat ('+n+')';},
+  empty:'<strong>Tiada ciri sepadan.</strong><br>Longgarkan carian atau tapisan, atau tekan “Set semula”.',
+  foot1:'Sumber: <code>git diff main...new-update</code> · 7 commit · 892 fail',
+  foot2:'Redfluz Accounting Free — small steps, big progress.',
+  toastReset:function(n){return 'Tapisan set semula — '+n+' ciri dipapar.';},
+  toastCopy:function(n){return 'Disalin: '+n+' ciri dalam format Markdown.';},
+  toastCopyFail:'Salinan gagal — gunakan Muat turun Markdown.',
+  toastDl:function(f){return 'Fail '+f+' dimuat turun.';},
+  toastLang:'Bahasa: Melayu',
+  mdTitle:'# Senarai Perubahan — Redfluz Accounting Free',
+  mdSub:'Versi 1 (main) → Versi 2 (new-update) · 7 commit · 892 fail berubah · +51,821 / −35,476 baris',
+  mdEvidence:'Bukti: ',mdFile:'senarai-perubahan-v2.md',
+  types:{baharu:'Baharu',ganti:'Penggantian',naik:'Naik taraf'}
+ },
+ en:{
+  doc:'Redfluz — Change List v1 → v2',topSub:'Release Notes · Accounting Free',
+  heroTitle:'Change list <em>version 2</em>',
+  heroDesc:'Differences between version 1 (branch <strong>main</strong>) and version 2 (branch <strong>new-update</strong>): new features, replacements and improvements added on the current branch, grouped by module.',
+  st:['Commits','Files changed','Lines added','Lines removed','Features shown','Groups'],
+  labQ:'Search features',ph:'e.g. manual, PDF, posting…',phTitle:'Press / to focus search',
+  labMod:'Group',allMod:'All groups',labTyp:'Change type',allTyp:'All types',
+  typOpts:['New','Replacement','Improvement'],labEv:'File details',evTxt:'Show evidence',
+  reset:'Reset',copy:'Copy list',dl:'Download Markdown',labLang:'Language',navLab:'Groups',
+  gcount:function(n){return n+(n===1?' feature':' features');},evSummary:function(n){return 'Files & routes involved ('+n+')';},
+  empty:'<strong>No matching features.</strong><br>Relax the search or filters, or press “Reset”.',
+  foot1:'Source: <code>git diff main...new-update</code> · 7 commits · 892 files',
+  foot2:'Redfluz Accounting Free — small steps, big progress.',
+  toastReset:function(n){return 'Filters reset — '+n+' features shown.';},
+  toastCopy:function(n){return 'Copied: '+n+' features as Markdown.';},
+  toastCopyFail:'Copy failed — use Download Markdown.',
+  toastDl:function(f){return 'File '+f+' downloaded.';},
+  toastLang:'Language: English',
+  mdTitle:'# Change List — Redfluz Accounting Free',
+  mdSub:'Version 1 (main) → Version 2 (new-update) · 7 commits · 892 files changed · +51,821 / −35,476 lines',
+  mdEvidence:'Evidence: ',mdFile:'changelog-v2.md',
+  types:{baharu:'New',ganti:'Replacement',naik:'Improvement'}
+ }
+};
+function L(){return UI[LANG];}
+function groups(){return LANG==='en'?GROUPS_EN:GROUPS_MS;}
+function feats(){return LANG==='en'?FEATS_EN:FEATS_MS;}
+var state={q:'',mod:'',typ:'',ev:false};
+var content=document.getElementById('content'),nav=document.getElementById('nav');
+var qEl=document.getElementById('q'),modEl=document.getElementById('mod'),typEl=document.getElementById('typ'),evEl=document.getElementById('ev');
+var toastEl=document.getElementById('toast'),toastTimer=null;
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function setText(id,v){document.getElementById(id).textContent=v;}
+function applyStatic(){
+  var l=L();
+  document.documentElement.lang=LANG;
+  document.title=l.doc;
+  setText('topSub',l.topSub);
+  document.getElementById('heroTitle').innerHTML=l.heroTitle;
+  document.getElementById('heroDesc').innerHTML=l.heroDesc;
+  for(var i=1;i<=6;i++)setText('stL'+i,l.st[i-1]);
+  setText('labQ',l.labQ);qEl.placeholder=l.ph;qEl.title=l.phTitle;
+  setText('labMod',l.labMod);setText('labTyp',l.labTyp);setText('evlab',l.labEv);setText('evTxt',l.evTxt);
+  setText('resetTxt',l.reset);setText('copyTxt',l.copy);setText('dlTxt',l.dl);setText('labLang',l.labLang);
+  document.getElementById('foot1').innerHTML=l.foot1;setText('foot2',l.foot2);
+  var mv=modEl.value;modEl.textContent='';
+  var o0=document.createElement('option');o0.value='';o0.textContent=l.allMod;modEl.appendChild(o0);
+  groups().forEach(function(g){var o=document.createElement('option');o.value=g.id;o.textContent=g.name;modEl.appendChild(o);});
+  modEl.value=mv;
+  var tv=typEl.value;typEl.textContent='';
+  var t0=document.createElement('option');t0.value='';t0.textContent=l.allTyp;typEl.appendChild(t0);
+  ['baharu','ganti','naik'].forEach(function(k,i){var o=document.createElement('option');o.value=k;o.textContent=l.typOpts[i];typEl.appendChild(o);});
+  typEl.value=tv;
+  var ms=document.getElementById('langMs'),en=document.getElementById('langEn');
+  ms.classList.toggle('on',LANG==='ms');en.classList.toggle('on',LANG==='en');
+  ms.setAttribute('aria-pressed',String(LANG==='ms'));en.setAttribute('aria-pressed',String(LANG==='en'));
+  nav.setAttribute('aria-label',l.navLab);
+}
+function matches(f){
+  if(state.mod&&f.g!==state.mod)return false;
+  if(state.typ&&f.t!==state.typ)return false;
+  if(state.q){
+    var hay=(f.title+' '+f.desc+' '+f.ev.join(' ')).toLowerCase();
+    if(hay.indexOf(state.q)<0)return false;
+  }
+  return true;
+}
+function visible(){return feats().filter(matches);}
+var revealObs=('IntersectionObserver' in window)?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');revealObs.unobserve(e.target);}});},{threshold:.08}):null;
+function render(){
+  var l=L(),vis=visible();
+  content.textContent='';
+  var shownGroups=0;
+  groups().forEach(function(g,gi){
+    var items=vis.filter(function(f){return f.g===g.id;});
+    if(!items.length)return;
+    shownGroups++;
+    var sec=document.createElement('section');sec.className='grp';sec.id='grp-'+g.id;
+    var h=document.createElement('h2');
+    var num=document.createElement('span');num.className='num';num.textContent=String(gi+1);
+    var tt=document.createElement('span');tt.textContent=g.name;
+    var gc=document.createElement('span');gc.className='gcount';gc.textContent=l.gcount(items.length);
+    h.appendChild(num);h.appendChild(tt);h.appendChild(gc);sec.appendChild(h);
+    var gd=document.createElement('p');gd.className='gdesc';gd.textContent=g.desc;sec.appendChild(gd);
+    items.forEach(function(f){
+      var a=document.createElement('article');a.className='feat t-'+f.t;
+      var row=document.createElement('div');row.className='row';
+      var h3=document.createElement('h3');h3.textContent=f.title;
+      var b=document.createElement('span');b.className='badge '+f.t;b.textContent=l.types[f.t];
+      row.appendChild(h3);row.appendChild(b);a.appendChild(row);
+      var p=document.createElement('p');p.textContent=f.desc;a.appendChild(p);
+      var d=document.createElement('details');if(state.ev)d.open=true;
+      var s=document.createElement('summary');
+      s.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>';
+      s.appendChild(document.createTextNode(l.evSummary(f.ev.length)));
+      d.appendChild(s);
+      var ul=document.createElement('ul');ul.className='evlist';
+      f.ev.forEach(function(e){var li=document.createElement('li');li.textContent=e;ul.appendChild(li);});
+      d.appendChild(ul);a.appendChild(d);
+      sec.appendChild(a);
+      if(revealObs&&!reduce)revealObs.observe(a);else a.classList.add('in');
+    });
+    content.appendChild(sec);
+  });
+  var empty=document.createElement('div');empty.className='empty'+(vis.length?'':' show');
+  empty.innerHTML=l.empty;
+  content.appendChild(empty);
+  document.getElementById('statFeat').textContent=String(vis.length);
+  document.getElementById('statGrp').textContent=String(shownGroups);
+  renderNav(vis);
+  spy();
+}
+function renderNav(vis){
+  var l=L();
+  nav.textContent='';
+  var lab=document.createElement('p');lab.className='navlab';lab.textContent=l.navLab;nav.appendChild(lab);
+  groups().forEach(function(g){
+    var n=vis.filter(function(f){return f.g===g.id;}).length;
+    if(!n)return;
+    var a=document.createElement('a');a.href='#grp-'+g.id;a.dataset.g=g.id;
+    var t=document.createElement('span');t.textContent=g.name;
+    var c=document.createElement('span');c.className='cnt';c.textContent=String(n);
+    a.appendChild(t);a.appendChild(c);nav.appendChild(a);
+  });
+}
+function spy(){
+  var links=nav.querySelectorAll('a');
+  var best=null,bestTop=-Infinity;
+  links.forEach(function(a){
+    var sec=document.getElementById(a.getAttribute('href').slice(1));
+    if(!sec)return;
+    var r=sec.getBoundingClientRect();
+    if(r.top<window.innerHeight*.4&&r.top>bestTop){bestTop=r.top;best=a;}
+  });
+  if(!best&&links.length)best=links[0];
+  links.forEach(function(a){a.classList.toggle('on',a===best);});
+}
+window.addEventListener('scroll',function(){window.requestAnimationFrame(spy);},{passive:true});
+function toast(msg){
+  toastEl.textContent=msg;toastEl.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toastEl.classList.remove('show');},2400);
+}
+function markdown(){
+  var l=L(),vis=visible();
+  var out=[];
+  out.push(l.mdTitle);
+  out.push('');
+  out.push(l.mdSub);
+  out.push('');
+  groups().forEach(function(g,gi){
+    var items=vis.filter(function(f){return f.g===g.id;});
+    if(!items.length)return;
+    out.push('## '+(gi+1)+'. '+g.name);
+    out.push('');
+    items.forEach(function(f){
+      out.push('- **['+l.types[f.t]+'] '+f.title+'** — '+f.desc);
+      out.push('  - '+l.mdEvidence+f.ev.map(function(e){return '`'+e+'`';}).join(', '));
+    });
+    out.push('');
+  });
+  return out.join('\n');
+}
+qEl.addEventListener('input',function(){state.q=this.value.trim().toLowerCase();render();});
+modEl.addEventListener('change',function(){state.mod=this.value;render();});
+typEl.addEventListener('change',function(){state.typ=this.value;render();});
+evEl.addEventListener('change',function(){
+  state.ev=this.checked;
+  content.querySelectorAll('details').forEach(function(d){d.open=state.ev;});
+});
+document.getElementById('reset').addEventListener('click',function(){
+  state={q:'',mod:'',typ:'',ev:false};
+  qEl.value='';modEl.value='';typEl.value='';evEl.checked=false;
+  render();toast(L().toastReset(visible().length));
+});
+document.getElementById('copy').addEventListener('click',function(){
+  var md=markdown(),n=visible().length,l=L();
+  function done(){toast(l.toastCopy(n));}
+  function fallback(){
+    var ta=document.createElement('textarea');ta.value=md;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(e){toast(l.toastCopyFail);}
+    ta.remove();
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(md).then(done,function(){fallback();});
+  }else fallback();
+});
+document.getElementById('dl').addEventListener('click',function(){
+  var l=L();
+  var blob=new Blob([markdown()],{type:'text/markdown'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=l.mdFile;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  toast(l.toastDl(l.mdFile));
+});
+function setLang(lang){
+  if(LANG===lang)return;
+  LANG=lang;applyStatic();render();toast(L().toastLang);
+}
+document.getElementById('langMs').addEventListener('click',function(){setLang('ms');});
+document.getElementById('langEn').addEventListener('click',function(){setLang('en');});
+document.addEventListener('keydown',function(e){
+  if(e.key==='/'&&document.activeElement!==qEl&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='SELECT'&&document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault();qEl.focus();
+  }
+  if(e.key==='Escape'&&document.activeElement===qEl){qEl.value='';state.q='';render();qEl.blur();}
+});
+applyStatic();
+render();
+})();
+</script>
+</body>
+</html>

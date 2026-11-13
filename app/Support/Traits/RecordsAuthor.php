@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Traits;
+namespace App\Support\Traits;
 
 /**
  * Stamps the acting user onto a document as it is created.

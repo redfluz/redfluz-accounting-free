@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Purchase\GoodsReceiptAdjustment;
+namespace App\Http\Requests\Purchase\GoodsReceiptAdjustment;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

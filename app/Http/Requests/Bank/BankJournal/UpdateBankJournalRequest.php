@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Bank\BankJournal;
+namespace App\Http\Requests\Bank\BankJournal;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

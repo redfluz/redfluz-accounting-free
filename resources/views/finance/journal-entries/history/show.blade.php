@@ -93,7 +93,7 @@
                     </div>
                 </div>
             </div>
-            <div class="table-responsive rounded border">
+            <div class="table-responsive rounded border mb-3">
                 <table class="table-hover table-striped mb-0 table align-middle">
                     <thead class="bg-1">
                         <tr>
@@ -130,6 +130,44 @@
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+
+            <div class="accordion accordion-gap">
+                <details class="accordion-item" open>
+                    <summary class="accordion-header">
+                        <span class="fw-bold">{{ __('ledgers.sections.ledgers') }}</span>
+                        <i class="accordion-icon" data-lucide="chevron-down"></i>
+                    </summary>
+                    <div class="accordion-body p-0">
+                        <div class="table-responsive">
+                            <table class="table-hover table-striped mb-0 table align-middle">
+                                <thead class="bg-1">
+                                    <tr>
+                                        <th>{{ __('ledgers.sections.account') }}</th>
+                                        <th>{{ __('ledgers.sections.reference') }}</th>
+                                        <th class="text-end">{{ __('ledgers.table.column_debit_amount') }}</th>
+                                        <th class="text-end">{{ __('ledgers.table.column_credit_amount') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($glLedgers as $ledger)
+                                        <tr>
+                                            <td>{{ $ledger->chart_code }} {{ $ledger->chart_name }}</td>
+                                            <td>{{ $ledger->reference_number ?? '-' }}</td>
+                                            <td class="text-end">{{ number_format((float) $ledger->debit_amount, 2) }}</td>
+                                            <td class="text-end">{{ number_format((float) $ledger->credit_amount, 2) }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td class="fg-secondary py-3 text-center" colspan="4">
+                                                {{ __('common.labels.no_records_found') }}</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </details>
             </div>
         </div>
     </div>

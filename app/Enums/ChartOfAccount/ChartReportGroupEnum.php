@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Enums\ChartOfAccount;
+namespace App\Enums\ChartOfAccount;
 
 enum ChartReportGroupEnum: string
 {

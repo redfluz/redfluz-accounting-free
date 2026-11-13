@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Enums\Purchase;
+namespace App\Enums\Purchase;
 
 enum PurchaseRequestStatus: string
 {

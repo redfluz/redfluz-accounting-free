@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Bank\Receipt;
+namespace App\Http\Requests\Bank\Receipt;
 
 use App\Enums\Finance\PaymentTransferType;
 use App\Http\Requests\BaseFormRequest;

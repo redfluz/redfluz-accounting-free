@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Services;
+namespace App\Services;
 
 use App\Enums\Finance\DocumentStatus;
 use App\Enums\Finance\LedgerSubType;

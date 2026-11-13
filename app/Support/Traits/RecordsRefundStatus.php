@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Traits;
+namespace App\Support\Traits;
 
 use App\Enums\Finance\DocumentStatus;
 

@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\System;
+namespace App\Support\Data\System;
 
 use App\Models\System\User;
 use Carbon\CarbonImmutable;

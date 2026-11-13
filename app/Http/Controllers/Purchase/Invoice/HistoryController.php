@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Purchase\Invoice;
+namespace App\Http\Controllers\Purchase\Invoice;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;
@@ -36,6 +36,7 @@ use App\Models\Finance\Ledger;
 use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\System\Setting;
+use App\Services\DecimalService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -161,16 +162,22 @@ class HistoryController extends Controller
             ->get();
 
         $amountPaid = $payments->reduce(
-            static fn (string $carry, ApLedger $payment): string => bcadd(
-                $carry,
-                bcsub((string) $payment->debit_amount, (string) $payment->credit_amount, 2),
-                2
-            ),
+            /**
+             * @param  numeric-string  $carry
+             * @return numeric-string
+             */
+            static function (string $carry, ApLedger $payment): string {
+                $diff = bcsub((string) $payment->debit_amount, (string) $payment->credit_amount, 2);
+
+                return bcadd($carry, $diff, 2);
+            },
             '0.00'
         );
         $amountPaid = bccomp($amountPaid, '0.00', 2) < 0 ? '0.00' : $amountPaid;
 
-        $balanceDue = bcsub(bcadd((string) $invoice->total_amount, '0', 2), $amountPaid, 2);
+        /** @var numeric-string $invoiceTotal */
+        $invoiceTotal = DecimalService::normalize((string) $invoice->total_amount);
+        $balanceDue = bcsub(bcadd($invoiceTotal, '0.00', 2), $amountPaid, 2);
         $balanceDue = bccomp($balanceDue, '0.00', 2) < 0 ? '0.00' : $balanceDue;
 
         return Pdf::loadView('purchase.invoices.history.pdf', [

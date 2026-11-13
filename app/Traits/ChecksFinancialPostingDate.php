@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Traits;
+namespace App\Traits;
 
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Models\Year\Period;

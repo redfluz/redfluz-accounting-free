@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\Purchase;
+namespace App\Support\Data\Purchase;
 
 use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;

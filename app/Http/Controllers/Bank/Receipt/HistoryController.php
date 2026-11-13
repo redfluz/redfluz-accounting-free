@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Bank\Receipt;
+namespace App\Http\Controllers\Bank\Receipt;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;

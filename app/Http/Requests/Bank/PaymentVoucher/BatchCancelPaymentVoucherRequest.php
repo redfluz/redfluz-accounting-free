@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Bank\PaymentVoucher;
+namespace App\Http\Requests\Bank\PaymentVoucher;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

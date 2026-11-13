@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Purchase;
+namespace App\Http\Controllers\Purchase;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -53,6 +53,7 @@ use App\Models\Purchase\PurchaseInvoice;
 use App\Models\Purchase\PurchaseInvoiceLine;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\System\Setting;
+use App\Services\DecimalService;
 use App\Support\Data\Purchase\PurchaseInvoiceData;
 use App\Support\Posting\ApLedgerData;
 use App\Support\Posting\GeneralLedgerData;
@@ -225,16 +226,22 @@ class PurchaseInvoiceController extends Controller
             ->get();
 
         $amountPaid = $payments->reduce(
-            static fn (string $carry, ApLedger $payment): string => bcadd(
-                $carry,
-                bcsub((string) $payment->debit_amount, (string) $payment->credit_amount, 2),
-                2
-            ),
+            /**
+             * @param  numeric-string  $carry
+             * @return numeric-string
+             */
+            static function (string $carry, ApLedger $payment): string {
+                $diff = bcsub((string) $payment->debit_amount, (string) $payment->credit_amount, 2);
+
+                return bcadd($carry, $diff, 2);
+            },
             '0.00'
         );
         $amountPaid = bccomp($amountPaid, '0.00', 2) < 0 ? '0.00' : $amountPaid;
 
-        $balanceDue = bcsub(bcadd((string) $invoice->total_amount, '0', 2), $amountPaid, 2);
+        /** @var numeric-string $invoiceTotal */
+        $invoiceTotal = DecimalService::normalize((string) $invoice->total_amount);
+        $balanceDue = bcsub(bcadd($invoiceTotal, '0.00', 2), $amountPaid, 2);
         $balanceDue = bccomp($balanceDue, '0.00', 2) < 0 ? '0.00' : $balanceDue;
 
         $setting = Setting::query()->first();

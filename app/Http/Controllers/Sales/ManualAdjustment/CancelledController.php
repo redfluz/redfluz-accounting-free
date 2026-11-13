@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Sales\ManualAdjustment;
+namespace App\Http\Controllers\Sales\ManualAdjustment;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

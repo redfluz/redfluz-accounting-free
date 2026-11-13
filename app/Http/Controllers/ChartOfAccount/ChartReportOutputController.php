@@ -1,12 +1,11 @@
 <?php
 
-namespace app\Http\Controllers\ChartOfAccount;
+namespace App\Http\Controllers\ChartOfAccount;
 
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;
 use App\Models\ChartOfAccount\ChartReport;
 use App\Services\CalendarFinancialReportPeriodResolver;
-use App\Services\FinancialReportExcelExporter;
 use App\Services\FinancialReportService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -18,12 +17,10 @@ class ChartReportOutputController extends Controller
      * Create a new configured chart report output controller instance.
      *
      * @param  FinancialReportService  $reports  The financial report service instance.
-     * @param  FinancialReportExcelExporter  $excel  The financial report spreadsheet exporter.
      * @param  CalendarFinancialReportPeriodResolver  $periods  The report period resolver.
      */
     public function __construct(
         private readonly FinancialReportService $reports,
-        private readonly FinancialReportExcelExporter $excel,
         private readonly CalendarFinancialReportPeriodResolver $periods,
     ) {}
 

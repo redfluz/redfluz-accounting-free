@@ -24,17 +24,17 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Models\Sales;
+namespace App\Models\Sales;
 
 use App\Models\Inventory\Product;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Query\Builder;
 
 /**
  * One line of a quotation: an offered product, at a quantity and a price.

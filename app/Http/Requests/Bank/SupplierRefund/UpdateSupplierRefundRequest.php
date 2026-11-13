@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Bank\SupplierRefund;
+namespace App\Http\Requests\Bank\SupplierRefund;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Finance\Currency;
+namespace App\Http\Requests\Finance\Currency;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

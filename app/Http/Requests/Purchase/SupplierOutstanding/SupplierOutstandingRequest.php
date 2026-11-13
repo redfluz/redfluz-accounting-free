@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Purchase\SupplierOutstanding;
+namespace App\Http\Requests\Purchase\SupplierOutstanding;
 
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;

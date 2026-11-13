@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Bank\Bank;
+namespace App\Http\Requests\Bank\Bank;
 
 use App\Enums\FileResources;
 

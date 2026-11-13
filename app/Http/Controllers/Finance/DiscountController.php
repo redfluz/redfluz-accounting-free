@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Controllers\Finance;
+namespace App\Http\Controllers\Finance;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

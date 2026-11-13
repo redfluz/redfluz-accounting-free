@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\ChartOfAccount;
+namespace App\Http\Controllers\ChartOfAccount;
 
 use App\Constants\FlashMessage;
 use App\Enums\ChartOfAccount\ChartReportGroupEnum;

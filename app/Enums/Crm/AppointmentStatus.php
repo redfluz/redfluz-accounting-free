@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Enums\Crm;
+namespace App\Enums\Crm;
 
 enum AppointmentStatus: string
 {

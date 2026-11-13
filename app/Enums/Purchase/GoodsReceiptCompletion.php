@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Enums\Purchase;
+namespace App\Enums\Purchase;
 
 /**
  * How much of a purchase order a goods received note accounts for.

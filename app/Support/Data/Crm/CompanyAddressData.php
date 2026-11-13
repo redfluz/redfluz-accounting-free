@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\Crm;
+namespace App\Support\Data\Crm;
 
 use App\Models\Crm\CompanyAddress;
 use Carbon\CarbonImmutable;

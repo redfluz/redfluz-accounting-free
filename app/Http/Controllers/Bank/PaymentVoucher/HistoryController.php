@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Bank\PaymentVoucher;
+namespace App\Http\Controllers\Bank\PaymentVoucher;
 
 use App\Enums\FileResources;
 use App\Enums\Finance\DocumentStatus;
@@ -59,12 +59,9 @@ class HistoryController extends Controller
     {
         $this->allows(FileResources::PAYMENT_VOUCHERS_HISTORY);
 
-        /** @var string $search */
-        $search = trim($request->input('search', ''));
-        /** @var string $startDate */
-        $startDate = $request->input('start_date') ?? '';
-        /** @var string $endDate */
-        $endDate = $request->input('end_date') ?? '';
+        $search = $request->string('search', '')->trim()->toString();
+        $startDate = $request->string('start_date', '')->toString();
+        $endDate = $request->string('end_date', '')->toString();
 
         $vouchers = PaymentVoucher::query()
             ->where('status', DocumentStatus::POSTED)

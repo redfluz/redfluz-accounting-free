@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Purchase\PurchaseReturn;
+namespace App\Http\Requests\Purchase\PurchaseReturn;
 
 use App\Enums\FileAction;
 use App\Enums\FileResources;

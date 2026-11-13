@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Enums\Finance;
+namespace App\Enums\Finance;
 
 enum GeneralLedgerEntryType: string
 {

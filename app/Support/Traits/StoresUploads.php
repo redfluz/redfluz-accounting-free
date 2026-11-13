@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Traits;
+namespace App\Support\Traits;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

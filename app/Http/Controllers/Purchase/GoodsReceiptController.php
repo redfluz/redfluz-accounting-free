@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Purchase;
+namespace App\Http\Controllers\Purchase;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -52,7 +52,6 @@ use App\Support\Data\Purchase\GoodsReceiptData;
 use App\Traits\GeneratesDocumentNumber;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -182,10 +181,10 @@ class GoodsReceiptController extends Controller
      * Only receipts joined to a real purchase order reach this query, so every
      * bucket is reached through purchase_orders.status.
      *
-     * @param  Builder<ProductLedger>  $query  The goods receipt query.
+     * @param  \Illuminate\Database\Eloquent\Builder<ProductLedger>  $query  The goods receipt query.
      * @param  GoodsReceiptCompletion  $completion  The bucket to keep.
      */
-    private function applyCompletionFilter(Builder $query, GoodsReceiptCompletion $completion): void
+    private function applyCompletionFilter(\Illuminate\Database\Eloquent\Builder $query, GoodsReceiptCompletion $completion): void
     {
         match ($completion) {
             GoodsReceiptCompletion::COMPLETE => $query->where('purchase_orders.is_received', true),

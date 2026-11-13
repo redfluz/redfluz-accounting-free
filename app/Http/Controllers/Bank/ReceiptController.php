@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Bank;
+namespace App\Http\Controllers\Bank;
 
 use App\Constants\FlashMessage;
 use App\Enums\FileAction;
@@ -339,9 +339,9 @@ class ReceiptController extends Controller
         $setting = ChartSetting::query()->first();
         $transferType = $receipt->payment_transfer_type ?? PaymentTransferType::CHEQUE;
         $moneyChartId = match (true) {
-            filled($receipt->bank_account_id) => $receipt->bankAccount?->chart_id ?? Bank::query()->whereKey($receipt->bank_account_id)->value('chart_id'),
-            filled($receipt->cash_account_id) => $receipt->cashAccount?->chart_id ?? CashAccount::query()->whereKey($receipt->cash_account_id)->value('chart_id'),
-            filled($receipt->e_wallet_account_id) => $receipt->eWalletAccount?->chart_id ?? EWalletAccount::query()->whereKey($receipt->e_wallet_account_id)->value('chart_id'),
+            filled($receipt->bank_account_id) => $receipt->bankAccount->chart_id ?? Bank::query()->whereKey($receipt->bank_account_id)->value('chart_id'),
+            filled($receipt->cash_account_id) => $receipt->cashAccount->chart_id ?? CashAccount::query()->whereKey($receipt->cash_account_id)->value('chart_id'),
+            filled($receipt->e_wallet_account_id) => $receipt->eWalletAccount->chart_id ?? EWalletAccount::query()->whereKey($receipt->e_wallet_account_id)->value('chart_id'),
             default => null,
         };
         $transferChartId = match ($transferType) {
@@ -351,12 +351,13 @@ class ReceiptController extends Controller
         };
         $debitChartId = $moneyChartId ?? $transferChartId;
         $creditChartId = $setting?->client_chart_uuid;
-        if (blank($debitChartId) || blank($creditChartId)) {
+        if (! is_string($debitChartId) || $debitChartId === '' || ! is_string($creditChartId) || $creditChartId === '') {
             throw ValidationException::withMessages(['document_number' => __('ledgers.validation.debit_account_or_default_required')]);
         }
         $amount = bcadd(DecimalService::normalize((string) $receipt->total_amount), '0', 2);
 
-        return [(string) $debitChartId, (string) $creditChartId, $amount];
+        /** @var numeric-string $amount */
+        return [$debitChartId, $creditChartId, $amount];
     }
 
     /**

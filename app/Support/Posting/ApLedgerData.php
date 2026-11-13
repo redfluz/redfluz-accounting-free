@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Posting;
+namespace App\Support\Posting;
 
 use App\Enums\Finance\LedgerSubType;
 use App\Enums\Finance\LedgerType;

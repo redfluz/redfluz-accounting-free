@@ -24,7 +24,7 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-namespace app\Http\Controllers\Bank;
+namespace App\Http\Controllers\Bank;
 
 use App\Enums\Bank\BankAccountKind;
 use App\Enums\FileAction;
@@ -94,11 +94,12 @@ class BankLedgerController extends Controller
      * The totals for each bank account, calculated from ledger rows.
      *
      * @param  \Illuminate\Database\Eloquent\Collection<int, Bank>  $accounts
-     * @return Collection<int, object{account: Bank, money_in: string, money_out: string, balance: string, isFiltered: bool}>
+     * @return Collection<int, object{account: Bank, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}>
      */
     private function balancesFor($accounts, string $accountId): Collection
     {
-        return $accounts->map(function (Bank $account) use ($accountId): object {
+        /** @var Collection<int, object{account: Bank, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}> $balances */
+        $balances = $accounts->map(function (Bank $account) use ($accountId): object {
             $totals = DB::table('bank_ledgers')
                 ->where('bank_account_id', $account->id)
                 ->whereNull('deleted_at')
@@ -114,14 +115,19 @@ class BankLedgerController extends Controller
             $moneyIn = DecimalService::normalize(is_numeric($moneyInRaw) ? (string) $moneyInRaw : '0');
             $moneyOut = DecimalService::normalize(is_numeric($moneyOutRaw) ? (string) $moneyOutRaw : '0');
 
-            return (object) [
+            /** @var object{account: Bank, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}&\stdClass $row */
+            $row = (object) [
                 'account' => $account,
-                'money_in' => $moneyIn,
-                'money_out' => $moneyOut,
-                'balance' => bcsub($moneyIn, $moneyOut, 2),
+                'money_in' => (string) $moneyIn,
+                'money_out' => (string) $moneyOut,
+                'balance' => (string) bcsub($moneyIn, $moneyOut, 2),
                 'isFiltered' => $accountId !== '' && $accountId === (string) $account->id,
             ];
+
+            return $row;
         });
+
+        return $balances;
     }
 
     /**

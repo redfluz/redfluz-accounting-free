@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Http\Requests\Personnel\Profile;
+namespace App\Http\Requests\Personnel\Profile;
 
 use App\Http\Requests\BaseFormRequest;
 

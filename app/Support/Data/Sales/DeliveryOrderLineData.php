@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace app\Support\Data\Sales;
+namespace App\Support\Data\Sales;
 
 use App\Models\Sales\DeliveryOrderLine;
 use Carbon\CarbonImmutable;
