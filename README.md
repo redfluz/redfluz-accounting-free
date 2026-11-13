@@ -43,6 +43,39 @@ A lightweight accounting and business management system built with Laravel.
 
 ## Quick Install
 
+### Easy Install (recommended, one-click from a clean checkout)
+
+If you cloned the repo and have **no `vendor/` or `node_modules/`** yet, use the standalone installer (it does not require `php artisan`, which needs `vendor/` first).
+
+**Windows, macOS, Linux (cross-platform, recommended):**
+
+```bash
+# 1. Clone and enter directory
+git clone <repository-url> redfluz-accounting-free
+cd redfluz-accounting-free
+
+# 2. One-click install (with demo data)
+php easy-install.php
+```
+
+**macOS / Linux (shell script alternative):**
+
+```bash
+chmod +x easy-install.sh   # if needed
+./easy-install.sh
+# or: bash easy-install.sh
+```
+
+Requires `php`, `composer`, and `npm` on your PATH. The installer installs PHP/JS dependencies, creates `.env` and the SQLite database if missing, runs migrations and seeds demo data, builds frontend assets, and creates a portable storage link.
+
+Then start the app with `composer run dev` (or `php artisan serve` and `npm run dev`) and open http://localhost:8000.
+
+**Default login:** `admin@example.com` / `password`
+
+> **Note:** `php artisan app:install` and `php artisan app:easy-install` are Artisan commands — they require `vendor/` to exist. From a truly clean checkout, run `php easy-install.php` (works on Windows too) or `composer install` first.
+
+### Standard Install (step-by-step)
+
 ```bash
 # 1. Clone and enter directory
 git clone <repository-url> redfluz-accounting-free
@@ -86,6 +119,14 @@ php artisan storage:link --relative --force
 The installer still uses an absolute link. This follow-up replaces an existing symlink with a relative link to this copy's `storage/app/public`, resolving copied-folder 403 errors caused by a stale absolute link. `--force` replaces only existing symlinks, not real directories or files; it will refuse to overwrite those.
 
 **Default login:** `admin@example.com` / `password`
+
+### Artisan Easy Reinstall (when `vendor/` is already installed)
+
+For a destructive wipe-and-reinstall with demo data (removes `vendor/`, `node_modules/`, database, uploads, caches, and build files, then reinstalls everything):
+
+```bash
+php artisan app:easy-install --force
+```
 
 ## Database Compatibility
 
