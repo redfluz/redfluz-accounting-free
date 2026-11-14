@@ -177,34 +177,34 @@
     @push('scripts')
         <script>
             (function() {
-                var rows = @json($lines->mapWithKeys(fn($line, $index) => [$index => (float) $line['current_quantity']]));
+                let rows ='';
 
                 document.querySelectorAll('input[name$="[quantity]"]').forEach(function(input) {
-                    var match = input.name.match(/lines\[(\d+)\]\[quantity\]/);
+                    const match = input.name.match(/lines\[(\d+)\]\[quantity\]/);
                     if (!match) {
                         return;
                     }
-                    var index = match[1];
-                    var current = rows[index] ?? 0;
+                    const index = match[1];
+                    const current = rows[index] ?? 0;
 
-                    var max = parseFloat(input.dataset.max);
+                    const max = parseFloat(input.dataset.max);
 
-                    var update = function() {
-                        var entered = parseFloat(input.value);
+                    const update = function () {
+                        const entered = parseFloat(input.value);
                         if (isNaN(entered)) {
                             return;
                         }
 
-                        var headroom = max - entered;
-                        var headroomCell = document.querySelector('[data-headroom-for="' + index + '"]');
+                        const headroom = max - entered;
+                        const headroomCell = document.querySelector('[data-headroom-for="' + index + '"]');
                         if (headroomCell) {
                             // No colour on the figure: the clamped 0.0000 plus the
                             // `.is-invalid` input beside it are the over-limit cue.
                             headroomCell.textContent = headroom < 0 ? '0.0000' : headroom.toFixed(4);
                         }
 
-                        var difference = entered - current;
-                        var cell = document.querySelector('[data-difference-for="' + index + '"]');
+                        const difference = entered - current;
+                        const cell = document.querySelector('[data-difference-for="' + index + '"]');
                         if (!cell) {
                             return;
                         }

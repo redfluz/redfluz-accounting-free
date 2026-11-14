@@ -17,7 +17,7 @@
         gap: 0.5rem;
         padding: 0.75rem 1.25rem;
         font-weight: 500;
-        color: var(--body-color);
+        color: inherit;
         border: none;
         border-bottom: 2px solid transparent;
     }

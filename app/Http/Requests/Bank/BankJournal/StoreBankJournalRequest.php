@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Requests\BaseFormRequest;
 use App\Support\Traits\ChecksFilePermission;
+use Closure;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -68,7 +69,7 @@ class StoreBankJournalRequest extends BaseFormRequest
             'bank_account_id' => [
                 'required',
                 'uuid',
-                function (string $attribute, mixed $value, \Closure $fail): void {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $found = DB::table('banks')
                         ->where('id', $value)
                         ->where('is_active', true)

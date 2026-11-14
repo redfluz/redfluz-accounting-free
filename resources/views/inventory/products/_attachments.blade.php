@@ -1,4 +1,9 @@
-@php use App\Enums\UploadType; @endphp
+@php
+    use App\Enums\UploadType;
+
+    $imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+@endphp
+
 <div class="mb-4">
     <h6 class="fw-bold mb-1">{{ __('products.attachments.title') }}</h6>
     <p class="fg-secondary small mb-0">{{ __('products.attachments.hint') }}</p>
@@ -9,44 +14,47 @@
         <div class="form-label fw-bold mb-2">{{ __('products.attachments.existing') }}</div>
         <div class="row g-2">
             @foreach ($product->attachments as $attachment)
-                @php $isRemoving = in_array($attachment->id, old('removed_attachment_ids', []), true); @endphp
+                @php
+                    $isRemoving = in_array($attachment->id, old('removed_attachment_ids', []), true);
+                    $ext = strtolower(pathinfo($attachment->original_name ?? $attachment->file_path ?? '', PATHINFO_EXTENSION));
+                    $isImage = str_starts_with($attachment->mime_type ?? '', 'image/') || in_array($ext, $imageExtensions, true);
+                @endphp
                 <div class="col-6 col-md-4 col-xl-3">
                     <div class="position-relative border rounded overflow-hidden h-100 {{ $isRemoving ? 'opacity-50' : '' }}"
                          id="existing-attachment-card-{{ $attachment->id }}">
-                        <img
-                            class="w-100 d-block"
-                            src="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
-                            alt="{{ $attachment->original_name }}"
-                            style="height: 140px; object-fit: cover;"
-                        />
-                        <button
-                            type="button"
-                            class="btn btn-sm position-absolute top-0 end-0 m-1 {{ $isRemoving ? 'btn-solid theme-secondary' : 'btn-solid theme-danger' }}"
-                            id="existing-attachment-toggle-{{ $attachment->id }}"
-                            onclick="toggleExistingProductAttachment('{{ $attachment->id }}')"
-                            title="{{ __('products.attachments.remove') }}"
-                            aria-label="{{ __('products.attachments.remove') }}"
-                        >
-                            <span class="remove-label {{ $isRemoving ? 'd-none' : '' }}">&times;</span>
-                            <span class="undo-label {{ $isRemoving ? '' : 'd-none' }}">{{ __('common.actions.undo') }}</span>
-                        </button>
+                        @if ($isImage)
+                            <a href="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
+                               data-fancybox="product-attachments-edit"
+                               data-caption="{{ $attachment->original_name }}">
+                                <img
+                                    class="w-100 d-block"
+                                    src="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
+                                    alt="{{ $attachment->original_name }}"
+                                    style="height: 150px; object-fit: cover;"
+                                />
+                            </a>
+                        @else
+                            <a
+                                class="d-flex flex-column align-items-center justify-content-center text-decoration-none h-100 p-3 bg-2"
+                                href="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
+                                target="_blank"
+                                style="min-height: 150px;"
+                            >
+                                <i class="fs-xl fg-secondary mb-2" data-lucide="file-text"></i>
+                                <small class="text-truncate d-block w-100 text-center">{{ $attachment->original_name }}</small>
+                            </a>
+                        @endif
                         <div class="p-2 border-top bg-white">
-                            <div class="small text-truncate" title="{{ $attachment->original_name }}">
-                                {{ $attachment->original_name }}
-                            </div>
-                            <div class="small fg-danger mt-1 {{ $isRemoving ? '' : 'd-none' }}"
-                                 id="existing-attachment-status-{{ $attachment->id }}">
-                                {{ __('products.attachments.remove') }}
+                            <div class="form-check mb-0">
+                                <input class="form-check-input existing-attachment-remove" id="remove-attachment-{{ $attachment->id }}"
+                                       type="checkbox" name="removed_attachment_ids[]" value="{{ $attachment->id }}"
+                                       {{ $isRemoving ? 'checked' : '' }}
+                                       onchange="toggleExistingAttachment('{{ $attachment->id }}')">
+                                <label class="form-check-label small" for="remove-attachment-{{ $attachment->id }}">
+                                    {{ __('products.attachments.remove') }}
+                                </label>
                             </div>
                         </div>
-                        <input
-                            class="d-none"
-                            id="remove-attachment-{{ $attachment->id }}"
-                            name="removed_attachment_ids[]"
-                            type="checkbox"
-                            value="{{ $attachment->id }}"
-                            @checked($isRemoving)
-                        />
                     </div>
                 </div>
             @endforeach
@@ -55,217 +63,221 @@
 @endif
 
 <div class="mb-3">
-    <div class="form-label fw-bold mb-2">{{ __('products.attachments.new') }}</div>
-
+    <label class="form-label fw-bold">{{ __('products.attachments.new') }}</label>
+    <input id="product-image-picker" type="file" class="d-none" accept="{{ UploadType::DOCUMENT_AND_IMAGES->accept() }}">
+    <input id="product-images-upload" name="images[]" type="file" class="d-none" multiple>
+    <div id="product-image-slot-grid" class="row g-2"></div>
+    <div class="form-text mt-2">{{ __('products.attachments.hint') }}</div>
+    <div class="invalid-feedback d-none"
+         id="product-images-size-error"
+         data-too-large-image="{{ __('products.attachments.too_large_image') }}"
+         data-too-large-doc="{{ __('products.attachments.too_large_doc') }}"
+         data-too-large="{{ __('products.attachments.too_large') }}"></div>
     @error('images')
-    <div class="alert alert theme-danger py-2 mb-2">{{ $message }}</div>
+        <div class="invalid-feedback d-block">{{ $message }}</div>
     @enderror
     @error('images.*')
-    <div class="alert alert theme-danger py-2 mb-2">{{ $message }}</div>
+        <div class="invalid-feedback d-block">{{ $message }}</div>
     @enderror
-
-    <div class="row g-2">
-        @for ($i = 0; $i < 10; $i++)
-            <div class="col-6 col-md-4 col-xl-3">
-                <div class="border rounded overflow-hidden h-100 position-relative" id="image-slot-card-{{ $i }}">
-                    <div
-                        class="d-flex flex-column align-items-center justify-content-center text-center p-3"
-                        id="image-slot-empty-{{ $i }}"
-                        style="min-height: 170px; cursor: pointer;"
-                        onclick="document.getElementById('image-slot-{{ $i }}').click()"
-                    >
-                        <div class="fs-3 fg-secondary mb-1">+</div>
-                        <div class="small fg-secondary">{{ __('products.attachments.new') }}</div>
-                    </div>
-
-                    <div class="d-none h-100" id="image-slot-preview-wrap-{{ $i }}">
-                        <img
-                            id="image-slot-preview-{{ $i }}"
-                            class="w-100 d-block"
-                            style="height: 140px; object-fit: cover;"
-                            alt=""
-                        />
-                        <button
-                            type="button"
-                            class="btn btn-sm btn-solid theme-danger position-absolute top-0 end-0 m-1"
-                            onclick="clearProductImageSlot({{ $i }})"
-                            title="{{ __('products.attachments.remove') }}"
-                            aria-label="{{ __('products.attachments.remove') }}"
-                        >&times;</button>
-                        <div class="p-2 border-top bg-white">
-                            <div class="small text-truncate" id="image-slot-name-{{ $i }}"></div>
-                        </div>
-                    </div>
-
-                    <input
-                        class="d-none"
-                        id="image-slot-{{ $i }}"
-                        name="images[]"
-                        type="file"
-                        accept="{{ UploadType::IMAGES->accept() }}"
-                        onchange="previewProductImageSlot(this, {{ $i }})"
-                    />
-                    <div class="text-danger small d-none p-2 pt-0" id="image-slot-error-{{ $i }}"
-                         data-too-large="{{ __('products.attachments.too_large') }}"></div>
-                </div>
-            </div>
-        @endfor
-    </div>
-    <div class="alert alert theme-danger py-2 mt-2 d-none" id="images-submit-error"></div>
+    @error('removed_attachment_ids')
+        <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
+    @error('removed_attachment_ids.*')
+        <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
 </div>
 
-@error('removed_attachment_ids')
-<div class="alert alert theme-danger py-2 mt-2">{{ $message }}</div>
-@enderror
-@error('removed_attachment_ids.*')
-<div class="alert alert theme-danger py-2 mt-2">{{ $message }}</div>
-@enderror
-
 <script>
-    (function () {
-        const productForm = document.getElementById('product-form');
-        if (!productForm) return;
+    const productMaxAttachments = 10;
+    const productExistingAttachmentCount = {{ isset($product) ? $product->attachments->count() : 0 }};
+    const productRemovedAttachmentIds = new Set(@json(old('removed_attachment_ids', [])));
+    const productImageSlots = Array.from({length: productMaxAttachments}, () => null);
+    let productPickerTargetIndex = null;
 
-        productForm.addEventListener('submit', function (event) {
-            const errorBox = document.getElementById('images-submit-error');
-            if (errorBox) {
-                errorBox.classList.add('d-none');
-                errorBox.textContent = '';
-            }
+    function isProductImageFile(file) {
+        return file.type && file.type.startsWith('image/');
+    }
 
-            const existingCount = {{ isset($product) ? $product->attachments->count() : 0 }};
-            const removedCount = document.querySelectorAll('input[name="removed_attachment_ids[]"]:checked').length;
+    function productMaxSizeForFile(file) {
+        return isProductImageFile(file) ? 8 * 1024 * 1024 : 20 * 1024 * 1024;
+    }
 
-            let newCount = 0;
-            let totalBytes = 0;
-            const oversized = [];
-            const maxPerFile = 8000 * 1024;
+    function productTooLargeMessage(file, errorBox) {
+        if (isProductImageFile(file)) {
+            return errorBox?.dataset.tooLargeImage || errorBox?.dataset.tooLarge || '';
+        }
+        return errorBox?.dataset.tooLargeDoc || errorBox?.dataset.tooLarge || '';
+    }
 
-            for (let i = 0; i < 10; i++) {
-                const input = document.getElementById('image-slot-' + i);
-                if (!input || !input.files || !input.files[0]) continue;
-                const file = input.files[0];
-                newCount++;
-                totalBytes += file.size;
-                if (file.size > maxPerFile) oversized.push(file.name);
-            }
-
-            let message = '';
-            if (oversized.length > 0) {
-                message = @json(__('products.attachments.too_large')) + ' ' + oversized.join(', ');
-            } else if (existingCount - removedCount + newCount > 10) {
-                message = @json(__('products.validation.maximum_attachments', ['max' => 10]));
-            } else if (totalBytes > maxPerFile * 10) {
-                message = @json(__('products.attachments.too_large'));
-            }
-
-            if (message) {
-                event.preventDefault();
-                if (errorBox) {
-                    errorBox.textContent = message;
-                    errorBox.classList.remove('d-none');
-                }
-                const tab = document.querySelector('[data-product-tab="attachments"]');
-                if (tab) tab.click();
-                errorBox?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+    function syncProductImagesUpload() {
+        const upload = document.getElementById('product-images-upload');
+        if (!upload) return;
+        const dt = new DataTransfer();
+        productImageSlots.forEach((file) => {
+            if (file) dt.items.add(file);
         });
-    })();
+        upload.files = dt.files;
+    }
 
-    function toggleExistingProductAttachment(id) {
-        const checkbox = document.getElementById('remove-attachment-' + id);
-        const card = document.getElementById('existing-attachment-card-' + id);
-        const toggle = document.getElementById('existing-attachment-toggle-' + id);
-        const status = document.getElementById('existing-attachment-status-' + id);
+    function toggleExistingAttachment(id) {
+        const checkbox = document.getElementById(`remove-attachment-${id}`);
+        const card = document.getElementById(`existing-attachment-card-${id}`);
         if (!checkbox || !card) return;
 
-        checkbox.checked = !checkbox.checked;
-        const removing = checkbox.checked;
+        if (checkbox.checked) {
+            productRemovedAttachmentIds.add(id);
+            card.classList.add('opacity-50');
+        } else {
+            productRemovedAttachmentIds.delete(id);
+            card.classList.remove('opacity-50');
+        }
 
-        card.classList.toggle('opacity-50', removing);
-        if (status) status.classList.toggle('d-none', !removing);
-        if (toggle) {
-            toggle.classList.toggle('theme-danger', !removing);
-            toggle.classList.toggle('theme-secondary', removing);
-            const removeLabel = toggle.querySelector('.remove-label');
-            const undoLabel = toggle.querySelector('.undo-label');
-            if (removeLabel) removeLabel.classList.toggle('d-none', removing);
-            if (undoLabel) undoLabel.classList.toggle('d-none', !removing);
+        renderProductImageSlots();
+    }
+
+    function getProductAttachmentLimit() {
+        return Math.max(0, productMaxAttachments - productExistingAttachmentCount + productRemovedAttachmentIds.size);
+    }
+
+    function renderProductImageSlots() {
+        const grid = document.getElementById('product-image-slot-grid');
+        if (!grid) return;
+
+        const limit = getProductAttachmentLimit();
+        grid.innerHTML = '';
+
+        for (let index = 0; index < limit; index++) {
+            const file = productImageSlots[index];
+            const col = document.createElement('div');
+            col.className = 'col-6 col-md-4 col-xl-3';
+
+            const card = document.createElement('div');
+            card.className = 'border rounded h-100 bg-2 position-relative overflow-hidden';
+
+            if (file) {
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-solid theme-danger position-absolute top-0 end-0 m-1';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.title = @json(__('products.attachments.remove'));
+                removeBtn.setAttribute('aria-label', @json(__('products.attachments.remove')));
+                removeBtn.onclick = () => clearProductImageSlot(index);
+                card.appendChild(removeBtn);
+
+                if (isProductImageFile(file)) {
+                    const preview = document.createElement('img');
+                    preview.className = 'w-100 d-block';
+                    preview.style.height = '150px';
+                    preview.style.objectFit = 'cover';
+                    preview.alt = file.name;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        preview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    card.appendChild(preview);
+                } else {
+                    const iconWrap = document.createElement('div');
+                    iconWrap.className = 'd-flex flex-column align-items-center justify-content-center h-100 p-3';
+                    iconWrap.style.minHeight = '150px';
+                    iconWrap.innerHTML = `<i class="fs-xl fg-secondary mb-2" data-lucide="file-text"></i><small class="text-truncate d-block w-100 text-center"></small>`;
+                    const nameEl = iconWrap.querySelector('small');
+                    if (nameEl) {
+                        nameEl.textContent = file.name;
+                        nameEl.title = file.name;
+                    }
+                    card.appendChild(iconWrap);
+                }
+
+                const footer = document.createElement('div');
+                footer.className = 'p-2 border-top bg-white';
+                const name = document.createElement('small');
+                name.className = 'text-truncate d-block';
+                name.textContent = file.name;
+                name.title = file.name;
+                footer.appendChild(name);
+                card.appendChild(footer);
+            } else {
+                card.className += ' p-3 d-flex flex-column align-items-center justify-content-center text-center';
+                card.style.minHeight = '150px';
+
+                const label = document.createElement('label');
+                label.className = 'w-100 h-100 mb-0 d-flex flex-column align-items-center justify-content-center';
+                label.style.cursor = 'pointer';
+                label.innerHTML = `
+                    <i class="mb-2" data-lucide="paperclip"></i>
+                    <span class="small fw-semibold">{{ __('products.attachments.new') }}</span>
+                    <span class="fg-secondary small">{{ __('products.attachments.select_file') }}</span>
+                `;
+                label.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    productPickerTargetIndex = index;
+                    const picker = document.getElementById('product-image-picker');
+                    if (picker) {
+                        picker.value = '';
+                        picker.click();
+                    }
+                });
+                card.appendChild(label);
+            }
+
+            col.appendChild(card);
+            grid.appendChild(col);
+        }
+
+        for (let index = limit; index < productImageSlots.length; index++) {
+            productImageSlots[index] = null;
+        }
+
+        syncProductImagesUpload();
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
         }
     }
 
-    function previewProductImageSlot(input, index) {
-        const errorBox = document.getElementById('image-slot-error-' + index);
-        const empty = document.getElementById('image-slot-empty-' + index);
-        const wrap = document.getElementById('image-slot-preview-wrap-' + index);
-        const preview = document.getElementById('image-slot-preview-' + index);
-        const name = document.getElementById('image-slot-name-' + index);
-
+    function handleProductImageSelect(file, index) {
+        const errorBox = document.getElementById('product-images-size-error');
         if (errorBox) {
             errorBox.classList.add('d-none');
             errorBox.classList.remove('d-block');
             errorBox.textContent = '';
         }
 
-        const file = input.files && input.files[0];
+        if (!file) return;
 
-        if (!file) {
-            if (wrap) wrap.classList.add('d-none');
-            if (empty) empty.classList.remove('d-none');
-            if (preview) preview.removeAttribute('src');
-            if (name) name.textContent = '';
-            return;
-        }
-
-        if (file.size > 8000 * 1024) {
-            const message = (errorBox?.dataset.tooLarge || 'File too large:') + ' ' + file.name;
+        const limit = productMaxSizeForFile(file);
+        if (file.size > limit) {
             if (errorBox) {
-                errorBox.textContent = message;
+                errorBox.textContent = (productTooLargeMessage(file, errorBox) || '') + ' ' + file.name;
                 errorBox.classList.remove('d-none');
                 errorBox.classList.add('d-block');
             }
-            input.value = '';
-            if (wrap) wrap.classList.add('d-none');
-            if (empty) empty.classList.remove('d-none');
-            if (preview) preview.removeAttribute('src');
-            if (name) name.textContent = '';
-            window.alert(message);
             return;
         }
 
-        const reader = new FileReader();
-        reader.addEventListener('load', (loadEvent) => {
-            if (preview) preview.src = loadEvent.target.result;
-        });
-        reader.readAsDataURL(file);
-
-        if (name) {
-            name.textContent = file.name;
-            name.title = file.name;
-        }
-        if (empty) empty.classList.add('d-none');
-        if (wrap) wrap.classList.remove('d-none');
+        productImageSlots[index] = file;
+        renderProductImageSlots();
     }
 
     function clearProductImageSlot(index) {
-        const input = document.getElementById('image-slot-' + index);
-        const errorBox = document.getElementById('image-slot-error-' + index);
-        const empty = document.getElementById('image-slot-empty-' + index);
-        const wrap = document.getElementById('image-slot-preview-wrap-' + index);
-        const preview = document.getElementById('image-slot-preview-' + index);
-        const name = document.getElementById('image-slot-name-' + index);
-
-        if (input) input.value = '';
-        if (errorBox) {
-            errorBox.classList.add('d-none');
-            errorBox.classList.remove('d-block');
-            errorBox.textContent = '';
-        }
-        if (wrap) wrap.classList.add('d-none');
-        if (empty) empty.classList.remove('d-none');
-        if (preview) preview.removeAttribute('src');
-        if (name) name.textContent = '';
+        productImageSlots[index] = null;
+        renderProductImageSlots();
     }
-</script>
 
-<div class="fg-secondary small mt-3">{{ __('products.attachments.shared_hint') }}</div>
+    document.addEventListener('DOMContentLoaded', () => {
+        const picker = document.getElementById('product-image-picker');
+        if (picker) {
+            picker.addEventListener('change', (event) => {
+                const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+                if (file && productPickerTargetIndex !== null) {
+                    handleProductImageSelect(file, productPickerTargetIndex);
+                }
+                productPickerTargetIndex = null;
+                event.target.value = '';
+            });
+        }
+        renderProductImageSlots();
+    });
+</script>

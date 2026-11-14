@@ -1,29 +1,5 @@
 <?php
 
-/**
- * ============================================================================
- *
- * @author      redfluz
- *
- * @github      https://github.com/redfluz
- *
- * @youtube     https://youtube.com/@redfluz
- *
- * @contact     corex2020@icloud.com
- *
- * @customer
- *
- * @copyright   Copyright (c) 2026 redfluz. All Rights Reserved.
- * ============================================================================
- *
- * PROPRIETARY AND CONFIDENTIAL
- *
- * All code, concepts, and intellectual property contained in this file are the
- * exclusive property of redfluz. Unauthorized copying, distribution, modification,
- * reverse engineering, or public display of this software via any medium is
- * strictly prohibited without explicit written permission from the copyright owner.
- */
-
 return [
     'title' => 'Berkas & Catatan Perusahaan',
     'subtitle' => 'Kelola dokumen terlampir dan catatan untuk perusahaan ini',
@@ -49,11 +25,26 @@ return [
         'label_notes' => 'Catatan',
         'label_attachment' => 'Lampiran',
         'label_remove_attachment' => 'Hapus lampiran berkas saat ini',
-        'attachment_size_hint' => 'Ukuran berkas maksimum: 8000 KB per berkas.',
-        'attachment_too_large' => 'Berkas berikut melebihi batas 8000 KB dan tidak ditambahkan:',
+        'attachment_size_hint' => 'Unggah hingga 10 berkas. Gambar (JPG, PNG, WebP) hingga 8000 KB; dokumen (PDF, DOC, DOCX, XLS, XLSX) hingga 20 MB.',
+        'attachment_too_large' => 'Berkas berikut melebihi batas ukuran dan tidak ditambahkan:',
         'select_company' => 'Pilih Perusahaan',
+        'attachment_too_large_image' => 'Gambar melebihi batas 8000 KB dan tidak ditambahkan:',
+        'attachment_too_large_doc' => 'Dokumen melebihi batas 20 MB dan tidak ditambahkan:',
+        'too_many_attachments' => 'Anda tidak dapat mengunggah lebih dari 10 berkas.',
     ],
     'messages' => [
         'no_attachment' => 'Tidak ada lampiran yang diunggah.',
+    ],
+    'tabs' => [
+        'details' => 'Detail',
+        'attachments' => 'Lampiran',
+    ],
+    'attachments' => [
+        'current' => 'Lampiran Saat Ini',
+        'replace' => 'Ganti Lampiran',
+        'new_preview' => 'Pratinjau Lampiran Baru',
+        'add_more' => 'Tambah Berkas Lain',
+        'add' => 'Tambah Lampiran',
+        'remove' => 'Hapus',
     ],
 ];

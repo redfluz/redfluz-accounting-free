@@ -255,7 +255,7 @@ class SalesInvoiceController extends Controller
         $eligible = $invoice->lines->filter(fn (SalesInvoiceLine $line): bool => $line->product_id !== null);
 
         return $eligible->isNotEmpty()
-            && $eligible->every(fn (SalesInvoiceLine $line): bool => (bool) $line->deduct_inventory);
+            && $eligible->every(fn (SalesInvoiceLine $line): bool => $line->deduct_inventory);
     }
 
     /**

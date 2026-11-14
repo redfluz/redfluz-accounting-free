@@ -1,29 +1,5 @@
 <?php
 
-/**
- * ============================================================================
- *
- * @author      redfluz
- *
- * @github      https://github.com/redfluz
- *
- * @youtube     https://youtube.com/@redfluz
- *
- * @contact     corex2020@icloud.com
- *
- * @customer
- *
- * @copyright   Copyright (c) 2026 redfluz. All Rights Reserved.
- * ============================================================================
- *
- * PROPRIETARY AND CONFIDENTIAL
- *
- * All code, concepts, and intellectual property contained in this file are the
- * exclusive property of redfluz. Unauthorized copying, distribution, modification,
- * reverse engineering, or public display of this software via any medium is
- * strictly prohibited without explicit written permission from the copyright owner.
- */
-
 return [
     'title' => 'Katalog Produk',
     'subtitle' => 'Urus item stok, gambar, kos asas, dan harga jualan.',
@@ -42,6 +18,9 @@ return [
         'remove' => 'Buang',
         'empty' => 'Tiada gambar dimuat naik untuk produk ini.',
         'shared_hint' => 'Varian menggunakan gambar yang dilampirkan pada produk utama.',
+        'too_large_image' => 'Image exceeds the 8000 KB limit and was not added:',
+        'too_large_doc' => 'Document exceeds the 20 MB limit and was not added:',
+        'select_file' => 'Choose file',
     ],
     'variants' => [
         'title' => 'Varian Produk',
@@ -70,6 +49,8 @@ return [
         'invalid_attachment' => 'Satu atau lebih gambar yang dipilih bukan milik produk ini.',
         'maximum_attachments' => 'Sesuatu produk tidak boleh mempunyai lebih daripada :max gambar.',
         'in_use' => 'Produk ini tidak boleh dipadam kerana sudah digunakan oleh: :references.',
+        'attachment_too_large_image' => 'Image :name exceeds the 8000 KB limit.',
+        'attachment_too_large_doc' => 'Document :name exceeds the 20 MB limit.',
     ],
     'usage' => [
         'stock_movements' => 'pergerakan stok',
@@ -111,7 +92,11 @@ return [
         'barcode' => 'Barcode',
         'mpn' => 'Nombor Bahagian Pengilang (MPN)',
     ],
-    'warranty' => ['none' => 'Tiada waranti', 'unlimited' => 'Waranti tanpa had', 'months' => ':count bulan'],
+    'warranty' => [
+        'none' => 'Tiada waranti',
+        'unlimited' => 'Waranti tanpa had',
+        'months' => ':count bulan',
+    ],
     'types' => [
         'physical' => 'Produk Fizikal',
         'service' => 'Perkhidmatan',

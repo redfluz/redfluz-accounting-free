@@ -112,17 +112,33 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
         <div class="card-body">
             <div class="row g-3">
                 @forelse ($product->attachments as $attachment)
+                    @php
+                        $ext = strtolower(pathinfo($attachment->original_name ?? $attachment->file_path ?? '', PATHINFO_EXTENSION));
+                        $isImage = str_starts_with($attachment->mime_type ?? '', 'image/') || in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true);
+                    @endphp
                     <div class="col-6 md:col-4 xl:col-2">
-                        <a href="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
-                            data-fancybox="product-attachments"
-                            data-caption="{{ $attachment->original_name }}">
-                            <img class="img-thumbnail object-fit-cover w-100"
-                                src="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
-                                alt="{{ $attachment->original_name }}" style="height: 150px" />
-                        </a>
-                        <div class="small text-truncate mt-1" title="{{ $attachment->original_name }}">
-                            {{ $attachment->original_name }}
-                        </div>
+                        @if ($isImage)
+                            <a href="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
+                                data-fancybox="product-attachments"
+                                data-caption="{{ $attachment->original_name }}">
+                                <img class="img-thumbnail object-fit-cover w-100"
+                                    src="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
+                                    alt="{{ $attachment->original_name }}" style="height: 150px" />
+                            </a>
+                        @else
+                            <a class="border rounded bg-2 d-flex flex-column align-items-center justify-content-center text-decoration-none p-3 h-100"
+                               href="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
+                               target="_blank"
+                               style="min-height: 150px">
+                                <i class="fs-xl fg-secondary mb-2" data-lucide="file-text"></i>
+                                <small class="text-truncate d-block w-100 text-center" title="{{ $attachment->original_name }}">{{ $attachment->original_name }}</small>
+                            </a>
+                        @endif
+                        @if ($isImage)
+                            <div class="small text-truncate mt-1" title="{{ $attachment->original_name }}">
+                                {{ $attachment->original_name }}
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="fg-secondary py-3 text-center">{{ __('products.attachments.empty') }}</div>

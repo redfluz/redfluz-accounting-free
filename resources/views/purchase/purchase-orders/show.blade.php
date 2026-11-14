@@ -198,5 +198,4 @@
         @endif
         <div class="alert mb-0 mt-3 border">{{ __('purchase_orders.messages.no_posting') }}</div>
     </div>
-    </div>
 @endsection

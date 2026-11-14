@@ -101,7 +101,7 @@ class InstallApp extends Command
         $useDemo = $this->option('demo') === true;
 
         if (! $useDemo) {
-            $useDemo = $this->confirm('  Seed with demo data (customers, products, transactions)?', false);
+            $useDemo = $this->confirm('  Seed with demo data (customers, products, transactions)?');
         }
 
         $this->info('');
@@ -137,7 +137,7 @@ class InstallApp extends Command
 
         // Step 7: Setup PHPStan/Larastan
         $this->info('');
-        $setupPhpStan = $this->confirm('  Set up PHPStan and Larastan for static analysis?', false);
+        $setupPhpStan = $this->confirm('  Set up PHPStan and Larastan for static analysis?');
 
         if ($setupPhpStan) {
             $this->info('▸ Setting up PHPStan...');

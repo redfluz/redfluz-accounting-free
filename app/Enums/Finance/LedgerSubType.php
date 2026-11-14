@@ -122,7 +122,7 @@ enum LedgerSubType: string
             self::MANUAL_SALES_INVOICE => 'MIV',
             self::PURCHASE_INVOICE => 'PIN',
             self::RECEIPT => 'RCP',
-            self::PAYMENT_VOUCHER => 'PAY',
+            self::PAYMENT_VOUCHER, self::PAYROLL => 'PAY',
             self::JOURNAL => 'JRN',
             self::INVENTORY_DEDUCTION => 'IDD',
             self::STOCK_VARIANCE => 'STV',
@@ -152,8 +152,6 @@ enum LedgerSubType: string
             self::STOCK_TAKE => 'STK',
             self::PURCHASE_RETURN => 'PRT',
             self::RMA => 'RMA',
-
-            self::PAYROLL => 'PAY',
             self::LEAVE => 'LEV',
         };
     }

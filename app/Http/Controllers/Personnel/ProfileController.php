@@ -83,7 +83,7 @@ class ProfileController extends Controller
             $request->file('picture'),
             $data->password,
             $request->file('background_image'),
-            (bool) ($data->removeBackground ?? false),
+            $data->removeBackground ?? false,
         );
 
         if ($mustReauthenticate) {

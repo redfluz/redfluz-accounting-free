@@ -46,6 +46,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 trait HandlesInvoiceProductMovement
 {
@@ -285,6 +286,7 @@ trait HandlesInvoiceProductMovement
      * @return void No return value; activates movements and creates COGS journal entries.
      *
      * @throws ValidationException
+     * @throws Throwable
      */
     protected function postSalesProductMovements(string $documentNumber, ?array $onlyLineIds = null): void
     {

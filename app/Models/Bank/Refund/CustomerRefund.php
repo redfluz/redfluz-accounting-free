@@ -103,8 +103,6 @@ use Spatie\Activitylog\Models\Concerns\HasActivity;
  * @property CarbonInterface|null $undone_at
  * @property-read Collection<int, Activity> $activities
  *
- * @method Bank|EWalletAccount|null moneyAccount()
- *
  * @mixin Builder<self>
  */
 #[Table('customer_refunds')]

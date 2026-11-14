@@ -165,7 +165,7 @@ class SupplierRefundController extends Controller
         $attachmentPath = $request->hasFile('attachment') ? $this->storeUpload($request->file('attachment'), 'refund_attachments') : null;
         $data = SupplierRefundData::from($request->validated());
         $documentNumber = $this->generateDocumentNumber(LedgerSubType::SUPPLIER_REFUND);
-        $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $amount = bcadd(DecimalService::normalize($data->totalAmount ?? $data->amount()), '0', 2);
         $transferType = $data->paymentTransferType ?? PaymentTransferType::CHEQUE;
 
         DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
@@ -202,7 +202,7 @@ class SupplierRefundController extends Controller
         $refund = SupplierRefund::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($refund->isPosted(), 409);
         $data = SupplierRefundData::from($request->validated());
-        $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $amount = bcadd(DecimalService::normalize($data->totalAmount ?? $data->amount()), '0', 2);
 
         $transferType = $data->paymentTransferType ?? $refund->payment_transfer_type;
 

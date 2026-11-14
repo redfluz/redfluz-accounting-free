@@ -113,8 +113,8 @@ class ManualPurchaseAdjustmentData extends Data
      */
     public function linkInvoice(PurchaseInvoice $invoice, ?string $companyName): void
     {
-        $this->purchaseInvoiceId = (string) $invoice->id;
-        $this->referenceNumber = (string) $invoice->document_number;
+        $this->purchaseInvoiceId = $invoice->id;
+        $this->referenceNumber = $invoice->document_number;
         $this->companyName = filled($invoice->company_name) ? (string) $invoice->company_name : $companyName;
     }
 }

@@ -161,7 +161,7 @@ class ReceiptController extends Controller
         $attachmentPath = $request->hasFile('attachment') ? $this->storeUpload($request->file('attachment'), 'receipt_attachments') : null;
         $data = ReceiptData::from($request->validated());
         $documentNumber = $this->generateDocumentNumber(LedgerSubType::RECEIPT);
-        $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $amount = bcadd(DecimalService::normalize($data->totalAmount ?? $data->amount()), '0', 2);
         $transferType = $data->paymentTransferType ?? PaymentTransferType::CHEQUE;
 
         DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
@@ -199,7 +199,7 @@ class ReceiptController extends Controller
         $receipt = Receipt::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($receipt->isPosted(), 409);
         $data = ReceiptData::from($request->validated());
-        $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $amount = bcadd(DecimalService::normalize($data->totalAmount ?? $data->amount()), '0', 2);
         $transferType = $data->paymentTransferType ?? $receipt->payment_transfer_type ?? PaymentTransferType::CHEQUE;
 
         DB::transaction(function () use ($receipt, $data, $amount, $transferType): void {

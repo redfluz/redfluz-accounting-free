@@ -242,10 +242,10 @@
                                     <div class="crm-bar-group">
                                         <div class="crm-bar-pair">
                                             @if ($row['inflow'] > 0)
-                                                <span class="crm-bar crm-bar-in" style="--h: {{ $inflowPct }}%"></span>
+                                                <span class="crm-bar crm-bar-in" style="height: {{ $inflowPct }}%"></span>
                                             @endif
                                             @if ($row['outflow'] > 0)
-                                                <span class="crm-bar crm-bar-out" style="--h: {{ $outflowPct }}%"></span>
+                                                <span class="crm-bar crm-bar-out" style="height: {{ $outflowPct }}%"></span>
                                             @endif
                                         </div>
                                         <span class="crm-bar-label">{{ $row['label'] }}</span>
@@ -345,8 +345,6 @@
             --crm-blue-deep: light-dark(color-mix(in srgb, var(--info-base) 40%, var(--fg-body)), var(--info-base));
             --crm-orange-deep: light-dark(color-mix(in srgb, var(--warning-base) 40%, var(--fg-body)), var(--warning-base));
             --crm-card-shadow: 0 1rem 1.9rem -0.9rem color-mix(in srgb, var(--fg-body) 22%, transparent);
-            --crm-chip-shadow: 0 0.35rem 0.9rem -0.4rem color-mix(in srgb, var(--danger-base) 25%, transparent);
-            --crm-chip-shadow-strong: 0 0.35rem 1.2rem -0.3rem color-mix(in srgb, var(--danger-base) 35%, transparent);
         }
 
         /* ---------------- Greeting card ---------------- */
@@ -410,7 +408,7 @@
             padding: 0.45rem 0.95rem;
             border-radius: 999px;
             background: var(--crm-surface);
-            box-shadow: var(--crm-chip-shadow);
+            box-shadow: 0 0.35rem 0.9rem -0.4rem color-mix(in srgb, var(--danger-base) 25%, transparent);
             color: var(--crm-rose-deep);
             font-size: 0.85rem;
             font-weight: 600;
@@ -449,7 +447,7 @@
             padding: 0.45rem 2rem 0.45rem 0.95rem;
             border-radius: 999px;
             background: var(--crm-surface);
-            box-shadow: var(--crm-chip-shadow);
+            box-shadow: 0 0.35rem 0.9rem -0.4rem color-mix(in srgb, var(--danger-base) 25%, transparent);
             color: var(--crm-rose-deep);
             font-size: 0.85rem;
             font-weight: 600;
@@ -461,11 +459,11 @@
         }
 
         .crm-month-select:hover {
-            box-shadow: var(--crm-chip-shadow-strong);
+            box-shadow: 0 0.35rem 1.2rem -0.3rem color-mix(in srgb, var(--danger-base) 35%, transparent);
         }
 
         .crm-month-select:focus {
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-base) 25%, transparent), var(--crm-chip-shadow);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-base) 25%, transparent), 0 0.35rem 0.9rem -0.4rem color-mix(in srgb, var(--danger-base) 25%, transparent);
         }
 
         /* ---------------- KPI stat cards ---------------- */

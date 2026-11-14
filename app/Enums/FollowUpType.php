@@ -69,9 +69,8 @@ enum FollowUpType: string
             self::CALL => 'theme-primary',
             self::WHATSAPP => 'theme-success',
             self::SMS => 'theme-accent',
-            self::EMAIL => 'theme-secondary',
+            self::EMAIL, self::OTHER => 'theme-secondary',
             self::MEETING => 'theme-warning',
-            self::OTHER => 'theme-secondary',
         };
     }
 }

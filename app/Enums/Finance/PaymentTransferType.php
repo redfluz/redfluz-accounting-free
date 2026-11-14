@@ -57,10 +57,9 @@ enum PaymentTransferType: string
     public function accountColumn(): string
     {
         return match ($this->accountKind()) {
-            BankAccountKind::BANK => 'bank_account_id',
+            BankAccountKind::BANK, BankAccountKind::CRYPTO => 'bank_account_id',
             BankAccountKind::CASH => 'cash_account_id',
             BankAccountKind::E_WALLET => 'e_wallet_account_id',
-            BankAccountKind::CRYPTO => 'bank_account_id',
         };
     }
 

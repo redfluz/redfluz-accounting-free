@@ -210,7 +210,7 @@ class CustomerOutstandingController extends Controller
             $orderedQtyRaw = $invoice->getAttribute('ordered_quantity');
             $orderedQty = is_numeric($orderedQtyRaw) ? (string) $orderedQtyRaw : '';
             $completionRaw = $invoice->getAttribute('delivery_completion');
-            $deliveryCompletionStr = is_numeric($completionRaw) ? (string) $completionRaw.'%' : '-';
+            $deliveryCompletionStr = is_numeric($completionRaw) ? $completionRaw.'%' : '-';
             $invoiceDate = $invoice->date;
             $invoiceDateStr = $invoiceDate instanceof Carbon ? $invoiceDate->format('d/m/Y') : '-';
             $dueDate = $invoice->due_date;

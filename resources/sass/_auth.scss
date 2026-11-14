@@ -587,7 +587,7 @@ body:has(.auth-page) {
 .sc-list-bar i {
     display: block;
     height: 100%;
-    width: var(--pct);
+    width: 0%;
     border-radius: 999px;
     background: linear-gradient(90deg, #9f1239, #fb7185);
 }
@@ -606,7 +606,7 @@ body:has(.auth-page) {
 
 .sc-bars i {
     flex: 1 1 0;
-    height: var(--h);
+    height: 0%;
     border-radius: 3px 3px 1px 1px;
     background: linear-gradient(180deg, #fb7185, #9f1239);
     opacity: 0.9;

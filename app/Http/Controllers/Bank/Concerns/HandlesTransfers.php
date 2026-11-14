@@ -34,6 +34,7 @@ use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
 use App\Services\DecimalService;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * The parts of moving cash in and out of transit that both directions share.
@@ -55,7 +56,7 @@ trait HandlesTransfers
      * twice or not at all, and quietly picking a different account would hide
      * that behind a working screen.
      *
-     * @throws \RuntimeException When no transit account has been configured.
+     * @throws RuntimeException When no transit account has been configured.
      */
     private function transitChart(): Chart
     {
@@ -67,7 +68,7 @@ trait HandlesTransfers
             : null;
 
         if (! $chart instanceof Chart) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'No cash in transit account is configured. Set one in Chart Settings before using transfers.'
             );
         }

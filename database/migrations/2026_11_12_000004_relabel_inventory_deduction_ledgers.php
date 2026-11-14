@@ -29,14 +29,14 @@ return new class extends Migration
             return;
         }
 
-        Ledger::withTrashed()
+        Ledger::query()
             ->whereIn('id', $ledgerIds)
             ->update([
                 'type' => LedgerType::INVENTORY->value,
                 'subtype' => LedgerSubType::INVENTORY_DEDUCTION->value,
             ]);
 
-        $sourceNumbers = Ledger::withTrashed()
+        $sourceNumbers = Ledger::query()
             ->whereIn('id', $ledgerIds)
             ->where('subtype', LedgerSubType::INVENTORY_DEDUCTION->value)
             ->distinct()
@@ -49,7 +49,7 @@ return new class extends Migration
 
             $deductionNumber = $this->generateDocumentNumber(LedgerSubType::INVENTORY_DEDUCTION);
 
-            Ledger::withTrashed()
+            Ledger::query()
                 ->whereIn('id', $ledgerIds)
                 ->where('document_number', $sourceNumber)
                 ->update([
@@ -70,7 +70,7 @@ return new class extends Migration
             return;
         }
 
-        Ledger::withTrashed()
+        Ledger::query()
             ->whereIn('id', $ledgerIds)
             ->update([
                 'type' => LedgerType::JOURNAL->value,
@@ -85,11 +85,11 @@ return new class extends Migration
      */
     private function deductionLedgerIds(): array
     {
-        return ProductLedger::withTrashed()
+        return ProductLedger::query()
             ->whereNotNull('cogs_ledger_id')
             ->pluck('cogs_ledger_id')
             ->merge(
-                ProductLedger::withTrashed()
+                ProductLedger::query()
                     ->whereNotNull('inventory_ledger_id')
                     ->pluck('inventory_ledger_id')
             )

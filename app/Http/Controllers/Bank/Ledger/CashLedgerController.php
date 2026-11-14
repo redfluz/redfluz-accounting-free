@@ -37,6 +37,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * What is in the cash drawer.
@@ -100,7 +101,7 @@ class CashLedgerController extends Controller
      * @param  \Illuminate\Database\Eloquent\Collection<int, CashAccount>  $accounts
      * @return Collection<int, object{account: CashAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}>
      */
-    private function balancesFor($accounts, string $accountId): Collection
+    private function balancesFor(\Illuminate\Database\Eloquent\Collection $accounts, string $accountId): Collection
     {
         /** @var Collection<int, object{account: CashAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}> $balances */
         $balances = $accounts->map(function (CashAccount $account) use ($accountId): object {
@@ -119,12 +120,12 @@ class CashLedgerController extends Controller
             $moneyIn = DecimalService::normalize(is_numeric($moneyInRaw) ? (string) $moneyInRaw : '0');
             $moneyOut = DecimalService::normalize(is_numeric($moneyOutRaw) ? (string) $moneyOutRaw : '0');
 
-            /** @var object{account: CashAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}&\stdClass $row */
+            /** @var object{account: CashAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}&stdClass $row */
             $row = (object) [
                 'account' => $account,
-                'money_in' => (string) $moneyIn,
-                'money_out' => (string) $moneyOut,
-                'balance' => (string) bcsub($moneyIn, $moneyOut, 2),
+                'money_in' => $moneyIn,
+                'money_out' => $moneyOut,
+                'balance' => bcsub($moneyIn, $moneyOut, 2),
                 'isFiltered' => $accountId !== '' && $accountId === (string) $account->id,
             ];
 
@@ -137,7 +138,7 @@ class CashLedgerController extends Controller
     /**
      * The cash ledger rows, filtered and paginated.
      *
-     * @return LengthAwarePaginator<int, \stdClass>
+     * @return LengthAwarePaginator<int, stdClass>
      */
     private function ledgerRows(
         string $search,

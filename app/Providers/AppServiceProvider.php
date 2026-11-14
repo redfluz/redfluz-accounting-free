@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Doctor\Diagnostics\UploadLimitsAllowUploads;
 use App\Http\Controllers\Controller;
 use App\Models\System\Setting;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
@@ -19,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
+     *
+     * @throws BindingResolutionException
      */
     public function boot(): void
     {

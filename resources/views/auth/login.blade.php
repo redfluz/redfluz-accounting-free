@@ -167,17 +167,17 @@
                         <ul class="sc-list">
                             <li>
                                 <span class="sc-list-name">INV-2041</span>
-                                <span class="sc-list-bar"><i style="--pct:82%"></i></span>
+                                <span class="sc-list-bar"><i style="width:82%"></i></span>
                                 <b class="sc-list-amt">{{ $money(18400) }}</b>
                             </li>
                             <li>
                                 <span class="sc-list-name">INV-2039</span>
-                                <span class="sc-list-bar"><i style="--pct:61%"></i></span>
+                                <span class="sc-list-bar"><i style="width:61%"></i></span>
                                 <b class="sc-list-amt">{{ $money(12950) }}</b>
                             </li>
                             <li>
                                 <span class="sc-list-name">INV-2034</span>
-                                <span class="sc-list-bar"><i style="--pct:28%"></i></span>
+                                <span class="sc-list-bar"><i style="width:28%"></i></span>
                                 <b class="sc-list-amt">{{ $money(5140) }}</b>
                             </li>
                         </ul>
@@ -189,9 +189,9 @@
                             <span class="sc-delta">+12%</span>
                         </div>
                         <div class="sc-bars">
-                            <i style="--h:38%"></i><i style="--h:56%"></i><i style="--h:44%"></i>
-                            <i style="--h:72%"></i><i style="--h:61%"></i><i style="--h:88%"></i>
-                            <i style="--h:100%"></i>
+                            <i style="height:38%"></i><i style="height:56%"></i><i style="height:44%"></i>
+                            <i style="height:72%"></i><i style="height:61%"></i><i style="height:88%"></i>
+                            <i style="height:100%"></i>
                         </div>
                         <div class="sc-stat">
                             <span>{{ __('auth.showcase_this_month') }}</span>
@@ -791,7 +791,7 @@
     .sc-list-bar i {
         display: block;
         height: 100%;
-        width: var(--pct);
+        width: 0%;
         border-radius: 999px;
         background: linear-gradient(90deg, #9f1239, #fb7185);
     }
@@ -810,7 +810,7 @@
 
     .sc-bars i {
         flex: 1 1 0;
-        height: var(--h);
+        height: 0%;
         border-radius: 3px 3px 1px 1px;
         background: linear-gradient(180deg, #fb7185, #9f1239);
         opacity: 0.9;

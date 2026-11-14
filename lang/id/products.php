@@ -1,29 +1,5 @@
 <?php
 
-/**
- * ============================================================================
- *
- * @author      redfluz
- *
- * @github      https://github.com/redfluz
- *
- * @youtube     https://youtube.com/@redfluz
- *
- * @contact     corex2020@icloud.com
- *
- * @customer
- *
- * @copyright   Copyright (c) 2026 redfluz. All Rights Reserved.
- * ============================================================================
- *
- * PROPRIETARY AND CONFIDENTIAL
- *
- * All code, concepts, and intellectual property contained in this file are the
- * exclusive property of redfluz. Unauthorized copying, distribution, modification,
- * reverse engineering, or public display of this software via any medium is
- * strictly prohibited without explicit written permission from the copyright owner.
- */
-
 return [
     'title' => 'Katalog Produk',
     'subtitle' => 'Kelola item stok, gambar, biaya, dan harga jual.',
@@ -42,6 +18,9 @@ return [
         'remove' => 'Hapus',
         'empty' => 'Belum ada gambar yang diunggah untuk produk ini.',
         'shared_hint' => 'Varian menggunakan gambar yang dilampirkan pada produk utama.',
+        'too_large_image' => 'Image exceeds the 8000 KB limit and was not added:',
+        'too_large_doc' => 'Document exceeds the 20 MB limit and was not added:',
+        'select_file' => 'Choose file',
     ],
     'variants' => [
         'title' => 'Varian Produk',
@@ -70,6 +49,8 @@ return [
         'invalid_attachment' => 'Satu atau beberapa gambar yang dipilih tidak termasuk dalam produk ini.',
         'maximum_attachments' => 'Sebuah produk tidak boleh memiliki lebih dari :max gambar.',
         'in_use' => 'Produk ini tidak boleh dipadam kerana sudah digunakan oleh: :references.',
+        'attachment_too_large_image' => 'Image :name exceeds the 8000 KB limit.',
+        'attachment_too_large_doc' => 'Document :name exceeds the 20 MB limit.',
     ],
     'usage' => [
         'stock_movements' => 'pergerakan stok',
@@ -111,7 +92,11 @@ return [
         'barcode' => 'Kode Batang',
         'mpn' => 'Nomor Komponen Produsen (MPN)',
     ],
-    'warranty' => ['none' => 'Tanpa garansi', 'unlimited' => 'Garansi tanpa batas', 'months' => ':count bulan'],
+    'warranty' => [
+        'none' => 'Tanpa garansi',
+        'unlimited' => 'Garansi tanpa batas',
+        'months' => ':count bulan',
+    ],
     'types' => [
         'physical' => 'Produk Fisik',
         'service' => 'Layanan',

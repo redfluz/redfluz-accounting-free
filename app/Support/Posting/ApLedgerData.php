@@ -196,12 +196,12 @@ class ApLedgerData extends Data
     ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: (string) $chart->id,
-            companyId: (string) ($invoice->company_id ?? ''),
+            chartId: $chart->id,
+            companyId: ($invoice->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: LedgerSubType::PURCHASE_INVOICE->value,
-            documentNumber: (string) $invoice->document_number,
+            documentNumber: $invoice->document_number,
             date: $invoice->date->format('Y-m-d'),
             referenceNumber: $invoice->reference_number,
             chartCode: $chart->code,
@@ -241,12 +241,12 @@ class ApLedgerData extends Data
     ): self {
         return new self(
             id: (string) Str::uuid7(),
-            chartId: (string) $chart->id,
-            companyId: (string) ($adjustment->company_id ?? ''),
+            chartId: $chart->id,
+            companyId: ($adjustment->company_id ?? ''),
             currencyId: $currencyId,
             type: LedgerType::INVOICE->value,
             subtype: $line->subtype->value,
-            documentNumber: (string) $adjustment->document_number,
+            documentNumber: $adjustment->document_number,
             date: $adjustment->date->format('Y-m-d'),
             referenceNumber: $line->reference_number ?? $adjustment->reference_number,
             chartCode: $chart->code,

@@ -31,8 +31,7 @@ class EasyInstall extends Command
         $this->info('');
 
         if (! $this->option('force') && ! $this->confirm(
-            'This will DELETE vendor/, node_modules/, the database, uploads, caches and build files, then reinstall everything with demo data. Continue?',
-            false
+            'This will DELETE vendor/, node_modules/, the database, uploads, caches and build files, then reinstall everything with demo data. Continue?'
         )) {
             $this->info('  Easy install cancelled.');
 

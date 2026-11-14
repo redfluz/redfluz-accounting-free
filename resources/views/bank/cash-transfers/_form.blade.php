@@ -118,26 +118,26 @@
         // that is nearly always the same one; clearing it for a drawer with no
         // surplus says so rather than offering a transfer of nothing.
         (function () {
-            var accountSelect = document.getElementById('cash_account_id');
-            var amountInput = document.getElementById('amount');
-            var hint = document.getElementById('js-surplus-hint');
+            const accountSelect = document.getElementById('cash_account_id');
+            const amountInput = document.getElementById('amount');
+            const hint = document.getElementById('js-surplus-hint');
 
             if (!accountSelect || !amountInput || !hint) {
                 return;
             }
 
-            var template = @json(__('cash_transfers.form.surplus_available'));
-            var none = @json(__('cash_transfers.form.no_surplus'));
+            let template ='';
+            let none ='';
 
             function refresh() {
-                var option = accountSelect.options[accountSelect.selectedIndex];
+                const option = accountSelect.options[accountSelect.selectedIndex];
 
                 if (!option || !option.value) {
                     hint.textContent = '';
                     return;
                 }
 
-                var surplus = parseFloat(option.getAttribute('data-surplus')) || 0;
+                const surplus = parseFloat(option.getAttribute('data-surplus')) || 0;
 
                 if (surplus <= 0) {
                     hint.textContent = none;

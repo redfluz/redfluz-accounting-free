@@ -460,7 +460,7 @@ class PurchaseScenarioSeeder extends Seeder
         StockLocation $stockLocation,
         Contact $contact,
     ): void {
-        $po = $this->createPo($company, $supplier, $contact, 'PO10002', 100, '4000.00', true, true, false);
+        $po = $this->createPo($company, $supplier, $contact, 'PO10002', 100, '4000.00', true, true);
         $this->createGrn('PO10002', 'GRN10002', 60, ProductMovementStatus::ACTIVE);
         $this->createInvoice($po, 'PI10002', 60, DocumentStatus::PENDING);
     }

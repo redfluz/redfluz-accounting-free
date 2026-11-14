@@ -35,6 +35,7 @@ use App\Enums\Finance\TaxMode;
 use App\Enums\UploadType;
 use App\Http\Controllers\Controller;
 use App\Models\Inventory\Product;
+use Closure;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -105,7 +106,7 @@ class StoreSalesOrderRequest extends SalesOrderRequest
      * instead of the parent product. This prevents confusion about which
      * variant's stock is being reserved.
      */
-    public function after(): \Closure
+    public function after(): Closure
     {
         return function (Validator $validator): void {
             $lines = $this->input('lines', []);

@@ -160,7 +160,7 @@ class PaymentVoucherController extends Controller
         $attachmentPath = $request->hasFile('attachment') ? $this->storeUpload($request->file('attachment'), 'voucher_attachments') : null;
         $data = PaymentVoucherData::from($request->validated());
         $documentNumber = $this->generateDocumentNumber(LedgerSubType::PAYMENT_VOUCHER);
-        $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $amount = bcadd(DecimalService::normalize($data->totalAmount ?? $data->amount()), '0', 2);
         $transferType = $data->paymentTransferType ?? PaymentTransferType::CHEQUE;
         DB::transaction(function () use ($data, $documentNumber, $amount, $attachmentPath, $transferType): void {
             PaymentVoucher::query()->create([
@@ -197,7 +197,7 @@ class PaymentVoucherController extends Controller
         $voucher = PaymentVoucher::query()->where('document_number', $documentNumber)->firstOrFail();
         abort_if($voucher->isPosted(), 409);
         $data = PaymentVoucherData::from($request->validated());
-        $amount = bcadd(DecimalService::normalize((string) ($data->totalAmount ?? $data->amount())), '0', 2);
+        $amount = bcadd(DecimalService::normalize($data->totalAmount ?? $data->amount()), '0', 2);
         $transferType = $data->paymentTransferType ?? $voucher->payment_transfer_type;
         DB::transaction(function () use ($voucher, $data, $amount, $transferType): void {
             $voucher->update([

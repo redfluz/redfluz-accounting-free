@@ -64,7 +64,7 @@ return new class extends Migration
             $table->string('document_number')->unique();
             $table->date('date');
             $table->foreignUuid('offset_chart_id')->constrained('charts')->restrictOnDelete()->index();
-            $table->decimal('amount', 15, 2)->default(0);
+            $table->decimal('amount', 15)->default(0);
             $table->string('description')->nullable();
             $table->text('notes')->nullable();
             $table->enum('status', array_column(DocumentStatus::cases(), 'value'))

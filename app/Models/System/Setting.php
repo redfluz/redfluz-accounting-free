@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Cache;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Models\Concerns\HasActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Throwable;
 
 /**
  * Singleton company profile row.
@@ -192,7 +193,7 @@ class Setting extends Model
 
                 return is_string($symbol) && $symbol !== '' ? $symbol : '';
             });
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return '';
         }
     }

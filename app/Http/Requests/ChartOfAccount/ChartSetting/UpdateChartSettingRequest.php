@@ -32,6 +32,7 @@ use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Models\ChartOfAccount\Chart;
 use App\Models\ChartOfAccount\ChartSetting;
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -217,9 +218,9 @@ class UpdateChartSettingRequest extends ChartSettingRequest
      * controller writes it.
      *
      * @param  Validator  $validator  The validator instance.
-     * @return \Closure(Validator): void
+     * @return Closure(Validator): void
      */
-    public function after(Validator $validator): \Closure
+    public function after(Validator $validator): Closure
     {
         /** @var ChartSetting $chartSetting */
         $chartSetting = $this->route('chartSetting');

@@ -31,13 +31,13 @@ namespace App\Http\Requests\Crm\CompanyFile;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\UploadType;
+use Illuminate\Http\UploadedFile;
 
 /**
  * The fields a company file is edited from.
  *
- * The rules are stated in full rather than taken from the create request, because
- * the edit takes a single attachment and a remove flag rather than an array, and
- * a rule inherited and then changed is a rule nobody can read in one place.
+ * A company file stores one uploaded document or image per record. Editing may
+ * replace that attachment or remove it.
  */
 class UpdateCompanyFileRequest extends CompanyFileRequest
 {
@@ -68,7 +68,26 @@ class UpdateCompanyFileRequest extends CompanyFileRequest
             'title' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'remove_attachment' => ['nullable', 'boolean'],
-            'attachment' => ['nullable', 'file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:8000'],
+            'attachment' => [
+                'nullable',
+                'file',
+                UploadType::DOCUMENT_AND_IMAGES->rule(),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $value instanceof UploadedFile) {
+                        return;
+                    }
+
+                    $extension = strtolower((string) $value->getClientOriginalExtension());
+                    $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
+                    $maxKb = $isImage ? 8000 : 20480;
+
+                    if (($value->getSize() / 1024) > $maxKb) {
+                        $fail($isImage
+                            ? __('company_files.form.attachment_too_large_image', ['name' => $value->getClientOriginalName()])
+                            : __('company_files.form.attachment_too_large_doc', ['name' => $value->getClientOriginalName()]));
+                    }
+                },
+            ],
         ];
     }
 }

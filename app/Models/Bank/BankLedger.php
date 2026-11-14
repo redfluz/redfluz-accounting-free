@@ -83,7 +83,7 @@ class BankLedger extends Model
     /**
      * Disable updated_at: ledgers are immutable history.
      */
-    public const UPDATED_AT = null;
+    public const null UPDATED_AT = null;
 
     /**
      * Get the attributes that should be cast.

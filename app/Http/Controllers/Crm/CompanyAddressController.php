@@ -91,7 +91,7 @@ class CompanyAddressController extends Controller
         $data->companyId = $company->id;
 
         DB::transaction(function () use ($company, $data, $request): void {
-            $isDefault = (bool) $request->validated('is_default', false) || ! $company->addresses()->exists();
+            $isDefault = $request->validated('is_default', false) || ! $company->addresses()->exists();
             if ($isDefault) {
                 $company->addresses()->update(['is_default' => false]);
             }

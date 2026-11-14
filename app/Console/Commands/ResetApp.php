@@ -41,7 +41,7 @@ class ResetApp extends Command
             $this->line('  Run app:install afterwards to set up fresh.');
             $this->line('');
 
-            if (! $this->confirm('  Are you sure you want to continue?', false)) {
+            if (! $this->confirm('  Are you sure you want to continue?')) {
                 $this->info('  Reset cancelled.');
 
                 return self::SUCCESS;

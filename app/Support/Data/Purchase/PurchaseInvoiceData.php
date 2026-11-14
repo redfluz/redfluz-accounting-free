@@ -131,8 +131,8 @@ class PurchaseInvoiceData extends Data
     {
         return new self(
             id: $model->id,
-            referenceNumber: $model->reference_number,
             companyId: $model->company_id,
+            referenceNumber: $model->reference_number,
             companyName: $model->company_name,
             attachmentPath: $model->attachment_path,
             createdAt: self::moment($model->created_at),

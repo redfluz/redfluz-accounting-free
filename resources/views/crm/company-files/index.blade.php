@@ -4,9 +4,9 @@
     use App\Enums\FileResources;
     use App\Models\Crm\CompanyFile;
 
-    $canCreate = auth()->user()->hasFilePermission(FileResources::COMPANIES, FileAction::ADD);
-    $canUpdate = auth()->user()->hasFilePermission(FileResources::COMPANIES, FileAction::UPDATE);
-    $canRemove = auth()->user()->hasFilePermission(FileResources::COMPANIES, FileAction::REMOVE);
+    $canCreate = auth()->user()->hasFilePermission(FileResources::COMPANY_FILES, FileAction::ADD);
+    $canUpdate = auth()->user()->hasFilePermission(FileResources::COMPANY_FILES, FileAction::UPDATE);
+    $canRemove = auth()->user()->hasFilePermission(FileResources::COMPANY_FILES, FileAction::REMOVE);
 @endphp
 @props([
     /** @var CompanyFile */
@@ -130,7 +130,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="fg-secondary py-4 text-center" colspan="6">
+                                <td class="fg-secondary py-4 text-center" colspan="5">
                                     {{ __('common.labels.not_found_record') }}
                                 </td>
                             </tr>

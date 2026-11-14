@@ -27,7 +27,6 @@
 namespace App\Http\Controllers\Bank\Ledger;
 
 use App\Enums\Bank\BankAccountKind;
-use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Http\Controllers\Controller;
 use App\Models\Bank\EWalletAccount;
@@ -38,6 +37,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 /**
  * What is on each e-wallet.
@@ -64,7 +64,7 @@ class EWalletLedgerController extends Controller
      */
     public function index(Request $request): View
     {
-        $this->allows(FileResources::E_WALLET_LEDGERS, FileAction::READ);
+        $this->allows(FileResources::E_WALLET_LEDGERS);
 
         $search = $request->string('search')->toString();
         $startDate = $request->string('start_date')->toString();
@@ -97,7 +97,7 @@ class EWalletLedgerController extends Controller
      * @param  \Illuminate\Database\Eloquent\Collection<int, EWalletAccount>  $accounts
      * @return Collection<int, object{account: EWalletAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}>
      */
-    private function balancesFor($accounts, string $accountId): Collection
+    private function balancesFor(\Illuminate\Database\Eloquent\Collection $accounts, string $accountId): Collection
     {
         /** @var Collection<int, object{account: EWalletAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}> $balances */
         $balances = $accounts->map(function (EWalletAccount $account) use ($accountId): object {
@@ -116,12 +116,12 @@ class EWalletLedgerController extends Controller
             $moneyIn = DecimalService::normalize(is_numeric($moneyInRaw) ? (string) $moneyInRaw : '0');
             $moneyOut = DecimalService::normalize(is_numeric($moneyOutRaw) ? (string) $moneyOutRaw : '0');
 
-            /** @var object{account: EWalletAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}&\stdClass $row */
+            /** @var object{account: EWalletAccount, money_in: string, money_out: string, balance: numeric-string, isFiltered: bool}&stdClass $row */
             $row = (object) [
                 'account' => $account,
-                'money_in' => (string) $moneyIn,
-                'money_out' => (string) $moneyOut,
-                'balance' => (string) bcsub($moneyIn, $moneyOut, 2),
+                'money_in' => $moneyIn,
+                'money_out' => $moneyOut,
+                'balance' => bcsub($moneyIn, $moneyOut, 2),
                 'isFiltered' => $accountId !== '' && $accountId === (string) $account->id,
             ];
 
@@ -134,7 +134,7 @@ class EWalletLedgerController extends Controller
     /**
      * The e-wallet ledger rows, filtered and paginated.
      *
-     * @return LengthAwarePaginator<int, \stdClass>
+     * @return LengthAwarePaginator<int, stdClass>
      */
     private function ledgerRows(
         string $search,

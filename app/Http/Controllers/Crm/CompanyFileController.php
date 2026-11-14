@@ -97,27 +97,21 @@ class CompanyFileController extends Controller
     {
         $data = CompanyFileData::from($request->validated());
 
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                if ($file->isValid()) {
-                    CompanyFile::query()->create([
-                        'company_id' => $data->companyId,
-                        'title' => $data->title,
-                        'notes' => $data->notes,
-                        'file_path' => $this->storeUpload($file, 'company-files'),
-                        'file_name' => $file->getClientOriginalName(),
-                        'mime_type' => $file->getClientMimeType(),
-                        'file_size' => $file->getSize(),
-                    ]);
-                }
-            }
-        } else {
-            CompanyFile::query()->create([
-                'company_id' => $data->companyId,
-                'title' => $data->title,
-                'notes' => $data->notes,
-            ]);
+        $payload = [
+            'company_id' => $data->companyId,
+            'title' => $data->title,
+            'notes' => $data->notes,
+        ];
+
+        $file = $request->file('attachment');
+        if ($file && $file->isValid()) {
+            $payload['file_path'] = $this->storeUpload($file, 'company-files');
+            $payload['file_name'] = $file->getClientOriginalName();
+            $payload['mime_type'] = $file->getClientMimeType();
+            $payload['file_size'] = $file->getSize();
         }
+
+        CompanyFile::query()->create($payload);
 
         return redirect()
             ->route('crm.company-files.index')
@@ -187,41 +181,30 @@ class CompanyFileController extends Controller
     {
         $data = CompanyFileData::from($request->validated());
 
-        $filePath = $companyFile->file_path;
-        $fileName = $companyFile->file_name;
-        $mimeType = $companyFile->mime_type;
-        $fileSize = $companyFile->file_size;
+        $companyFile->company_id = $data->companyId;
+        $companyFile->title = $data->title;
+        $companyFile->notes = $data->notes;
 
-        if (! empty($data->removeAttachment) && $filePath) {
-            $this->deleteDocument($filePath);
-            $filePath = null;
-            $fileName = null;
-            $mimeType = null;
-            $fileSize = null;
+        if (! empty($data->removeAttachment) && $companyFile->file_path) {
+            $this->deleteDocument($companyFile->file_path);
+            $companyFile->file_path = null;
+            $companyFile->file_name = null;
+            $companyFile->mime_type = null;
+            $companyFile->file_size = null;
         }
 
-        if ($request->hasFile('attachment')) {
-            $uploadedFile = $request->file('attachment');
-            if ($uploadedFile->isValid()) {
-                if ($filePath) {
-                    $this->deleteDocument($filePath);
-                }
-                $filePath = $this->storeUpload($uploadedFile, 'company-files');
-                $fileName = $uploadedFile->getClientOriginalName();
-                $mimeType = $uploadedFile->getClientMimeType();
-                $fileSize = $uploadedFile->getSize();
+        $uploadedFile = $request->file('attachment');
+        if ($uploadedFile && $uploadedFile->isValid()) {
+            if ($companyFile->file_path) {
+                $this->deleteDocument($companyFile->file_path);
             }
+            $companyFile->file_path = $this->storeUpload($uploadedFile, 'company-files');
+            $companyFile->file_name = $uploadedFile->getClientOriginalName();
+            $companyFile->mime_type = $uploadedFile->getClientMimeType();
+            $companyFile->file_size = $uploadedFile->getSize();
         }
 
-        $companyFile->update([
-            'company_id' => $data->companyId,
-            'title' => $data->title,
-            'notes' => $data->notes,
-            'file_path' => $filePath,
-            'file_name' => $fileName,
-            'mime_type' => $mimeType,
-            'file_size' => $fileSize,
-        ]);
+        $companyFile->save();
 
         return redirect()
             ->route('crm.company-files.index')

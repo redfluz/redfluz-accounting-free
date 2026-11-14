@@ -328,7 +328,7 @@ class BankTransferController extends Controller
                 LedgerType::PAYMENT,
                 LedgerSubType::TRANSFER,
                 $moneyChartId,
-                (string) $transitChart->id,
+                $transitChart->id,
                 $amount,
                 referenceNumber: $transfer->reference_number,
                 description: $transfer->description,

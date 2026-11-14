@@ -49,6 +49,8 @@ use App\Services\DecimalService;
 use App\Support\Data\Inventory\ProductLedgerData;
 use App\Support\PostingException;
 use Carbon\Carbon;
+use DateTime;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -123,7 +125,7 @@ class Posting
             ];
         }
 
-        BankLedger::insert($rows);
+        BankLedger::query()->insert($rows);
 
         return count($rows);
     }
@@ -171,7 +173,7 @@ class Posting
             ];
         }
 
-        CashLedger::insert($rows);
+        CashLedger::query()->insert($rows);
 
         return count($rows);
     }
@@ -218,7 +220,7 @@ class Posting
             ];
         }
 
-        EWalletLedger::insert($rows);
+        EWalletLedger::query()->insert($rows);
 
         return count($rows);
     }
@@ -272,7 +274,7 @@ class Posting
             ];
         }
 
-        ArLedger::insert($rows);
+        ArLedger::query()->insert($rows);
 
         return count($rows);
     }
@@ -326,7 +328,7 @@ class Posting
             ];
         }
 
-        ApLedger::insert($rows);
+        ApLedger::query()->insert($rows);
 
         return count($rows);
     }
@@ -384,7 +386,7 @@ class Posting
             ];
         }
 
-        Ledger::insert($rows);
+        Ledger::query()->insert($rows);
 
         return count($rows);
     }
@@ -453,7 +455,7 @@ class Posting
             ];
         }
 
-        ProductLedger::insert($rows);
+        ProductLedger::query()->insert($rows);
 
         return count($rows);
     }
@@ -568,7 +570,7 @@ class Posting
     public function postPayment(
         Model $document,
         string $documentNumber,
-        \DateTimeInterface $date,
+        DateTimeInterface $date,
         LedgerType $type,
         LedgerSubType $subtype,
         string $debitChartId,
@@ -580,12 +582,12 @@ class Posting
         ?string $description = null,
         bool $writeCounterparty = true,
     ): void {
-        $amount = bcadd(DecimalService::normalize((string) $amount), '0', 2);
+        $amount = bcadd(DecimalService::normalize($amount), '0', 2);
         if (bccomp($amount, '0.00', 2) === 0) {
             throw PostingException::postingInputInvalid($documentNumber);
         }
 
-        $date = Carbon::instance(\DateTime::createFromInterface($date));
+        $date = Carbon::instance(DateTime::createFromInterface($date));
         $key = $document->getKey();
         $documentKey = is_string($key) ? $key : '';
         $documentCompanyName = $document->company_name ?? null;
@@ -706,7 +708,7 @@ class Posting
 
             if (isset($cashAccounts[$chartId])) {
                 $acct = $cashAccounts[$chartId];
-                $acctId = (string) $acct->id;
+                $acctId = $acct->id;
                 $kind = BankAccountKind::CASH;
                 $balances[$acctId] ??= $this->priorBalanceFor($kind, $acctId);
                 $balances[$acctId] = bcsub(bcadd($balances[$acctId], $debit, 2), $credit, 2);
@@ -730,7 +732,7 @@ class Posting
             }
             if (isset($bankAccounts[$chartId])) {
                 $acct = $bankAccounts[$chartId];
-                $acctId = (string) $acct->id;
+                $acctId = $acct->id;
                 $kind = BankAccountKind::BANK;
                 $balances[$acctId] ??= $this->priorBalanceFor($kind, $acctId);
                 $balances[$acctId] = bcsub(bcadd($balances[$acctId], $debit, 2), $credit, 2);
@@ -753,7 +755,7 @@ class Posting
             }
             if (isset($eWalletAccounts[$chartId])) {
                 $acct = $eWalletAccounts[$chartId];
-                $acctId = (string) $acct->id;
+                $acctId = $acct->id;
                 $kind = BankAccountKind::E_WALLET;
                 $balances[$acctId] ??= $this->priorBalanceFor($kind, $acctId);
                 $balances[$acctId] = bcsub(bcadd($balances[$acctId], $debit, 2), $credit, 2);
@@ -772,7 +774,6 @@ class Posting
                     description: $description,
                 );
 
-                continue;
             }
         }
 

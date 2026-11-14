@@ -21,6 +21,7 @@ use App\Models\Bank\Refund\CustomerRefund;
 use App\Models\Bank\Refund\SupplierRefund;
 use App\Support\Posting\Posting;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
@@ -52,29 +53,31 @@ trait PostsSeededDocuments
      */
     protected function moneyAccountColumns(string $moneyChartId): array
     {
-        $columns = [
-            'bank_account_id' => null,
-            'cash_account_id' => null,
-            'e_wallet_account_id' => null,
-        ];
-
-        foreach (
-            [
-                'bank_account_id' => Bank::class,
-                'cash_account_id' => CashAccount::class,
-                'e_wallet_account_id' => EWalletAccount::class,
-            ] as $column => $accountClass
-        ) {
-            $accountId = $accountClass::query()->where('chart_id', $moneyChartId)->value('id');
-
-            if ($accountId !== null) {
-                $columns[$column] = $accountId;
-
-                break;
-            }
+        $bankAccountId = Bank::query()->where('chart_id', $moneyChartId)->value('id');
+        if ($bankAccountId !== null) {
+            return [
+                'bank_account_id' => $bankAccountId,
+                'cash_account_id' => null,
+                'e_wallet_account_id' => null,
+            ];
         }
 
-        return $columns;
+        $cashAccountId = CashAccount::query()->where('chart_id', $moneyChartId)->value('id');
+        if ($cashAccountId !== null) {
+            return [
+                'bank_account_id' => null,
+                'cash_account_id' => $cashAccountId,
+                'e_wallet_account_id' => null,
+            ];
+        }
+
+        $eWalletAccountId = EWalletAccount::query()->where('chart_id', $moneyChartId)->value('id');
+
+        return [
+            'bank_account_id' => null,
+            'cash_account_id' => null,
+            'e_wallet_account_id' => $eWalletAccountId,
+        ];
     }
 
     /**
@@ -124,7 +127,7 @@ trait PostsSeededDocuments
             return;
         }
 
-        $date = $document->date instanceof \DateTimeInterface
+        $date = $document->date instanceof DateTimeInterface
             ? $document->date
             : CarbonImmutable::parse($document->date);
 

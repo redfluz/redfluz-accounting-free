@@ -34,6 +34,7 @@ use App\Enums\Inventory\AcquisitionType;
 use App\Enums\UploadType;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 /**
@@ -90,7 +91,25 @@ class StoreProductRequest extends ProductRequest
                     ->where('product_category_id', $this->inputStringOrEmpty('product_category_id')),
             ],
             'images' => ['nullable', 'array', 'max:10'],
-            'images.*' => ['image', UploadType::IMAGES->rule(), 'max:8000'],
+            'images.*' => [
+                'file',
+                UploadType::DOCUMENT_AND_IMAGES->rule(),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $value instanceof UploadedFile) {
+                        return;
+                    }
+
+                    $extension = strtolower((string) $value->getClientOriginalExtension());
+                    $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
+                    $maxKb = $isImage ? 8000 : 20480;
+
+                    if (($value->getSize() / 1024) > $maxKb) {
+                        $fail($isImage
+                            ? __('products.validation.attachment_too_large_image', ['name' => $value->getClientOriginalName()])
+                            : __('products.validation.attachment_too_large_doc', ['name' => $value->getClientOriginalName()]));
+                    }
+                },
+            ],
             'base_price' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],
             'warranty_months' => ['required', 'integer', 'min:-1', 'max:120'],

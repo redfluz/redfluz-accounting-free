@@ -31,6 +31,7 @@ namespace App\Http\Requests\Crm\CompanyFile;
 use App\Enums\FileAction;
 use App\Enums\FileResources;
 use App\Enums\UploadType;
+use Illuminate\Http\UploadedFile;
 
 /**
  * The fields a company file is created from.
@@ -39,8 +40,7 @@ use App\Enums\UploadType;
  * handed a request that has already been checked. A rule stated once cannot be
  * stated twice in two places that then disagree.
  *
- * The attachments are an array of files, because creation accepts several uploads
- * and makes one CompanyFile per uploaded file.
+ * A company file stores one uploaded document or image per record.
  */
 class StoreCompanyFileRequest extends CompanyFileRequest
 {
@@ -70,13 +70,26 @@ class StoreCompanyFileRequest extends CompanyFileRequest
             'company_id' => ['required', 'string', 'exists:companies,id'],
             'title' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
-            'attachments' => ['nullable', 'array'],
-            // extensions: validates the uploaded file name, unlike mimes: which
-            // guesses from the content. With csv and txt allowed, mimes: read any
-            // bytes that finfo classified as text/plain as a text upload, so a
-            // payload.exe was accepted and stored. The list matches the accept
-            // attribute on the file input.
-            'attachments.*' => ['file', UploadType::DOCUMENT_AND_IMAGES->rule(), 'max:8000'],
+            'attachment' => [
+                'nullable',
+                'file',
+                UploadType::DOCUMENT_AND_IMAGES->rule(),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $value instanceof UploadedFile) {
+                        return;
+                    }
+
+                    $extension = strtolower((string) $value->getClientOriginalExtension());
+                    $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
+                    $maxKb = $isImage ? 8000 : 20480;
+
+                    if (($value->getSize() / 1024) > $maxKb) {
+                        $fail($isImage
+                            ? __('company_files.form.attachment_too_large_image', ['name' => $value->getClientOriginalName()])
+                            : __('company_files.form.attachment_too_large_doc', ['name' => $value->getClientOriginalName()]));
+                    }
+                },
+            ],
         ];
     }
 }
