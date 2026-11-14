@@ -84,6 +84,7 @@ class QuotationLine extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The quotation this line belongs to.
      *
      * @return BelongsTo<Quotation, $this>
@@ -94,6 +95,7 @@ class QuotationLine extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The product being offered.
      *
      * @return BelongsTo<Product, $this>

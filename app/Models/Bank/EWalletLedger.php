@@ -101,6 +101,7 @@ class EWalletLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The e-wallet account this movement is against.
      *
      * @return BelongsTo<EWalletAccount, $this>
@@ -111,6 +112,7 @@ class EWalletLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the movement is in.
      *
      * @return BelongsTo<Currency, $this>

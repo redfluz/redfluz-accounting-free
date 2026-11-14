@@ -104,19 +104,6 @@ class RoleData extends Data
     }
 
     /**
-     * The columns a role is created from, and no others.
-     *
-     * @return array<string, mixed>
-     */
-    public function toCreateRow(): array
-    {
-        return [
-            'name' => $this->name,
-            'dashboard' => $this->dashboard,
-        ];
-    }
-
-    /**
      * The row as the roles table wants it.
      *
      * @return array<string, mixed>

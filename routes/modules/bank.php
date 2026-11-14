@@ -23,28 +23,28 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Http\Controllers\Bank\BankController;
-use App\Http\Controllers\Bank\BankJournalController;
-use App\Http\Controllers\Bank\BankLedgerController;
-use App\Http\Controllers\Bank\BankTransferController;
-use App\Http\Controllers\Bank\CashAccountController;
-use App\Http\Controllers\Bank\CashLedgerController;
-use App\Http\Controllers\Bank\CashTransferController;
-use App\Http\Controllers\Bank\CustomerRefundController;
-use App\Http\Controllers\Bank\EWalletAccountController;
-use App\Http\Controllers\Bank\EWalletLedgerController;
+use App\Http\Controllers\Bank\Accounts\BankController;
+use App\Http\Controllers\Bank\Accounts\CashAccountController;
+use App\Http\Controllers\Bank\Accounts\EWalletAccountController;
+use App\Http\Controllers\Bank\Ledger\BankLedgerController;
+use App\Http\Controllers\Bank\Ledger\CashLedgerController;
+use App\Http\Controllers\Bank\Ledger\EWalletLedgerController;
 use App\Http\Controllers\Bank\PaymentVoucher\CancelledController as VoucherCancelledController;
 use App\Http\Controllers\Bank\PaymentVoucher\HistoryController as VoucherHistoryController;
-use App\Http\Controllers\Bank\PaymentVoucherController;
+use App\Http\Controllers\Bank\PaymentVoucher\PaymentVoucherController;
 use App\Http\Controllers\Bank\Receipt\CancelledController as ReceiptCancelledController;
 use App\Http\Controllers\Bank\Receipt\HistoryController as ReceiptHistoryController;
-use App\Http\Controllers\Bank\ReceiptController;
+use App\Http\Controllers\Bank\Receipt\ReceiptController;
 use App\Http\Controllers\Bank\Refund\CustomerCancelledController;
 use App\Http\Controllers\Bank\Refund\CustomerHistoryController;
+use App\Http\Controllers\Bank\Refund\CustomerRefundController;
 use App\Http\Controllers\Bank\Refund\SupplierCancelledController;
 use App\Http\Controllers\Bank\Refund\SupplierHistoryController;
-use App\Http\Controllers\Bank\SupplierRefundController;
+use App\Http\Controllers\Bank\Refund\SupplierRefundController;
+use App\Http\Controllers\Bank\Transfer\BankJournalController;
+use App\Http\Controllers\Bank\Transfer\BankTransferController;
 use App\Http\Controllers\Bank\Transfer\CancelledController as TransferCancelledController;
+use App\Http\Controllers\Bank\Transfer\CashTransferController;
 use App\Http\Controllers\Bank\Transfer\HistoryController as TransferHistoryController;
 use Illuminate\Support\Facades\Route;
 

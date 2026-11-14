@@ -63,6 +63,11 @@ class Currency extends Model
 {
     use HasActivity, HasUuids, SoftDeletes;
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -74,6 +79,11 @@ class Currency extends Model
         ];
     }
 
+    /**
+     * Get the options for logging activity using Spatie Activitylog.
+     *
+     * @return LogOptions Returns configured log options.
+     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

@@ -101,6 +101,7 @@ class BankLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The bank account this movement is against.
      *
      * @return BelongsTo<Bank, $this>
@@ -111,6 +112,7 @@ class BankLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the movement is in.
      *
      * @return BelongsTo<Currency, $this>

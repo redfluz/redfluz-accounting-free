@@ -118,6 +118,7 @@ class ManualSalesAdjustmentChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The document this chart row belongs to.
      *
      * @return BelongsTo<ManualSalesAdjustment, $this>
@@ -128,6 +129,7 @@ class ManualSalesAdjustmentChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The chart account this single-sided line posts against.
      *
      * @return BelongsTo<Chart, $this>
@@ -138,6 +140,7 @@ class ManualSalesAdjustmentChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company the posting belongs to.
      *
      * @return BelongsTo<Company, $this>
@@ -148,6 +151,7 @@ class ManualSalesAdjustmentChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the amounts are stated in.
      *
      * @return BelongsTo<Currency, $this>

@@ -153,6 +153,7 @@ class PurchaseInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The purchase order this invoice was raised against, if any.
      *
      * @return BelongsTo<PurchaseOrder, $this>
@@ -163,6 +164,7 @@ class PurchaseInvoice extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The line items this invoice is made of.
      *
      * @return HasMany<PurchaseInvoiceLine, $this>
@@ -173,6 +175,7 @@ class PurchaseInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company this invoice is received from.
      *
      * @return BelongsTo<Company, $this>
@@ -183,6 +186,7 @@ class PurchaseInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The contact person at the supplier.
      *
      * @return BelongsTo<Contact, $this>

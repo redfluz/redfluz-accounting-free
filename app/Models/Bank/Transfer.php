@@ -165,6 +165,7 @@ class Transfer extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The drawer this transfer empties, on a transfer out.
      *
      * Null on a transfer in, which is bankward and names a bank instead.
@@ -177,6 +178,7 @@ class Transfer extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The bank account this transfer fills, on a transfer in.
      *
      * Null on a transfer out, which is drawerward and names a cash account.
@@ -189,6 +191,7 @@ class Transfer extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The account holding the cash while it is between the drawer and the bank.
      *
      * @return BelongsTo<Chart, $this>
@@ -198,6 +201,11 @@ class Transfer extends Model
         return $this->belongsTo(Chart::class, 'transit_chart_id');
     }
 
+    /**
+     * Get the options for logging activity using Spatie Activitylog.
+     *
+     * @return LogOptions Returns configured log options.
+     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logFillable()->logOnlyDirty();

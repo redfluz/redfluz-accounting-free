@@ -163,6 +163,7 @@ class SupplierRefund extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company this refund is with.
      *
      * @return BelongsTo<Company, $this>
@@ -173,6 +174,7 @@ class SupplierRefund extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The bank account the money left, when the transfer type named a bank.
      *
      * @return BelongsTo<Bank, $this>
@@ -183,6 +185,7 @@ class SupplierRefund extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The e-wallet the money left, when the transfer type named a wallet.
      *
      * @return BelongsTo<EWalletAccount, $this>
@@ -209,6 +212,7 @@ class SupplierRefund extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The payable entries this refund raised when it was posted.
      *
      * Matched on the document number plus the subtype: the payable ledger

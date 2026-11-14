@@ -117,27 +117,4 @@ class ManualSalesAdjustmentData extends Data
         $this->referenceNumber = (string) $invoice->document_number;
         $this->companyName = filled($invoice->company_name) ? (string) $invoice->company_name : $companyName;
     }
-
-    /**
-     * The columns a manual sales adjustment is saved from, and no others.
-     *
-     * @return array<string, mixed>
-     */
-    public function toRow(): array
-    {
-        return [
-            'subtype' => $this->subtype?->value,
-            'reference_number' => $this->referenceNumber,
-            'sales_invoice_id' => $this->salesInvoiceId,
-            'company_id' => $this->companyId,
-            'contact_id' => $this->contactId,
-            'company_name' => $this->companyName,
-            'contact_name' => $this->contactName,
-            'date' => $this->date?->format('Y-m-d'),
-            'attachment_path' => $this->attachmentPath,
-            'subtotal' => $this->subtotal,
-            'total_amount' => $this->totalAmount,
-            'notes' => $this->notes,
-        ];
-    }
 }

@@ -152,6 +152,7 @@ class Quotation extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The lines this quotation offers.
      *
      * @return HasMany<QuotationLine, $this>
@@ -162,6 +163,7 @@ class Quotation extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company the offer is made to.
      *
      * @return BelongsTo<Company, $this>
@@ -172,6 +174,7 @@ class Quotation extends Model
     }
 
     /**
+     * Define a one-to-one relationship.
      * The sales order this quotation became, if it became one.
      *
      * @return HasOne<SalesOrder, $this>
@@ -182,6 +185,7 @@ class Quotation extends Model
     }
 
     /**
+     * Define a one-to-one relationship.
      * The sales invoice this quotation became, if it converted directly.
      *
      * @return HasOne<SalesInvoice, $this>
@@ -192,6 +196,7 @@ class Quotation extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The person at that company.
      *
      * @return BelongsTo<Contact, $this>

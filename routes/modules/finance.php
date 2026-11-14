@@ -24,13 +24,13 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Http\Controllers\Finance\CurrencyController;
-use App\Http\Controllers\Finance\DiscountController;
 use App\Http\Controllers\Finance\JournalEntry\CancelledController as JournalEntryCancelledController;
 use App\Http\Controllers\Finance\JournalEntry\HistoryController as JournalEntryHistoryController;
-use App\Http\Controllers\Finance\JournalEntryController;
+use App\Http\Controllers\Finance\JournalEntry\JournalEntryController;
 use App\Http\Controllers\Finance\LedgerController;
-use App\Http\Controllers\Finance\TaxController;
+use App\Http\Controllers\Finance\Setting\CurrencyController;
+use App\Http\Controllers\Finance\Setting\DiscountController;
+use App\Http\Controllers\Finance\Setting\TaxController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('ledgers', [LedgerController::class, 'index'])->name('finance.ledgers.index');

@@ -129,7 +129,7 @@ class JournalEntryChart extends Model
 
     /**
      * Define an inverse one-to-one or many relationship.
-     * Define an inverse one-to-one or many relationship with JournalEntry.
+     * The journal entry this line belongs to.
      *
      * @return BelongsTo<JournalEntry, $this>
      */
@@ -139,6 +139,7 @@ class JournalEntryChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The chart account this single-sided line posts against.
      *
      * @return BelongsTo<Chart, $this>
@@ -149,6 +150,7 @@ class JournalEntryChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company the posting belongs to.
      *
      * @return BelongsTo<Company, $this>
@@ -159,6 +161,7 @@ class JournalEntryChart extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the amounts are stated in.
      *
      * @return BelongsTo<Currency, $this>

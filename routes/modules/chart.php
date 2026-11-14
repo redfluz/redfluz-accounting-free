@@ -24,15 +24,15 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Http\Controllers\ChartOfAccount\BalanceSheetController;
-use App\Http\Controllers\ChartOfAccount\ChartController;
-use App\Http\Controllers\ChartOfAccount\ChartReportController;
-use App\Http\Controllers\ChartOfAccount\ChartReportDetailController;
-use App\Http\Controllers\ChartOfAccount\ChartReportOutputController;
-use App\Http\Controllers\ChartOfAccount\ChartSettingController;
-use App\Http\Controllers\ChartOfAccount\ChartTypeController;
-use App\Http\Controllers\ChartOfAccount\ProfitLossController;
-use App\Http\Controllers\ChartOfAccount\TrialBalanceController;
+use App\Http\Controllers\ChartOfAccount\FinanceReport\BalanceSheetController;
+use App\Http\Controllers\ChartOfAccount\FinanceReport\ProfitLossController;
+use App\Http\Controllers\ChartOfAccount\FinanceReport\TrialBalanceController;
+use App\Http\Controllers\ChartOfAccount\Report\ChartReportController;
+use App\Http\Controllers\ChartOfAccount\Report\ChartReportDetailController;
+use App\Http\Controllers\ChartOfAccount\Report\ChartReportOutputController;
+use App\Http\Controllers\ChartOfAccount\Setting\ChartController;
+use App\Http\Controllers\ChartOfAccount\Setting\ChartSettingController;
+use App\Http\Controllers\ChartOfAccount\Setting\ChartTypeController;
 use Illuminate\Support\Facades\Route;
 
 // The General Ledger is immutable accounting history: reporting routes only.

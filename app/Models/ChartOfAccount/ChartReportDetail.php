@@ -120,7 +120,7 @@ class ChartReportDetail extends Model
 
     /**
      * Define an inverse one-to-one or many relationship.
-     * Define an inverse relationship with the report template.
+     * The report template this row belongs to.
      *
      * @return BelongsTo<ChartReport, $this>
      */
@@ -131,7 +131,7 @@ class ChartReportDetail extends Model
 
     /**
      * Define an inverse one-to-one or many relationship.
-     * Define an inverse relationship with the parent report row.
+     * The parent row when this row is grouped.
      *
      * @return BelongsTo<ChartReportDetail, $this>
      */
@@ -142,7 +142,7 @@ class ChartReportDetail extends Model
 
     /**
      * Define a one-to-many relationship.
-     * Define a one-to-many relationship with child report rows.
+     * The rows grouped under this row.
      *
      * @return HasMany<ChartReportDetail, $this>
      */
@@ -154,7 +154,7 @@ class ChartReportDetail extends Model
 
     /**
      * Define an inverse one-to-one or many relationship.
-     * Define an inverse relationship with a specific chart account.
+     * The chart account this row reports on.
      *
      * @return BelongsTo<Chart, $this>
      */

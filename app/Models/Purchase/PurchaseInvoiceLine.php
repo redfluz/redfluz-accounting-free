@@ -101,6 +101,7 @@ class PurchaseInvoiceLine extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The invoice this line belongs to.
      *
      * @return BelongsTo<PurchaseInvoice, $this>
@@ -111,6 +112,7 @@ class PurchaseInvoiceLine extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The product being purchased.
      *
      * @return BelongsTo<Product, $this>

@@ -159,6 +159,7 @@ class BankJournal extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The bank account this journal moves money from or to.
      *
      * Only one of the three account relationships will be set on any given row;
@@ -172,6 +173,7 @@ class BankJournal extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The cash account this journal moves money from or to.
      *
      * Only one of the three account relationships will be set on any given row;
@@ -185,6 +187,7 @@ class BankJournal extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The e-wallet account this journal moves money from or to.
      *
      * Only one of the three account relationships will be set on any given row;
@@ -230,6 +233,7 @@ class BankJournal extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The chart account on the other side of the movement.
      *
      * @return BelongsTo<Chart, $this>

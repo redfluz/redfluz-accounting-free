@@ -49,6 +49,7 @@ use App\Models\Inventory\StockLocation;
 use App\Services\DecimalService;
 use App\Support\Data\Inventory\ProductData;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
@@ -60,6 +61,9 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
+
+use function is_array;
+use function is_string;
 
 class ProductController extends Controller
 {
@@ -470,8 +474,9 @@ class ProductController extends Controller
         }
 
         $storedPaths = [];
+        $product = null;
         try {
-            DB::transaction(function () use ($data, $request, &$storedPaths, $uploadedImages, $variantRows): void {
+            DB::transaction(function () use ($data, $request, &$storedPaths, $uploadedImages, $variantRows, &$product): void {
                 $product = new Product;
                 $product->fill($data->toCreateRow());
                 $product->save();
@@ -554,7 +559,7 @@ class ProductController extends Controller
         }
 
         return redirect()
-            ->route('inventory.products.index')
+            ->route('inventory.products.show', $product)
             ->with('success', FlashMessage::created(FileResources::PRODUCTS));
     }
 
@@ -579,11 +584,11 @@ class ProductController extends Controller
             ->where(fn ($query) => $query->where('is_creditor', true)->orWhereKey($product->supplier_company_id))
             ->orderBy('name')->get(['id', 'name']);
         $categories = ProductCategory::query()
-            ->where(function (\Illuminate\Database\Eloquent\Builder $query) use ($product): void {
+            ->where(function (Builder $query) use ($product): void {
                 $query->where('is_active', true)->orWhereKey($product->product_category_id);
             })
             ->with(['types' => function (HasMany $query) use ($product): void {
-                $query->where(function (\Illuminate\Database\Eloquent\Builder $typeQuery) use ($product): void {
+                $query->where(function (Builder $typeQuery) use ($product): void {
                     $typeQuery->where('is_active', true)->orWhereKey($product->product_type_id);
                 });
             }])
@@ -846,7 +851,7 @@ class ProductController extends Controller
         }
 
         return redirect()
-            ->route('inventory.products.index')
+            ->route('inventory.products.show', $product)
             ->with('success', FlashMessage::updated(FileResources::PRODUCTS));
     }
 

@@ -185,11 +185,7 @@ class PurchaseOrder extends Model
     }
 
     /**
-     * Define a one-to-many relationship.
-     *
-     * @return HasMany<PurchaseOrderLine, $this>
-     */
-    /**
+     * Define a one-to-one relationship.
      * The invoice raised against this order, if any.
      *
      * @return HasOne<PurchaseInvoice, $this>
@@ -200,6 +196,7 @@ class PurchaseOrder extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The line items this order is made of.
      *
      * @return HasMany<PurchaseOrderLine, $this>

@@ -162,6 +162,7 @@ class SalesInvoice extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The line items this invoice is made of.
      *
      * @return HasMany<SalesInvoiceLine, $this>
@@ -172,6 +173,7 @@ class SalesInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The sales order this invoice was raised against, if any.
      *
      * @return BelongsTo<SalesOrder, $this>
@@ -182,6 +184,7 @@ class SalesInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The quotation this invoice converted from, if any.
      *
      * @return BelongsTo<Quotation, $this>
@@ -192,6 +195,7 @@ class SalesInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company this invoice is addressed to.
      *
      * @return BelongsTo<Company, $this>
@@ -202,6 +206,7 @@ class SalesInvoice extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The contact person at the customer.
      *
      * @return BelongsTo<Contact, $this>

@@ -179,6 +179,7 @@ class SalesOrder extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The quotation this order was converted from, if any.
      *
      * @return BelongsTo<Quotation, $this>
@@ -189,6 +190,7 @@ class SalesOrder extends Model
     }
 
     /**
+     * Define a one-to-one relationship.
      * The invoice raised against this order, if any.
      *
      * @return HasOne<SalesInvoice, $this>

@@ -138,7 +138,7 @@ class JournalEntry extends Model
 
     /**
      * Define a one-to-many relationship.
-     * Define a one-to-many relationship with JournalEntryChart.
+     * The chart lines that make up the entry.
      *
      * @return HasMany<JournalEntryChart, $this>
      */

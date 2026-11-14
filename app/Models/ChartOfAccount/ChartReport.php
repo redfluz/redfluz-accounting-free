@@ -89,7 +89,7 @@ class ChartReport extends Model
 
     /**
      * Define a one-to-many relationship.
-     * Define a one-to-many relationship with the ordered report rows.
+     * The ordered rows that make up the report.
      *
      * @return HasMany<ChartReportDetail, $this>
      */

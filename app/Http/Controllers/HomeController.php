@@ -26,7 +26,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DashboardCrmService;
+use App\Services\Dashboard\DashboardCrmService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;

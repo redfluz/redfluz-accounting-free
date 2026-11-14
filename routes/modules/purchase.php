@@ -24,17 +24,17 @@
  * strictly prohibited without explicit written permission from the copyright owner.
  */
 
-use App\Http\Controllers\Purchase\GoodsReceiptAdjustmentController;
-use App\Http\Controllers\Purchase\GoodsReceiptController;
+use App\Http\Controllers\Purchase\GoodsReceipt\GoodsReceiptAdjustmentController;
+use App\Http\Controllers\Purchase\GoodsReceipt\GoodsReceiptController;
+use App\Http\Controllers\Purchase\GoodsReceipt\PurchaseReturnController;
 use App\Http\Controllers\Purchase\Invoice\CancelledController as InvoiceCancelledController;
 use App\Http\Controllers\Purchase\Invoice\HistoryController as InvoiceHistoryController;
+use App\Http\Controllers\Purchase\Invoice\PurchaseInvoiceController;
 use App\Http\Controllers\Purchase\ManualAdjustment\CancelledController;
 use App\Http\Controllers\Purchase\ManualAdjustment\HistoryController;
-use App\Http\Controllers\Purchase\ManualPurchaseAdjustmentController;
-use App\Http\Controllers\Purchase\PurchaseInvoiceController;
-use App\Http\Controllers\Purchase\PurchaseOrderController;
-use App\Http\Controllers\Purchase\PurchaseOrderSettingController;
-use App\Http\Controllers\Purchase\PurchaseReturnController;
+use App\Http\Controllers\Purchase\ManualAdjustment\ManualPurchaseAdjustmentController;
+use App\Http\Controllers\Purchase\Order\PurchaseOrderController;
+use App\Http\Controllers\Purchase\Order\PurchaseOrderSettingController;
 use App\Http\Controllers\Purchase\SupplierOutstandingController;
 use Illuminate\Support\Facades\Route;
 

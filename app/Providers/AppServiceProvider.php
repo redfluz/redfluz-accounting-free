@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Doctor\Diagnostics\UploadLimitsAllowUploads;
 use App\Http\Controllers\Controller;
 use App\Models\System\Setting;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Doctor\Doctor;
 use Spatie\Backup\Events\DumpingDatabase;
 
 /**
@@ -40,5 +42,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Blade cannot read the protected controller constant directly.
         View::share('perPageGridDetail', Controller::detailGridRows());
+
+        if (class_exists(Doctor::class)) {
+            $this->app->make(Doctor::class)->diagnostic(UploadLimitsAllowUploads::class);
+        }
     }
 }

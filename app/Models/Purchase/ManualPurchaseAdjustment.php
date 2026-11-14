@@ -159,6 +159,7 @@ class ManualPurchaseAdjustment extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The invoice this note corrects, if it was linked to one.
      *
      * @return BelongsTo<PurchaseInvoice, $this>
@@ -169,6 +170,7 @@ class ManualPurchaseAdjustment extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The chart of accounts this note is keyed against.
      *
      * @return HasMany<ManualPurchaseAdjustmentChart, $this>
@@ -179,6 +181,7 @@ class ManualPurchaseAdjustment extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company the note is for.
      *
      * @return BelongsTo<Company, $this>

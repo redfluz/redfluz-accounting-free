@@ -34,8 +34,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\System\Role\StoreRoleRequest;
 use App\Http\Requests\System\Role\UpdateRoleRequest;
 use App\Models\Menu\Folder;
+use App\Models\Menu\FolderPermission;
 use App\Models\Menu\Page;
 use App\Models\Menu\PageGrouping;
+use App\Models\Menu\PageGroupingPermission;
+use App\Models\Menu\PagePermission;
 use App\Models\System\Role;
 use App\Models\System\User;
 use App\Support\Data\System\RoleData;
@@ -122,7 +125,10 @@ final class RoleController extends Controller
         $data = RoleData::from($request->validated());
 
         DB::transaction(function () use ($data) {
-            $role = Role::query()->create($data->toCreateRow());
+            $role = Role::query()->create([
+                'name' => $data->name,
+                'dashboard' => $data->dashboard,
+            ]);
 
             $now = now();
 
@@ -136,7 +142,7 @@ final class RoleController extends Controller
             ])->toArray();
 
             if ($folderData) {
-                DB::table('folder_permissions')->insert($folderData);
+                FolderPermission::query()->insert($folderData);
             }
 
             $pageData = Page::query()->pluck('id')->map(fn ($id) => [
@@ -154,7 +160,7 @@ final class RoleController extends Controller
             ])->toArray();
 
             if ($pageData) {
-                DB::table('page_permissions')->insert($pageData);
+                PagePermission::query()->insert($pageData);
             }
 
             // MenuServices reads page_grouping_permissions to decide which
@@ -171,7 +177,7 @@ final class RoleController extends Controller
             ])->toArray();
 
             if ($pageGroupingData) {
-                DB::table('page_grouping_permissions')->insert($pageGroupingData);
+                PageGroupingPermission::query()->insert($pageGroupingData);
             }
         });
 

@@ -163,6 +163,7 @@ class Receipt extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The customer the money was received from.
      *
      * @return BelongsTo<Company, $this>
@@ -173,6 +174,8 @@ class Receipt extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
+     *
      * @return BelongsTo<Bank, $this>
      */
     public function bankAccount(): BelongsTo
@@ -181,6 +184,8 @@ class Receipt extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
+     *
      * @return BelongsTo<CashAccount, $this>
      */
     public function cashAccount(): BelongsTo
@@ -189,6 +194,8 @@ class Receipt extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
+     *
      * @return BelongsTo<EWalletAccount, $this>
      */
     public function eWalletAccount(): BelongsTo
@@ -197,6 +204,7 @@ class Receipt extends Model
     }
 
     /**
+     * Define a one-to-many relationship.
      * The receivable entries this receipt raised when it was posted.
      *
      * Matched on the document number plus the subtype: the receivable ledger

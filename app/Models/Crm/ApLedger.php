@@ -105,6 +105,7 @@ class ApLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The chart account the figure was booked against.
      *
      * @return BelongsTo<Chart, $this>
@@ -115,6 +116,7 @@ class ApLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The supplier this figure is owed to.
      *
      * @return BelongsTo<Company, $this>
@@ -125,6 +127,7 @@ class ApLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the figure is in.
      *
      * @return BelongsTo<Currency, $this>

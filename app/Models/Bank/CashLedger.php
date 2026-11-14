@@ -103,6 +103,7 @@ class CashLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The cash account this movement is against.
      *
      * @return BelongsTo<CashAccount, $this>
@@ -113,6 +114,7 @@ class CashLedger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the movement is in.
      *
      * @return BelongsTo<Currency, $this>

@@ -377,47 +377,6 @@
 
 @section('script')
     <script>
-        function previewProductImages(event) {
-            const input = event.target;
-            const preview = document.getElementById('attachment-preview');
-            const errorBox = document.getElementById('images-size-error');
-            errorBox.classList.add('d-none');
-            errorBox.textContent = '';
-            preview.replaceChildren();
-
-            const files = Array.from(input.files);
-            const oversized = files.filter((file) => file.size > 8000 * 1024);
-            const accepted = files.filter((file) => file.size <= 8000 * 1024);
-
-            if (oversized.length > 0) {
-                errorBox.textContent = errorBox.dataset.tooLarge + ' ' + oversized.map((file) => file.name).join(', ');
-                errorBox.classList.remove('d-none');
-
-                const store = new DataTransfer();
-                accepted.forEach((file) => store.items.add(file));
-                input.files = store.files;
-            }
-
-            accepted.forEach((file) => {
-                const column = document.createElement('div');
-                const image = document.createElement('img');
-                const caption = document.createElement('div');
-                const reader = new FileReader();
-
-                column.className = 'col-6 md:col-4 xl:col-3';
-                image.className = 'img-thumbnail object-fit-cover w-100';
-                image.style.height = '140px';
-                image.alt = file.name;
-                caption.className = 'small text-truncate mt-1';
-                caption.textContent = file.name;
-                reader.addEventListener('load', (loadEvent) => {
-                    image.src = loadEvent.target.result;
-                });
-                reader.readAsDataURL(file);
-                column.append(image, caption);
-                preview.append(column);
-            });
-        }
 
         function updateProductPurchaseFields() {
             const isService = document.getElementById('is_service').checked;

@@ -114,7 +114,8 @@ $primaryImagePath = $product->attachments->first()?->file_path ?? $product->imag
                 @forelse ($product->attachments as $attachment)
                     <div class="col-6 md:col-4 xl:col-2">
                         <a href="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
-                            target="_blank">
+                            data-fancybox="product-attachments"
+                            data-caption="{{ $attachment->original_name }}">
                             <img class="img-thumbnail object-fit-cover w-100"
                                 src="{{ route('inventory.products.attachments.download', [$product, $attachment]) }}"
                                 alt="{{ $attachment->original_name }}" style="height: 150px" />

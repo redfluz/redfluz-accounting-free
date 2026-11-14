@@ -25,15 +25,15 @@
  */
 
 use App\Http\Controllers\Sales\CustomerOutstandingController;
-use App\Http\Controllers\Sales\DeliveryOrderController;
 use App\Http\Controllers\Sales\Invoice\CancelledController as InvoiceCancelledController;
 use App\Http\Controllers\Sales\Invoice\HistoryController as InvoiceHistoryController;
+use App\Http\Controllers\Sales\Invoice\SalesInvoiceController;
 use App\Http\Controllers\Sales\ManualAdjustment\CancelledController;
 use App\Http\Controllers\Sales\ManualAdjustment\HistoryController;
-use App\Http\Controllers\Sales\ManualSalesAdjustmentController;
-use App\Http\Controllers\Sales\QuotationController;
-use App\Http\Controllers\Sales\SalesInvoiceController;
-use App\Http\Controllers\Sales\SalesOrderController;
+use App\Http\Controllers\Sales\ManualAdjustment\ManualSalesAdjustmentController;
+use App\Http\Controllers\Sales\Order\DeliveryOrderController;
+use App\Http\Controllers\Sales\Order\QuotationController;
+use App\Http\Controllers\Sales\Order\SalesOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('quotations', [QuotationController::class, 'index'])->name('sales.quotations.index');

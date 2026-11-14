@@ -31,6 +31,7 @@ A lightweight accounting and business management system built with Laravel.
 
 - PHP `^8.5` (8.5 or later, below 9.0)
 - PHP extensions: BCMath, GD, PDO, SQLite (`pdo_sqlite` and `sqlite3`), ZIP, and Laravel's Ctype, cURL, DOM, Fileinfo, Filter, Hash, Mbstring, OpenSSL, PCRE, Session, Tokenizer and XML extensions
+- PHP upload limits: `upload_max_filesize >= 8M` and `post_max_size >= 100M` in `php.ini` (the product form accepts up to 10 images of 8,000 KB each). After changing `php.ini`, restart your web server/PHP-FPM or `php artisan serve`. Run `php artisan doctor` to verify.
 - Composer
 - Node.js `^20.19.0 || >=22.12.0` & NPM (Vite 8's engine requirement)
 

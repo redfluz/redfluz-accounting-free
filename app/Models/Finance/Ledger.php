@@ -103,6 +103,7 @@ class Ledger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The chart account this posting moved.
      *
      * @return BelongsTo<Chart, $this>
@@ -113,6 +114,7 @@ class Ledger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The company this posting is for.
      *
      * @return BelongsTo<Company, $this>
@@ -123,6 +125,7 @@ class Ledger extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The currency the figures are in.
      *
      * @return BelongsTo<Currency, $this>

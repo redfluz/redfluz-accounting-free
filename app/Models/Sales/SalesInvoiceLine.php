@@ -129,6 +129,7 @@ class SalesInvoiceLine extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The invoice this line belongs to.
      *
      * @return BelongsTo<SalesInvoice, $this>
@@ -139,6 +140,7 @@ class SalesInvoiceLine extends Model
     }
 
     /**
+     * Define an inverse one-to-one or many relationship.
      * The product being sold.
      *
      * @return BelongsTo<Product, $this>

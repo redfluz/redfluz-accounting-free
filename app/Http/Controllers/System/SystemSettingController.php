@@ -86,8 +86,6 @@ class SystemSettingController extends Controller
             $this->deleteLogo($setting);
             $data->logoPath = $this->storeUpload($request->file('logo'), 'settings', self::PUBLIC_DISK);
         } else {
-            // The logo path is not part of the form validation; preserve the
-            // existing value when no new file is uploaded.
             $data->logoPath = $setting?->logo_path;
         }
 
